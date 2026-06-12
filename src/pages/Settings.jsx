@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Save, Settings2, Target, Tags } from 'lucide-react';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
-import AppNav from '../components/AppNav';
 import { Button } from '../components/ui/button';
 import { useTheme } from '../hooks/useTheme';
 import { defaultExpenseCategories, defaultIncomeCategories } from '../data/categories';
@@ -138,8 +137,6 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-5xl space-y-6 p-4 pb-24 md:p-6">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-zx-line bg-zx-surface px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-text-soft">
@@ -304,6 +301,5 @@ export default function Settings() {
           </Button>
         </form>
       </main>
-    </div>
   );
 }

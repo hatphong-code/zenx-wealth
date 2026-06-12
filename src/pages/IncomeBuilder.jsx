@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
-import AppNav from '../components/AppNav';
 import { Button } from '../components/ui/button';
 import { formatMoney } from '../utils/formatters';
 import {
@@ -127,8 +126,6 @@ export default function IncomeBuilder() {
   const { currency, incomeSources, summary } = data;
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold">Income Builder</h1>
@@ -240,7 +237,6 @@ export default function IncomeBuilder() {
           )}
         </section>
       </main>
-    </div>
   );
 }
 

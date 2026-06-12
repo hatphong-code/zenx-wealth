@@ -2,7 +2,6 @@ import { useAuth } from '../auth/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { AlertTriangle, Zap } from 'lucide-react';
-import AppNav from '../components/AppNav';
 import { formatMoney } from '../utils/formatters';
 import { useLatteFactor } from '../hooks/useLatteFactor';
 
@@ -16,8 +15,6 @@ export default function LatteFactor() {
   };
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
         <div className="space-y-2">
           <h1 className="font-zx-head text-2xl font-bold">Latte Factor Engine</h1>
@@ -77,6 +74,5 @@ export default function LatteFactor() {
           Move {formatMoney(Math.floor(latteData.total * 0.6), currency)} to emergency fund
         </Button>
       </main>
-    </div>
   );
 }

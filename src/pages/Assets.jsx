@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Landmark, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
-import AppNav from '../components/AppNav';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { formatMoney } from '../utils/formatters';
@@ -118,8 +117,6 @@ export default function Assets() {
   const { currency, accounts, summary } = data;
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-surface">
@@ -221,7 +218,6 @@ export default function Assets() {
           )}
         </section>
       </main>
-    </div>
   );
 }
 

@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { deleteDoc, doc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import AppNav from '../components/AppNav';
 import { Button } from '../components/ui/button';
 import { formatDate, formatMoney } from '../utils/formatters';
 import { db } from '../services/firebaseDb';
@@ -48,8 +47,6 @@ export default function Transactions() {
   };
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
@@ -195,7 +192,6 @@ export default function Transactions() {
           )}
         </section>
       </main>
-    </div>
   );
 }
 

@@ -11,7 +11,6 @@ import {
   YAxis,
 } from 'recharts';
 import { useAuth } from '../auth/useAuth';
-import AppNav from '../components/AppNav';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useReportsData } from '../hooks/useReportsData';
 import { useI18n } from '../i18n/useI18n';
@@ -36,8 +35,6 @@ export default function Reports() {
   const currency = data.currency || 'VND';
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
         <section className="rounded-zx border border-zx-line bg-zx-hero p-5 md:p-6">
           <div className="space-y-2">
@@ -229,7 +226,6 @@ export default function Reports() {
           ))}
         </section>
       </main>
-    </div>
   );
 }
 

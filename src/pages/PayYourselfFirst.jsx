@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PiggyBank, Save } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
-import AppNav from '../components/AppNav';
 import { Button } from '../components/ui/button';
 import { formatMoney, formatNumber } from '../utils/formatters';
 import { getCachedUserProfile } from '../services/userService';
@@ -71,8 +70,6 @@ export default function PayYourselfFirst() {
   };
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-surface">
@@ -166,7 +163,6 @@ export default function PayYourselfFirst() {
           </div>
         </section>
       </main>
-    </div>
   );
 }
 

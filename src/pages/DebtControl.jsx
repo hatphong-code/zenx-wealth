@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
-import AppNav from '../components/AppNav';
 import { Button } from '../components/ui/button';
 import { formatMoney, formatNumber } from '../utils/formatters';
 import {
@@ -136,8 +135,6 @@ export default function DebtControl() {
   const { currency, debts, summary } = data;
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold">Debt Control</h1>
@@ -332,7 +329,6 @@ export default function DebtControl() {
           )}
         </section>
       </main>
-    </div>
   );
 }
 

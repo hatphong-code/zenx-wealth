@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { CheckCircle2, Save } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
-import AppNav from '../components/AppNav';
 import { saveRoadmapPhase, setWealthRoadmapCache } from '../services/wealthRoadmapService';
 import { useWealthRoadmapData } from '../hooks/useWealthRoadmapData';
 
@@ -64,8 +63,6 @@ export default function WealthRoadmap() {
   };
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
         <section className="rounded-zx border border-zx-line bg-zx-hero p-5 md:p-6">
           <div className="space-y-3">
@@ -157,7 +154,6 @@ export default function WealthRoadmap() {
           ))}
         </section>
       </main>
-    </div>
   );
 }
 

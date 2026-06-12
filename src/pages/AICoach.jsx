@@ -9,7 +9,6 @@ import {
   TriangleAlert,
 } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
-import AppNav from '../components/AppNav';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useAICoachData } from '../hooks/useAICoachData';
 import { useI18n } from '../i18n/useI18n';
@@ -34,8 +33,6 @@ export default function AICoach() {
   const { data, loading, refreshing, error } = useAICoachData(user?.uid);
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
         <section className="overflow-hidden rounded-zx border border-zx-line bg-zx-hero p-5 md:p-7">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -161,7 +158,6 @@ export default function AICoach() {
           ))}
         </section>
       </main>
-    </div>
   );
 }
 

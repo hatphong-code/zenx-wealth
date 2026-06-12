@@ -3,7 +3,6 @@ import { updateProfile } from 'firebase/auth';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
 import { Save, UserCircle } from 'lucide-react';
-import AppNav from '../components/AppNav';
 import { Button } from '../components/ui/button';
 import { db } from '../services/firebaseDb';
 import { formatMoney } from '../utils/formatters';
@@ -174,8 +173,6 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-4xl space-y-6 p-4 pb-24 md:p-6">
         <div className="flex items-center gap-3">
           {user?.photoURL ? (
@@ -295,7 +292,6 @@ export default function Profile() {
           </Button>
         </form>
       </main>
-    </div>
   );
 }
 

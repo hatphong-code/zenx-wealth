@@ -4,6 +4,7 @@ import { useAuth } from './auth/useAuth';
 import { featureCatalogByKey } from './data/accessControl';
 import { useFeatureAccess } from './hooks/useFeatureAccess';
 import { useI18n } from './i18n/useI18n';
+import AppShell from './components/AppShell';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const LatteFactor = lazy(() => import('./pages/LatteFactor'));
@@ -74,10 +75,10 @@ function PrivateRoute({ children, featureKey, adminOnly = false }) {
   if (accessLoading) return <PageFallback />;
   if (adminOnly && !isAdmin) return <Navigate to="/" />;
   if (featureKey && !adminOnly && !canAccess(featureKey)) {
-    return <LockedFeature featureKey={featureKey} subscriptionTier={subscriptionTier} isAdmin={isAdmin} />;
+    return <AppShell><LockedFeature featureKey={featureKey} subscriptionTier={subscriptionTier} isAdmin={isAdmin} /></AppShell>;
   }
 
-  return children;
+  return <AppShell>{children}</AppShell>;
 }
 
 function routeElement(element) {

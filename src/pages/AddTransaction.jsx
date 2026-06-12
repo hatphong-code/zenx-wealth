@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { addDoc, collection, doc, getDoc, serverTimestamp, Timestamp, updateDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
-import AppNav from '../components/AppNav';
 import { Button } from '../components/ui/button';
 import { db } from '../services/firebaseDb';
 import { formatMoney } from '../utils/formatters';
@@ -141,19 +140,12 @@ export default function AddTransaction() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-zx-bg text-zx-text">
-        <AppNav />
-        <div className="p-10 text-center">Loading transaction...</div>
-      </div>
-    );
+    return <div className="p-10 text-center text-zx-text-soft">Loading transaction...</div>;
   }
 
   const activeSuggestions = categorySuggestions[form.type] || [];
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-2xl p-4 pb-24 md:p-6">
         <h1 className="mb-6 text-2xl font-bold">{isEditing ? 'Edit Transaction' : 'Add Transaction'}</h1>
 
@@ -285,7 +277,6 @@ export default function AddTransaction() {
           </div>
         </form>
       </main>
-    </div>
   );
 }
 

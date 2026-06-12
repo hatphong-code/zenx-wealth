@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { doc, serverTimestamp, setDoc, Timestamp } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
 import { ClipboardCheck, Save } from 'lucide-react';
-import AppNav from '../components/AppNav';
 import { Button } from '../components/ui/button';
 import { db } from '../services/firebaseDb';
 import { invalidateReportsCache } from '../services/reportsService';
@@ -77,8 +76,6 @@ export default function WeeklyReview() {
   };
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
         <section className="rounded-zx border border-zx-line bg-zx-hero p-5 md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -170,7 +167,6 @@ export default function WeeklyReview() {
           </Button>
         </form>
       </main>
-    </div>
   );
 }
 

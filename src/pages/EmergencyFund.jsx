@@ -10,7 +10,6 @@ import {
 } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
 import { Pencil, Plus, Shield, Trash2 } from 'lucide-react';
-import AppNav from '../components/AppNav';
 import { Button } from '../components/ui/button';
 import { db } from '../services/firebaseDb';
 import { formatDate, formatMoney, formatNumber } from '../utils/formatters';
@@ -105,8 +104,6 @@ export default function EmergencyFund() {
   const inputCls = 'w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent';
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-icon-bg">
@@ -249,6 +246,5 @@ export default function EmergencyFund() {
           )}
         </section>
       </main>
-    </div>
   );
 }

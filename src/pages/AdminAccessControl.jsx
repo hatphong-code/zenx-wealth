@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Crown, Save, ShieldCheck, Sparkles } from 'lucide-react';
-import AppNav from '../components/AppNav';
 import { Button } from '../components/ui/button';
 import { useAuth } from '../auth/useAuth';
 import { featureCatalog, featureGroups, SUBSCRIPTION_TIERS } from '../data/accessControl';
@@ -101,8 +100,6 @@ export default function AdminAccessControl() {
   };
 
   return (
-    <div className="min-h-screen bg-zx-bg text-zx-text">
-      <AppNav />
       <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
         <section className="rounded-zx border border-zx-line bg-zx-hero p-5 md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -220,6 +217,5 @@ export default function AdminAccessControl() {
           </>
         )}
       </main>
-    </div>
   );
 }
