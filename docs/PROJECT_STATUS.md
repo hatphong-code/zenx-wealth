@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-12
+Last updated: 2026-06-12 (v1.4)
 
 ## Current Phase
 
@@ -128,27 +128,34 @@ users/{userId}/tradingRisk/{recordId}
 appConfig/access-control
 ```
 
+## Completed in v1.1–v1.4 (2026-06-12)
+
+- **QuickCapture FAB** — fixed `+` above bottom tabs on all mobile pages
+- **Latte→Convert** — TrackHub bottom sheet → creates emergency fund record → success state
+- **Net Worth tile** — Dashboard hero: assets − debts alongside net cash flow
+- **Savings Rate tile** — replaced redundant cash flow tile with savings %
+- **Smart AddTransaction** — Vietnamese UI, type toggle, Latte auto-detect by keyword, quick-tap chips
+- **PlanHub ETA** — months to next emergency fund milestone at current rate
+- **Milestone celebration** — ✦ + colored label at 1/3/6/12 month thresholds
+- **Latte tip in PlanHub** — "Cắt Latte Factor = +X/tháng" contextual insight
+- **Guided 3-step Weekly Review** — Numbers → Reflect (AI insight) → Commit; success screen
+- **AI contextual insight** — personalized text from latte %, savings rate, score
+- **ReviewHub score history** — last 5 weekly scores as mini bar chart sparkline
+
 ## Known Gaps
 
-- **QuickCapture FAB**: no floating action button for instant expense logging from any screen
-- **Latte → Convert flow**: user can see leaks but cannot directly transfer detected leakage to emergency fund
-- **Net worth tile** on Dashboard: roadmap specifies this as a key metric; currently absent
-- **PlanHub phase celebration**: no milestone animation/feedback when emergency fund hits 1/3/6 months
-- **ReviewHub → WeeklyReview UX**: review form itself still a plain form; could be more guided (step-by-step)
-- Latte Factor month-over-month percentage is still simplified
+- Latte Factor month-over-month percentage still simplified
 - AI Coach is rule-based, not LLM-backed
 - Reports still reads raw records for list-heavy routes
 - Free/Premium gating has no billing backend
-- Firebase Auth must have Apple/Google/Email providers enabled manually in console
+- Firebase Auth must have Apple/Google/Email providers enabled in console
 - Authorized domains must include `wealth.zenx.asia`
 
-## Next Recommended Work (Priority Order)
+## Next Recommended Work
 
-1. **QuickCapture FAB** — floating button visible on all mobile screens; one-tap to `/transactions/new` with pre-filled date. Highest friction reducer in the entire app.
-2. **Latte → Convert flow** — from TrackHub, user taps "Convert X tr to emergency fund" → shows confirmation → creates an emergency fund record. Closes the feedback loop.
-3. **Net worth tile** — add to Dashboard hero section alongside net cash flow.
-4. **Smart AddTransaction** — category autosuggest from recent patterns, one-tap Latte Factor toggle, recents shown first.
-5. **Phase milestone celebration** — PlanHub shows a congratulations state when emergency fund crosses 1/3/6 month milestones.
-6. **ReviewHub → guided step form** — transform the weekly review from a plain form into a 3-step guided flow (numbers → reflection → commitment).
-7. **AI Coach upgrade** — use actual user data to generate contextual weekly insight (rule-based is fine, just more personalized).
-8. **Desktop layout polish** — once mobile is solid, desktop sidebar customization and wide-screen Dashboard layout.
+1. **Desktop layout polish** — sidebar stat summaries, wider Dashboard on large screens
+2. **PWA / Add to homescreen** — service worker, offline read, home icon
+3. **Recurring transaction detection** — auto-flag expenses that repeat monthly
+4. **AI Coach LLM upgrade** — replace rule-based with actual LLM analysis
+5. **Monthly financial letter** — personalized 200-word month-end summary
+6. **Goal tracking** — 12-month goal → weekly trajectory signal
