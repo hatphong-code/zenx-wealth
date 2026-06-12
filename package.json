@@ -1,0 +1,55 @@
+{
+  "name": "zenx-wealth",
+  "version": "1.0.0",
+  "description": "Personal Finance OS for late starters",
+  "homepage": "https://github.com/hatphong-code/zenx-wealth#readme",
+  "bugs": {
+    "url": "https://github.com/hatphong-code/zenx-wealth/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hatphong-code/zenx-wealth.git"
+  },
+  "license": "ISC",
+  "author": "Hà Phong",
+  "type": "module",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "test": "vitest run && npm run build",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitejs/plugin-react": "^4.3.0",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^10.4.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
+    "jsdom": "^29.1.1",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4",
+    "vite": "^5.2.13",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "date-fns": "^3.6.0",
+    "firebase": "^10.12.2",
+    "lucide-react": "^0.378.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.23.1",
+    "recharts": "^2.12.7",
+    "zustand": "^4.5.2"
+  }
+}

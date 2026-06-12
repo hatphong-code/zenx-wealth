@@ -1,0 +1,59 @@
+<!-- @dsCard group="Components" viewport="700x470" name="Core — Panel · Pill · StatTile · Progress · Ring · Segmented · Nav" subtitle="Primitives rendered với token thật (theme Trẻ / Ấm)" -->
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<style>
+  body{margin:0;font-family:var(--zx-font-body);background:var(--zx-bg);color:var(--zx-text);}
+  .wrap{padding:22px 24px;}
+  .lab{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--zx-text-soft);font-weight:600;margin:0 0 10px;}
+  .sec{margin-bottom:20px;}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 12px;border-radius:var(--zx-radius-pill);}
+  .num{font-family:var(--zx-font-display);font-weight:var(--zx-weight-display);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+  .card{background:var(--zx-surface);border:var(--zx-card-border);border-radius:var(--zx-radius);box-shadow:var(--zx-shadow);padding:16px;width:160px;}
+  .ic{width:34px;height:34px;border-radius:var(--zx-radius-sm);background:var(--zx-icon-bg);color:var(--zx-accent);display:flex;align-items:center;justify-content:center;}
+  .bar{height:8px;border-radius:999px;background:var(--zx-track);overflow:hidden;width:200px;}
+  .bar>span{display:block;height:100%;border-radius:999px;background:var(--zx-fill);}
+  .seg{display:inline-flex;padding:3px;border-radius:999px;gap:2px;background:rgba(0,0,0,.05);}
+  .seg button{border:none;cursor:pointer;border-radius:999px;padding:7px 14px;font:inherit;font-size:12.5px;font-weight:600;background:transparent;color:rgba(0,0,0,.55);}
+  .seg button.on{background:#1A1714;color:#fff;}
+  .nav{display:flex;gap:6px;}
+  .nav .it{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:var(--zx-radius-sm);font-size:13.5px;font-weight:500;color:var(--zx-text-soft);}
+  .nav .it.on{background:var(--zx-accent-soft);color:var(--zx-accent);font-weight:700;}
+  .cols{display:flex;gap:26px;align-items:flex-start;}
+</style></head>
+<body><div class="wrap" data-theme="young">
+  <div class="sec"><div class="lab">Pill</div>
+    <div class="row">
+      <span class="pill" style="background:var(--zx-positive-soft);color:var(--zx-positive)">↑ Thu nhập 38 tr</span>
+      <span class="pill" style="background:var(--zx-accent-soft);color:var(--zx-accent)">↓ 18% tháng này</span>
+      <span class="pill" style="background:var(--zx-surface-2);color:var(--zx-text-soft)">Chi tiêu 25,5 tr</span>
+      <span class="pill" style="background:var(--zx-accent);color:var(--zx-on-accent)">+ Thêm giao dịch</span>
+    </div>
+  </div>
+  <div class="cols">
+    <div class="sec"><div class="lab">StatTile (Panel card)</div>
+      <div class="card">
+        <div class="ic"><svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h11v3.5A4.5 4.5 0 0 1 10.5 17h-2A4.5 4.5 0 0 1 4 12.5V9Z"/><path d="M15 10h1.5a2 2 0 0 1 0 4H15"/><path d="M7 3v2M10.5 3v2"/></svg></div>
+        <div style="font-size:12.5px;font-weight:600;color:var(--zx-text-soft);margin-top:14px">Tiền vặt rò rỉ</div>
+        <div class="num" style="font-size:23px;margin-top:4px">6,8 tr</div>
+        <div style="font-size:11.5px;font-weight:600;color:var(--zx-positive);margin-top:5px">↓ 18% tháng này</div>
+      </div>
+    </div>
+    <div class="sec"><div class="lab">Ring</div>
+      <svg width="120" height="120" style="transform:rotate(-90deg)">
+        <circle cx="60" cy="60" r="54" fill="none" stroke="var(--zx-track)" stroke-width="11"/>
+        <circle cx="60" cy="60" r="54" fill="none" stroke="var(--zx-accent)" stroke-width="11" stroke-linecap="round" stroke-dasharray="339.3" stroke-dashoffset="159.4"/>
+      </svg>
+    </div>
+    <div class="sec" style="flex:1">
+      <div class="lab">ProgressBar</div>
+      <div class="bar" style="margin-bottom:18px"><span style="width:53%"></span></div>
+      <div class="lab">Segmented</div>
+      <div class="seg" style="margin-bottom:18px"><button class="on">Trẻ · Ấm</button><button>Trung niên</button></div>
+      <div class="lab">NavItem</div>
+      <div class="nav">
+        <span class="it on"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L10 4l7 5.5V16a1 1 0 0 1-1 1h-3v-5H7v5H4a1 1 0 0 1-1-1V9.5Z"/></svg>Tổng quan</span>
+        <span class="it"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3l6 2v5c0 4-3 6-6 7-3-1-6-3-6-7V5l6-2Z"/></svg>Phòng thân</span>
+      </div>
+    </div>
+  </div>
+</div></body></html>

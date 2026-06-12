@@ -1,0 +1,303 @@
+import { useEffect, useState } from 'react';
+import { updateProfile } from 'firebase/auth';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
+import { useAuth } from '../auth/useAuth';
+import { Save, UserCircle } from 'lucide-react';
+import AppNav from '../components/AppNav';
+import { Button } from '../components/ui/button';
+import { db } from '../services/firebaseDb';
+import { formatMoney } from '../utils/formatters';
+import { getCachedUserProfile, getUserProfile, setUserProfileCache } from '../services/userService';
+import { invalidateDashboardStatsCache } from '../services/dashboardService';
+import { invalidateEmergencyFundCache } from '../services/emergencyFundService';
+import { invalidateLatteFactorCache } from '../services/latteFactorService';
+import { invalidatePayYourselfFirstCache } from '../services/payYourselfFirstService';
+import { invalidateReportsCache } from '../services/reportsService';
+import { invalidateTransactionsCache } from '../services/transactionService';
+import { getCurrentWeekMeta, invalidateWeeklyReviewCache } from '../services/weeklyReviewService';
+import { invalidateWealthRoadmapCache } from '../services/wealthRoadmapService';
+import { invalidateAICoachCache } from '../services/aiCoachService';
+
+const defaultSettings = {
+  currency: 'VND',
+  monthlyEssentialExpense: 15000000,
+  emergencyFundTargetMonths: 6,
+  payYourselfFirstRate: 0.3,
+  allocationRule: {
+    living: 55,
+    emergencyFund: 15,
+    longTermAsset: 15,
+    businessLearning: 10,
+    highRiskTrading: 5,
+  },
+};
+
+function toForm(user, userData = {}) {
+  const settings = {
+    ...defaultSettings,
+    ...(userData.settings || {}),
+  };
+
+  return {
+    displayName: userData.displayName || user?.displayName || user?.email?.split('@')[0] || 'User',
+    email: userData.email || user?.email || '',
+    currency: settings.currency || 'VND',
+    monthlyEssentialExpense: String(settings.monthlyEssentialExpense || defaultSettings.monthlyEssentialExpense),
+    emergencyFundTargetMonths: String(settings.emergencyFundTargetMonths || defaultSettings.emergencyFundTargetMonths),
+    payYourselfFirstRate: String(Math.round((settings.payYourselfFirstRate || defaultSettings.payYourselfFirstRate) * 100)),
+  };
+}
+
+export default function Profile() {
+  const { user } = useAuth();
+  const [form, setForm] = useState(toForm(user));
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+
+    const cached = getCachedUserProfile(user.uid);
+    if (cached) {
+      setForm(toForm(user, cached));
+      setLoading(false);
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+      setRefreshing(false);
+    }
+
+    let active = true;
+
+    getUserProfile(user.uid, { forceFresh: true })
+      .then((profile) => {
+        if (!active) return;
+        setForm((current) => ({
+          ...current,
+          ...toForm(user, profile),
+        }));
+        setError('');
+      })
+      .catch((err) => {
+        if (!active) return;
+        setError(err.message || 'Failed to load profile.');
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoading(false);
+        setRefreshing(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  const updateField = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!user) return;
+
+    const monthlyEssentialExpense = Number(form.monthlyEssentialExpense);
+    const emergencyFundTargetMonths = Number(form.emergencyFundTargetMonths);
+    const payYourselfPercent = Number(form.payYourselfFirstRate);
+
+    if (!Number.isFinite(monthlyEssentialExpense) || monthlyEssentialExpense <= 0) {
+      setError('Monthly essential expense must be greater than 0.');
+      return;
+    }
+
+    if (!Number.isFinite(emergencyFundTargetMonths) || emergencyFundTargetMonths <= 0) {
+      setError('Emergency fund target months must be greater than 0.');
+      return;
+    }
+
+    if (!Number.isFinite(payYourselfPercent) || payYourselfPercent < 0 || payYourselfPercent > 100) {
+      setError('Pay Yourself First rate must stay between 0 and 100.');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const displayName = form.displayName.trim() || user.email?.split('@')[0] || 'User';
+      const existingProfile = await getUserProfile(user.uid);
+
+      if (displayName !== user.displayName) {
+        await updateProfile(user, { displayName });
+      }
+
+      const cachedProfile = {
+        ...existingProfile,
+        email: user.email || form.email,
+        displayName,
+        photoURL: user.photoURL || '',
+        settings: {
+          ...(existingProfile.settings || {}),
+          currency: form.currency,
+          monthlyEssentialExpense,
+          emergencyFundTargetMonths,
+          payYourselfFirstRate: payYourselfPercent / 100,
+        },
+      };
+
+      await setDoc(doc(db, 'users', user.uid), {
+        ...cachedProfile,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+
+      setUserProfileCache(user.uid, cachedProfile);
+      invalidateDashboardStatsCache(user.uid);
+      invalidateEmergencyFundCache(user.uid);
+      invalidateLatteFactorCache(user.uid);
+      invalidatePayYourselfFirstCache(user.uid);
+      invalidateReportsCache(user.uid);
+      invalidateAICoachCache(user.uid);
+      invalidateTransactionsCache(user.uid);
+      const weekMeta = getCurrentWeekMeta();
+      invalidateWeeklyReviewCache(user.uid, weekMeta.weekKey);
+      invalidateWealthRoadmapCache(user.uid);
+      setMessage('Profile saved.');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0B1020] text-white">
+      <AppNav />
+      <main className="mx-auto max-w-4xl space-y-6 p-4 pb-24 md:p-6">
+        <div className="flex items-center gap-3">
+          {user?.photoURL ? (
+            <img src={user.photoURL} alt="" className="h-12 w-12 rounded-full" />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#111827]">
+              <UserCircle className="h-7 w-7 text-gray-300" />
+            </div>
+          )}
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold">User Profile</h1>
+            <p className="text-sm text-gray-400">Account and personal finance settings.</p>
+            {loading && <p className="text-sm text-gray-400">Loading profile...</p>}
+            {refreshing && <p className="text-sm text-blue-300">Refreshing profile...</p>}
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border border-[#1F2937] bg-[#111827] p-5">
+          <section className="space-y-4">
+            <h2 className="text-lg font-semibold">Account</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block space-y-2">
+                <span className="text-sm text-gray-300">Display name</span>
+                <input
+                  type="text"
+                  value={form.displayName}
+                  onChange={(event) => updateField('displayName', event.target.value)}
+                  className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </label>
+
+              <label className="block space-y-2">
+                <span className="text-sm text-gray-300">Email</span>
+                <input
+                  type="email"
+                  value={form.email}
+                  className="w-full rounded border border-gray-700 bg-[#0B1020] p-3 text-gray-400"
+                  disabled
+                />
+              </label>
+            </div>
+          </section>
+
+          <section className="space-y-4 border-t border-[#1F2937] pt-5">
+            <h2 className="text-lg font-semibold">Financial Settings</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block space-y-2">
+                <span className="text-sm text-gray-300">Currency</span>
+                <select
+                  value={form.currency}
+                  onChange={(event) => updateField('currency', event.target.value)}
+                  className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="VND">VND</option>
+                  <option value="USD">USD</option>
+                </select>
+              </label>
+
+              <label className="block space-y-2">
+                <span className="text-sm text-gray-300">Monthly essential expense</span>
+                <input
+                  type="number"
+                  min="1"
+                  step="any"
+                  value={form.monthlyEssentialExpense}
+                  onChange={(event) => updateField('monthlyEssentialExpense', event.target.value)}
+                  className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+                <span className="text-xs text-gray-500">
+                  {form.monthlyEssentialExpense
+                    ? `~ ${formatMoney(form.monthlyEssentialExpense, form.currency)}`
+                    : `Hint: ${formatMoney(defaultSettings.monthlyEssentialExpense, form.currency)}`}
+                </span>
+              </label>
+
+              <label className="block space-y-2">
+                <span className="text-sm text-gray-300">Emergency fund target months</span>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={form.emergencyFundTargetMonths}
+                  onChange={(event) => updateField('emergencyFundTargetMonths', event.target.value)}
+                  className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </label>
+
+              <label className="block space-y-2">
+                <span className="text-sm text-gray-300">Pay Yourself First rate (%)</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={form.payYourselfFirstRate}
+                  onChange={(event) => updateField('payYourselfFirstRate', event.target.value)}
+                  className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </label>
+            </div>
+          </section>
+
+          {error && <p className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
+          {message && <p className="rounded border border-green-900 bg-green-950/40 p-3 text-sm text-green-300">{message}</p>}
+
+          <Button
+            type="submit"
+            disabled={saving}
+            className="inline-flex w-full items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
+          >
+            <Save className="h-4 w-4" />
+            {saving ? 'Saving...' : 'Save Profile'}
+          </Button>
+        </form>
+      </main>
+    </div>
+  );
+}
+
+
+

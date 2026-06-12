@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email in ['hatphong@gmail.com'];
+    }
+
+    // Users can only read/write their own data.
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+
+      match /transactions/{transactionId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+
+      match /latteFactorLogs/{logId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+
+      match /accounts/{accountId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+
+      match /debts/{debtId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+
+      match /incomeSources/{sourceId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+
+      match /emergencyFund/{recordId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+
+      match /weeklyReviews/{reviewId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+
+      match /snapshots/{snapshotId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+
+      match /roadmap/{phaseId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+
+      match /tradingRisk/{recordId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+    }
+
+    match /appConfig/{documentId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

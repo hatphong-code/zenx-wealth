@@ -1,0 +1,35 @@
+<!-- @dsCard group="Brand" viewport="700x230" name="Nguyên tắc: Ít khung" subtitle="Mặc định mở thoáng — kẻ mảnh + khoảng trắng thay vì hộp lồng hộp" -->
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+  body{margin:0;font-family:var(--zx-font-body);background:var(--zx-bg);color:var(--zx-text);}
+  .wrap{padding:22px 26px;}
+  .h{font-family:var(--zx-font-head);font-weight:700;font-size:18px;}
+  .b{font-size:13.5px;line-height:1.55;color:var(--zx-text-soft);max-width:340px;margin-top:6px;}
+  .demo{margin-top:4px;}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--zx-text-soft);font-weight:600;}
+  .num{font-family:var(--zx-font-display);font-weight:700;color:var(--zx-positive);font-size:34px;margin:4px 0 14px;}
+  .hr{height:1px;background:var(--zx-line);margin:14px 0;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;}
+  .cell{padding:0 16px;}
+  .cell:first-child{padding-left:0;border-right:1px solid var(--zx-line);}
+  .clbl{font-size:12px;color:var(--zx-text-soft);}
+  .cnum{font-family:var(--zx-font-display);font-weight:700;font-size:20px;margin-top:3px;}
+  .cols{display:flex;gap:34px;}
+</style></head>
+<body><div class="wrap" data-theme="young">
+  <div class="cols">
+    <div style="flex:0 0 300px">
+      <div class="h">Ít khung</div>
+      <div class="b">Nội dung đặt trực tiếp trên nền, phân tách bằng đường kẻ mảnh và khoảng trắng — không lồng hộp trong hộp. Tạo cảm giác thoáng, tĩnh, dễ đọc.</div>
+    </div>
+    <div class="demo" style="flex:1">
+      <div class="eyebrow">Dòng tiền ròng · Tháng 6</div>
+      <div class="num">+12,5 tr</div>
+      <div class="hr"></div>
+      <div class="grid">
+        <div class="cell"><div class="clbl">Tiền vặt rò rỉ</div><div class="cnum">6,8 tr</div></div>
+        <div class="cell"><div class="clbl">Quỹ phòng thân</div><div class="cnum">3.2/6</div></div>
+      </div>
+    </div>
+  </div>
+</div></body></html>

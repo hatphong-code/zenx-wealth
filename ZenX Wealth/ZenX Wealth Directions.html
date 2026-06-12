@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ZenX Wealth · Hướng thẩm mỹ</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#0C1420"/>
+    <circle cx="50" cy="42" r="20" fill="none" stroke="#C9A24B" stroke-width="2.5"/>
+    <text x="50" y="49" font-family="Georgia,serif" font-size="18" font-weight="700" fill="#C9A24B" text-anchor="middle">ZX</text>
+    <text x="50" y="80" font-family="Georgia,serif" font-size="9" fill="#ECE5D6" text-anchor="middle" letter-spacing="2">WEALTH</text>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Hanken+Grotesk:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Spectral:wght@400;500;600;700&family=Archivo:wght@500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; height: 100%; background: #f0eee9; }
+  * { box-sizing: border-box; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script src="directions/shared.js"></script>
+<script type="text/babel" src="frames/design-canvas.jsx"></script>
+<script type="text/babel" src="directions/zen.jsx"></script>
+<script type="text/babel" src="directions/warm.jsx"></script>
+<script type="text/babel" src="directions/editorial.jsx"></script>
+<script type="text/babel" src="directions/private.jsx"></script>
+
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard } = window;
+
+// Desktop browser chrome wrapper
+function Browser({ dark, url, children }) {
+  const bar = dark ? '#0A1018' : '#ECE7DC';
+  const tab = dark ? '#101B2B' : '#FBF8F1';
+  const txt = dark ? '#8A93A1' : '#7C756A';
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: bar }}>
+      <div style={{ height: 40, display: 'flex', alignItems: 'center', gap: 14, padding: '0 16px', flex: '0 0 auto' }}>
+        <div style={{ display: 'flex', gap: 7 }}>
+          <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#E1604F' }} />
+          <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#E8B23A' }} />
+          <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#5FB85F' }} />
+        </div>
+        <div style={{ flex: 1, maxWidth: 360, margin: '0 auto', background: tab, borderRadius: 8, padding: '6px 14px', fontSize: 12.5, color: txt, fontFamily: 'system-ui, sans-serif', textAlign: 'center' }}>
+          {url}
+        </div>
+        <div style={{ width: 52 }} />
+      </div>
+      <div style={{ flex: 1, minHeight: 0 }}>{children}</div>
+    </div>
+  );
+}
+
+const MOBILE_W = 390, MOBILE_H = 868;
+const DESK_W = 1240;
+const phoneStyle = { borderRadius: 42, boxShadow: '0 0 0 9px #1b1b1f, 0 30px 70px rgba(0,0,0,.28)' };
+const deskStyle = { borderRadius: 14, boxShadow: '0 30px 70px rgba(0,0,0,.18)' };
+
+const DIRS = [
+  { id: 'tinh', title: '01 · Tĩnh', subtitle: 'Zen tối giản · light · nhiều khoảng trắng · Newsreader + Hanken Grotesk',
+    M: window.ZenMobile, D: window.ZenDesktop, dh: 808, dark: false, url: 'wealth.zenx.asia' },
+  { id: 'am', title: '02 · Ấm', subtitle: 'Warm / human · cream–terracotta–sage · bo tròn, khích lệ · Be Vietnam Pro',
+    M: window.WarmMobile, D: window.WarmDesktop, dh: 868, dark: false, url: 'wealth.zenx.asia' },
+  { id: 'tapchi', title: '03 · Tạp chí', subtitle: 'Editorial · newsprint · typography mạnh, tương phản cao · Spectral + Archivo',
+    M: window.EditMobile, D: window.EditDesktop, dh: 812, dark: false, url: 'wealth.zenx.asia' },
+  { id: 'tugia', title: '04 · Tư gia', subtitle: 'Private banking · navy thẫm + vàng đồng · serif sang trọng · Playfair Display',
+    M: window.PrivMobile, D: window.PrivDesktop, dh: 726, dark: true, url: 'wealth.zenx.asia' },
+];
+
+function App() {
+  return (
+    <DesignCanvas>
+      {DIRS.map((d) => (
+        <DCSection key={d.id} id={d.id} title={d.title} subtitle={d.subtitle}>
+          <DCArtboard id={d.id + '-m'} label="Mobile" width={MOBILE_W} height={MOBILE_H} style={phoneStyle}>
+            <d.M />
+          </DCArtboard>
+          <DCArtboard id={d.id + '-d'} label="Desktop" width={DESK_W} height={d.dh} style={deskStyle}>
+            <Browser dark={d.dark} url={d.url}><d.D /></Browser>
+          </DCArtboard>
+        </DCSection>
+      ))}
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+/* Spacing, radii, shadows. Radii differ by theme (Ấm rounder, Tư gia tighter). */
+
+:root {
+  /* ── Spacing scale ── */
+  --zx-space-1: 4px;
+  --zx-space-2: 8px;
+  --zx-space-3: 12px;
+  --zx-space-4: 16px;
+  --zx-space-5: 20px;
+  --zx-space-6: 24px;
+  --zx-space-8: 32px;
+  --zx-space-10: 40px;
+
+  /* ── Radii — default = Trẻ / Ấm (rounder) ── */
+  --zx-radius: 24px;
+  --zx-radius-sm: 16px;
+  --zx-radius-pill: 999px;
+
+  /* ── Shadow — default = Trẻ / Ấm (soft, warm) ── */
+  --zx-shadow: 0 1px 2px rgba(58,46,38,.04), 0 12px 30px rgba(58,46,38,.06);
+  --zx-card-border: 1px solid #F3EAD9;
+
+  /* progress / bar height */
+  --zx-bar-h: 8px;
+}
+
+[data-theme="young"] {
+  --zx-radius: 24px;
+  --zx-radius-sm: 16px;
+  --zx-shadow: 0 1px 2px rgba(58,46,38,.04), 0 12px 30px rgba(58,46,38,.06);
+  --zx-card-border: 1px solid #F3EAD9;
+}
+
+[data-theme="mid"] {
+  --zx-radius: 16px;
+  --zx-radius-sm: 11px;
+  --zx-shadow: 0 1px 0 rgba(255,255,255,.03), 0 20px 50px rgba(0,0,0,.35);
+  --zx-card-border: 1px solid rgba(201,162,75,.18);
+}
