@@ -1036,6 +1036,139 @@ Annual impact:
 
 ## 21. Roadmap phát triển sản phẩm
 
+### ✅ Version 0.1–0.9 — Foundation → AI Coach
+All core modules live and deployed at https://wealth.zenx.asia.
+See `docs/PROJECT_STATUS.md` for full implementation list.
+
+---
+
+### ✅ Version 1.0 — Design System + Mobile-First UX (2026-06-12)
+
+**Design System (ZenXWealthUI):**
+- Two audience themes: **Ấm** (warm/light, younger) and **Tư gia** (navy/gold/dark, mid-age)
+- CSS token layer: colors, typography, spacing — switchable via `data-theme`
+- Theme toggle in sidebar (desktop) and mobile top bar
+- `fmtShort()` compact number formatter
+- Ít khung visual language: hairlines + whitespace, no nested card boxes
+
+**Navigation Architecture:**
+- Desktop: accordion sidebar — groups expand in-place, sub-items indented with left hairline
+- Mobile: fixed bottom tabs (5 groups) → each tab opens a **status-driven Hub page**
+
+**Hub Pages (mobile entry points):**
+- `TrackHub` — dòng tiền + Latte Factor trend + recent transactions
+- `PlanHub` — current phase + auto-priority logic + 7 plan items with live status
+- `ReviewHub` — week status (reviewed/not) + score + guided CTAs
+
+The hub model replaces menu-driven navigation with **flow-driven context**: the app tells users what needs attention, not just what features exist.
+
+---
+
+### 🔜 Version 1.1 — QuickCapture + Latte Convert (Next sprint)
+
+**QuickCapture FAB:**
+- Floating action button visible on ALL mobile screens
+- One tap → opens AddTransaction with today's date pre-filled
+- Persistent habit anchor: "log it before you forget it"
+- Design: gold circle `+` button, fixed bottom-right, above bottom tabs
+
+**Latte → Convert Flow:**
+- TrackHub: "Convert X tr to emergency fund" CTA next to Latte amount
+- Confirmation screen: shows how many days closer to target
+- Creates an emergency fund record + shows updated months covered
+- Closes the Detect → Convert feedback loop from the roadmap philosophy
+
+**Net Worth tile on Dashboard:**
+- Add assets balance - debts total = estimated net worth
+- Shown in hero section alongside net cash flow
+- Answers the core question: "Am I getting richer?"
+
+---
+
+### 🔜 Version 1.2 — Smart Input + Phase Celebrations
+
+**Smart AddTransaction:**
+- Category autosuggest from recent transaction patterns
+- Latte Factor auto-flag for known Latte categories (cà phê, ăn ngoài...)
+- Recent categories shown first (not alphabetical)
+- Amount pad shortcuts: common amounts for user's top categories
+
+**Phase milestone celebrations:**
+- PlanHub detects when emergency fund crosses 1/3/6 months
+- Celebratory state: confetti or gold pulse + "Bạn vừa đạt X tháng quỹ dự phòng!"
+- Automatically suggests next priority (e.g., now focus on PYF)
+- Makes the journey feel real and rewarding
+
+**PlanHub intelligence upgrade:**
+- Show ETA to next milestone: "Với tốc độ này, đủ 6 tháng vào Th11 2026"
+- When debt exists AND emergency fund is low: show debt-vs-fund tradeoff insight
+- Link latte factor data: "Cắt 2 tr Latte Factor/tháng → đạt mục tiêu sớm hơn 3 tháng"
+
+---
+
+### 🔜 Version 1.3 — Guided Review + AI Insight
+
+**Guided Weekly Review (3-step flow):**
+- Step 1: Numbers — "Tuần này thu bao nhiêu? Chi bao nhiêu?" (auto-filled from transactions)
+- Step 2: Reflection — "Latte Factor lớn nhất là gì? Cần cắt gì?"
+- Step 3: Commitment — "Tuần tới tôi sẽ làm 1 việc: ___"
+- Progress dots at top, feels like a short meditation not a form
+
+**Contextual AI Insight (rule-based upgrade):**
+- Uses actual user data to generate a personalized weekly insight string
+- Examples:
+  - "Latte Factor tháng này tăng 22% — chủ yếu từ cà phê. Nếu giảm 30%, quỹ dự phòng đủ sớm hơn 2 tháng."
+  - "Bạn đã trả mình trước đủ 3 tháng liên tiếp. Đây là nền tảng. Giữ vững."
+  - "Thu nhập tháng này thấp hơn trung bình 15%. Đây là lúc giữ chi tiêu thật chặt."
+
+**ReviewHub score history:**
+- Show last 4 weeks' scores as a mini sparkline
+- Trend: improving / stable / declining
+
+---
+
+### 🔜 Version 1.4 — Desktop Polish + PWA
+
+**Desktop sidebar enhancement:**
+- Once mobile is solid, widen sidebar on large screens
+- Show mini stat summaries in sidebar (e.g., emergency fund progress bar)
+- Desktop Dashboard: 2-column layout for PlanHub + ReviewHub summaries
+
+**PWA (Progressive Web App):**
+- Add to homescreen support
+- Offline-first read capability for last-synced data
+- Push notification for weekly review reminder (Monday morning)
+
+**Recurring transaction intelligence:**
+- Auto-detect recurring expenses from pattern (same amount, same category, monthly)
+- Flag them in TrackHub: "3 khoản cố định tháng này: 3,5 tr"
+- Allow user to confirm/dismiss recurring label
+
+---
+
+### 🔮 Version 2.0 — AI Coach + LLM Integration
+
+- Replace rule-based coach with LLM-backed analysis using actual transaction history
+- Monthly financial letter: personalized 200-word summary of the month
+- Goal tracking: 12-month financial goal → weekly progress signal
+- Predictive: "Nếu duy trì tốc độ này, bạn đạt tự do tài chính vào năm ___"
+
+---
+
+## 26. Mobile-First Design Principles (added 2026-06-12)
+
+From experience building v1.0:
+
+**Hubs over menus.** Never show a list of features as navigation. Show the user's current state and what they need to do next.
+
+**One action per screen.** Each hub has ONE primary CTA. The most important thing right now, for this user, at this moment.
+
+**Status before features.** TrackHub shows "Tháng này +12,5 tr" before showing "Add Transaction." PlanHub shows "Giai đoạn 4" before showing the 7 plan items.
+
+**Phase awareness.** Features that don't apply to the user's current phase are shown as locked/upcoming — not hidden (discovery) but not pushed (focus).
+
+**The Latte Factor loop must close.** Detect → Quantify → Convert. If the user can see their leaks but cannot act on them in one tap, the loop is broken. Version 1.1 closes this loop.
+
 ### Version 0.1 — Foundation
 
 ```text
