@@ -168,7 +168,7 @@ function getActiveItem(group, pathname) {
 }
 
 function GroupIcon({ icon: Icon, active }) {
-  return <Icon className={`h-4 w-4 ${active ? 'text-white' : 'text-gray-400'}`} />;
+  return <Icon className={`h-4 w-4 ${active ? 'text-zx-on-accent' : 'text-zx-text-soft'}`} />;
 }
 
 export default function AppNav() {
@@ -183,9 +183,7 @@ export default function AppNav() {
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => {
-        if (item.adminOnly) {
-          return isAdmin;
-        }
+        if (item.adminOnly) return isAdmin;
         return canAccess(item.featureKey);
       }),
     }))
@@ -204,20 +202,22 @@ export default function AppNav() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-[#1F2937] bg-[#0B1020]/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-zx-line bg-zx-surface/95 backdrop-blur zx-transition">
         <div className="mx-auto max-w-7xl px-4 py-3 md:px-6">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <Link to="/" className="block text-lg font-bold tracking-tight text-white">
+              <Link to="/" className="block font-zx-display text-lg font-bold tracking-tight text-zx-text">
                 {t('common.appName')}
               </Link>
-              <p className="truncate text-xs text-gray-400 md:hidden">{t(`nav.items.${activeItem.featureKey}`, {}, activeItem.label)}</p>
+              <p className="truncate text-xs text-zx-text-soft md:hidden">
+                {t(`nav.items.${activeItem.featureKey}`, {}, activeItem.label)}
+              </p>
             </div>
 
             <div className="flex items-center gap-2">
               <Link
                 to="/transactions/new"
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                className="inline-flex items-center gap-2 rounded-zx-sm bg-zx-accent px-3 py-2 text-sm font-medium text-zx-on-accent transition hover:opacity-90"
               >
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">{t('nav.add')}</span>
@@ -225,14 +225,14 @@ export default function AppNav() {
               <button
                 type="button"
                 onClick={() => setIsMenuOpen(true)}
-                className="inline-flex rounded-lg border border-[#1F2937] bg-[#111827] p-2 text-gray-300 transition hover:border-[#374151] hover:text-white md:hidden"
+                className="inline-flex rounded-zx-sm border border-zx-line bg-zx-surface-2 p-2 text-zx-text-soft transition hover:text-zx-text md:hidden"
               >
                 <Menu className="h-5 w-5" />
               </button>
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="hidden rounded-lg border border-[#1F2937] bg-[#111827] px-3 py-2 text-sm text-gray-300 transition hover:border-[#374151] hover:text-white md:inline-flex"
+                className="hidden rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text md:inline-flex"
               >
                 {t('nav.signOut')}
               </button>
@@ -246,10 +246,10 @@ export default function AppNav() {
                 <Link
                   key={group.id}
                   to={group.mobileTo}
-                  className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
+                  className={`inline-flex items-center gap-2 rounded-zx-sm px-3 py-2 text-sm font-medium transition ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-[0_8px_24px_rgba(37,99,235,0.28)]'
-                      : 'text-gray-300 hover:bg-[#111827] hover:text-white'
+                      ? 'bg-zx-accent text-zx-on-accent shadow-zx'
+                      : 'text-zx-text-soft hover:bg-zx-surface-2 hover:text-zx-text'
                   }`}
                 >
                   <GroupIcon icon={group.icon} active={isActive} />
@@ -266,10 +266,10 @@ export default function AppNav() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`shrink-0 rounded-lg px-3 py-2 text-sm transition ${
+                  className={`shrink-0 rounded-zx-sm px-3 py-2 text-sm transition ${
                     isActive
-                      ? 'bg-[#111827] text-white ring-1 ring-[#374151]'
-                      : 'text-gray-400 hover:bg-[#111827] hover:text-white'
+                      ? 'bg-zx-surface-2 text-zx-text ring-1 ring-zx-line'
+                      : 'text-zx-text-soft hover:bg-zx-surface-2 hover:text-zx-text'
                   }`}
                 >
                   {t(`nav.items.${item.featureKey}`, {}, item.label)}
@@ -280,7 +280,8 @@ export default function AppNav() {
         </div>
       </header>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[#1F2937] bg-[#0B1020]/98 px-2 py-2 backdrop-blur md:hidden">
+      {/* Mobile bottom nav */}
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-zx-line bg-zx-surface/98 px-2 py-2 backdrop-blur md:hidden zx-transition">
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
           {visibleGroups.map((group) => {
             const isActive = activeGroup.id === group.id;
@@ -289,8 +290,10 @@ export default function AppNav() {
               <Link
                 key={group.id}
                 to={group.mobileTo}
-                className={`flex min-h-[56px] flex-col items-center justify-center rounded-xl px-2 py-2 text-[11px] font-medium transition ${
-                  isActive ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-[#111827] hover:text-white'
+                className={`flex min-h-[56px] flex-col items-center justify-center rounded-zx-sm px-2 py-2 text-[11px] font-medium transition ${
+                  isActive
+                    ? 'bg-zx-accent text-zx-on-accent'
+                    : 'text-zx-text-soft hover:bg-zx-surface-2 hover:text-zx-text'
                 }`}
               >
                 <Icon className="mb-1 h-4 w-4" />
@@ -301,6 +304,7 @@ export default function AppNav() {
         </div>
       </nav>
 
+      {/* Mobile menu drawer */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <button
@@ -308,16 +312,16 @@ export default function AppNav() {
             onClick={() => setIsMenuOpen(false)}
             className="absolute inset-0 bg-black/60"
           />
-          <div className="absolute inset-x-0 bottom-0 rounded-t-2xl border border-[#1F2937] bg-[#0F172A] p-4 shadow-[0_-20px_50px_rgba(0,0,0,0.45)]">
+          <div className="absolute inset-x-0 bottom-0 rounded-t-zx border border-zx-line bg-zx-surface p-4 shadow-zx zx-transition">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold text-white">{t('nav.allModules')}</h2>
-                <p className="text-sm text-gray-400">{t('nav.allModulesHint')}</p>
+                <h2 className="text-base font-semibold text-zx-text">{t('nav.allModules')}</h2>
+                <p className="text-sm text-zx-text-soft">{t('nav.allModulesHint')}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsMenuOpen(false)}
-                className="rounded-lg border border-[#1F2937] bg-[#111827] p-2 text-gray-300"
+                className="rounded-zx-sm border border-zx-line bg-zx-surface-2 p-2 text-zx-text-soft"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -326,7 +330,7 @@ export default function AppNav() {
             <div className="max-h-[65vh] space-y-4 overflow-y-auto pb-3">
               {visibleGroups.map((group) => (
                 <section key={group.id} className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                  <div className="flex items-center gap-2 text-sm font-medium text-zx-text-soft">
                     <group.icon className="h-4 w-4" />
                     {t(`nav.groups.${group.id}`, {}, group.label)}
                   </div>
@@ -338,10 +342,10 @@ export default function AppNav() {
                           key={item.to}
                           to={item.to}
                           onClick={() => setIsMenuOpen(false)}
-                          className={`rounded-xl border px-3 py-3 text-sm transition ${
+                          className={`rounded-zx-sm border px-3 py-3 text-sm transition ${
                             isActive
-                              ? 'border-blue-500 bg-blue-600/15 text-white'
-                              : 'border-[#1F2937] bg-[#111827] text-gray-300'
+                              ? 'border-zx-accent bg-zx-accent-soft text-zx-text'
+                              : 'border-zx-line bg-zx-surface-2 text-zx-text-soft'
                           }`}
                         >
                           {t(`nav.items.${item.featureKey}`, {}, item.label)}
@@ -356,7 +360,7 @@ export default function AppNav() {
             <button
               type="button"
               onClick={handleSignOut}
-              className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-[#1F2937] bg-[#111827] px-4 py-3 text-sm font-medium text-gray-300"
+              className="mt-3 inline-flex w-full items-center justify-center rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-3 text-sm font-medium text-zx-text-soft"
             >
               {t('nav.signOut')}
             </button>
@@ -365,7 +369,7 @@ export default function AppNav() {
       )}
 
       {subscriptionTier === 'free' && (
-        <div className="fixed bottom-[84px] right-4 z-20 hidden rounded-full border border-[#1F2937] bg-[#111827]/95 px-3 py-2 text-xs text-amber-200 shadow-lg backdrop-blur md:block">
+        <div className="fixed bottom-[84px] right-4 z-20 hidden rounded-full border border-zx-line bg-zx-surface/95 px-3 py-2 text-xs text-zx-gold shadow-zx backdrop-blur md:block">
           <div className="flex items-center gap-2">
             <Lock className="h-3.5 w-3.5" />
             {t('nav.freeTierBadge')}

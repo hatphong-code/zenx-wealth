@@ -22,7 +22,7 @@ function ChartShell({ title, subtitle, children }) {
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
-        {subtitle && <p className="text-sm text-gray-400">{subtitle}</p>}
+        {subtitle && <p className="text-sm text-zx-text-soft">{subtitle}</p>}
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
@@ -36,22 +36,22 @@ export default function Reports() {
   const currency = data.currency || 'VND';
 
   return (
-    <div className="min-h-screen bg-[#0B1020] text-white">
+    <div className="min-h-screen bg-zx-bg text-zx-text">
       <AppNav />
       <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
-        <section className="rounded-2xl border border-[#1F2937] bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.18),_transparent_42%),linear-gradient(180deg,#111827_0%,#0B1020_100%)] p-5 md:p-6">
+        <section className="rounded-zx border border-zx-line bg-zx-hero p-5 md:p-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-lg border border-[#1F2937] bg-[#111827] px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-gray-300">
+            <div className="inline-flex items-center gap-2 rounded-lg border border-zx-line bg-zx-surface px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-text-soft">
               <BarChart3 className="h-3.5 w-3.5" />
               {t('reports.badge')}
             </div>
             <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{t('reports.title')}</h1>
-            <p className="max-w-3xl text-sm leading-6 text-gray-300">
+            <p className="max-w-3xl text-sm leading-6 text-zx-text-soft">
               {t('reports.subtitle')}
             </p>
             <div className="flex flex-wrap gap-4 text-sm">
-              {loading && <p className="text-gray-400">{t('reports.loading')}</p>}
-              {refreshing && <p className="text-blue-300">{t('reports.refreshing')}</p>}
+              {loading && <p className="text-zx-text-soft">{t('reports.loading')}</p>}
+              {refreshing && <p className="text-zx-accent">{t('reports.refreshing')}</p>}
               {error && <p className="text-red-300">{error}</p>}
             </div>
           </div>
@@ -101,7 +101,7 @@ export default function Reports() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Wallet className="h-4 w-4 text-blue-300" /> {t('reports.charts.balanceSheetTitle')}</CardTitle>
+              <CardTitle className="flex items-center gap-2"><Wallet className="h-4 w-4 text-zx-accent" /> {t('reports.charts.balanceSheetTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {[
@@ -111,15 +111,15 @@ export default function Reports() {
                 ['Long-term assets', data.balanceSheet.longTermAssets],
                 ['Risk assets', data.balanceSheet.riskAssets],
               ].map(([label, value]) => (
-                <div key={label} className="flex items-center justify-between rounded-xl border border-[#1F2937] bg-[#0B1020] px-4 py-3">
-                  <span className="text-sm text-gray-400">{label}</span>
-                  <span className="font-semibold text-white">{formatMoney(value, currency)}</span>
+                <div key={label} className="flex items-center justify-between rounded-zx-sm border border-zx-line bg-zx-bg px-4 py-3">
+                  <span className="text-sm text-zx-text-soft">{label}</span>
+                  <span className="font-semibold text-zx-text">{formatMoney(value, currency)}</span>
                 </div>
               ))}
-              <div className="rounded-xl border border-[#3F2A2A] bg-[#1A1313] px-4 py-3">
+              <div className="rounded-zx-sm border border-[#3F2A2A] bg-[#1A1313] px-4 py-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">Debt-to-asset ratio</span>
-                  <span className="font-semibold text-white">{formatPercent(data.balanceSheet.debtToAssetRatio)}</span>
+                  <span className="text-sm text-zx-text-soft">Debt-to-asset ratio</span>
+                  <span className="font-semibold text-zx-text">{formatPercent(data.balanceSheet.debtToAssetRatio)}</span>
                 </div>
               </div>
             </CardContent>
@@ -171,25 +171,25 @@ export default function Reports() {
         <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-blue-300" /> {t('reports.charts.monthlyCloseTitle')}</CardTitle>
+              <CardTitle className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-zx-accent" /> {t('reports.charts.monthlyCloseTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-lg border border-[#1F2937] bg-[#0B1020] p-4">
-                <p className="text-sm text-gray-400">Positive months</p>
+              <div className="rounded-lg border border-zx-line bg-zx-bg p-4">
+                <p className="text-sm text-zx-text-soft">Positive months</p>
                 <p className="mt-2 text-lg font-semibold">{data.monthlyClose.positiveMonths} / {data.trends.cashFlow.length}</p>
               </div>
-              <div className="rounded-lg border border-[#1F2937] bg-[#0B1020] p-4">
-                <p className="text-sm text-gray-400">Average savings rate</p>
+              <div className="rounded-lg border border-zx-line bg-zx-bg p-4">
+                <p className="text-sm text-zx-text-soft">Average savings rate</p>
                 <p className="mt-2 text-lg font-semibold">{formatPercent(data.monthlyClose.averageSavingsRate)}</p>
               </div>
-              <div className="rounded-lg border border-[#1F2937] bg-[#0B1020] p-4">
-                <p className="text-sm text-gray-400">Best month</p>
+              <div className="rounded-lg border border-zx-line bg-zx-bg p-4">
+                <p className="text-sm text-zx-text-soft">Best month</p>
                 <p className="mt-2 text-lg font-semibold">
                   {data.monthlyClose.bestMonth?.label || '-'} {data.monthlyClose.bestMonth ? `· ${formatMoney(data.monthlyClose.bestMonth.netCashFlow, currency)}` : ''}
                 </p>
               </div>
-              <div className="rounded-lg border border-[#1F2937] bg-[#0B1020] p-4">
-                <p className="text-sm text-gray-400">Latest net worth delta</p>
+              <div className="rounded-lg border border-zx-line bg-zx-bg p-4">
+                <p className="text-sm text-zx-text-soft">Latest net worth delta</p>
                 <p className="mt-2 text-lg font-semibold">{formatMoney(data.monthlyClose.latestNetWorthDelta, currency)}</p>
               </div>
             </CardContent>
@@ -197,7 +197,7 @@ export default function Reports() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><ShieldAlert className="h-4 w-4 text-amber-300" /> {t('reports.charts.riskWatchTitle')}</CardTitle>
+              <CardTitle className="flex items-center gap-2"><ShieldAlert className="h-4 w-4 text-zx-gold" /> {t('reports.charts.riskWatchTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {[
@@ -206,10 +206,10 @@ export default function Reports() {
                 ['Emergency coverage', `${formatNumber(data.monthly.emergencyMonths, { maximumFractionDigits: 1 })} months`, null],
                 ['Debt pressure', formatPercent(data.monthly.debtPressure), null],
               ].map(([label, status, value]) => (
-                <div key={label} className="rounded-lg border border-[#1F2937] bg-[#0B1020] p-4">
-                  <p className="text-sm text-gray-400">{label}</p>
-                  <p className="mt-2 text-lg font-semibold text-white">{status}</p>
-                  {typeof value === 'number' && <p className="mt-1 text-xs text-gray-500">{formatMoney(value, currency)}</p>}
+                <div key={label} className="rounded-lg border border-zx-line bg-zx-bg p-4">
+                  <p className="text-sm text-zx-text-soft">{label}</p>
+                  <p className="mt-2 text-lg font-semibold text-zx-text">{status}</p>
+                  {typeof value === 'number' && <p className="mt-1 text-xs text-zx-text-soft">{formatMoney(value, currency)}</p>}
                 </div>
               ))}
             </CardContent>
@@ -220,10 +220,10 @@ export default function Reports() {
           {data.insights.map((item) => (
             <Card key={item.title}>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-purple-300" /> {item.title}</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-zx-accent" /> {item.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm leading-6 text-gray-300">{item.body}</p>
+                <p className="text-sm leading-6 text-zx-text-soft">{item.body}</p>
               </CardContent>
             </Card>
           ))}

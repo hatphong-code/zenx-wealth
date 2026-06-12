@@ -22,23 +22,26 @@ export default function Dashboard() {
   ].filter((item) => canAccess(item.featureKey));
 
   return (
-    <div className="min-h-screen bg-[#0B1020] text-white">
+    <div className="min-h-screen bg-zx-bg text-zx-text">
       <AppNav />
       <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
-        <section className="overflow-hidden rounded-2xl border border-[#1F2937] bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.24),_transparent_42%),linear-gradient(180deg,#111827_0%,#0B1020_100%)] p-5 md:p-6">
+        {/* Hero */}
+        <section className="overflow-hidden rounded-zx border border-zx-line bg-zx-hero p-5 shadow-zx md:p-6 zx-transition">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-3">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-blue-200">{t('dashboard.badge')}</p>
-              <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-                {t('dashboard.greeting', { name: user?.displayName?.split(' ')[0] || 'b\u1ea1n' })}
+              <p className="font-zx-body text-xs font-semibold uppercase tracking-[0.16em] text-zx-text-soft">
+                {t('dashboard.badge')}
+              </p>
+              <h1 className="font-zx-head text-2xl font-bold tracking-tight md:text-3xl">
+                {t('dashboard.greeting', { name: user?.displayName?.split(' ')[0] || 'bạn' })}
               </h1>
-              <p className="max-w-2xl text-sm leading-6 text-gray-300">
+              <p className="max-w-2xl text-sm leading-6 text-zx-text-soft">
                 {t('dashboard.subtitle')}
               </p>
               <div className="flex flex-wrap gap-4 text-sm">
-                {loading && <p className="text-gray-400">{t('dashboard.loading')}</p>}
-                {refreshing && <p className="text-blue-300">{t('dashboard.refreshing')}</p>}
-                {error && <p className="text-red-300">{error}</p>}
+                {loading && <p className="text-zx-text-soft">{t('dashboard.loading')}</p>}
+                {refreshing && <p className="text-zx-accent">{t('dashboard.refreshing')}</p>}
+                {error && <p className="text-red-400">{error}</p>}
               </div>
             </div>
 
@@ -47,65 +50,75 @@ export default function Dashboard() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="flex items-center justify-between rounded-xl border border-[#1F2937] bg-[#0B1020]/80 px-4 py-3 text-sm text-gray-200 transition hover:border-[#374151] hover:bg-[#111827]"
+                  className="flex items-center justify-between rounded-zx-sm border border-zx-line bg-zx-surface-2/60 px-4 py-3 text-sm text-zx-text-soft transition hover:border-zx-accent hover:text-zx-text"
                 >
                   <span>{t(item.labelKey)}</span>
-                  <ArrowRight className="h-4 w-4 text-gray-500" />
+                  <ArrowRight className="h-4 w-4 text-zx-text-soft" />
                 </Link>
               ))}
             </div>
           </div>
         </section>
 
+        {/* Stat cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <Card className="border-[#1F2937] bg-[#111827]">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">{t('dashboard.cards.netCashFlow')}</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-400" />
+              <TrendingUp className="h-4 w-4 text-zx-positive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatMoney(stats.netCashFlow, currency)}</div>
-              <p className="text-xs text-gray-400">{t('dashboard.cards.thisMonth')}</p>
+              <div className="font-zx-display text-2xl font-bold text-zx-positive">
+                {formatMoney(stats.netCashFlow, currency)}
+              </div>
+              <p className="text-xs text-zx-text-soft">{t('dashboard.cards.thisMonth')}</p>
             </CardContent>
           </Card>
 
-          <Card className="border-[#1F2937] bg-[#111827]">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">{t('dashboard.cards.latteFactor')}</CardTitle>
-              <Coffee className="h-4 w-4 text-orange-400" />
+              <Coffee className="h-4 w-4 text-zx-accent" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatMoney(stats.latteFactor, currency)}</div>
-              <p className="text-xs text-red-400">{formatPercent(stats.latteFactorPercent / 100)} {t('dashboard.cards.vsLastMonth')}</p>
+              <div className="font-zx-display text-2xl font-bold text-zx-accent">
+                {formatMoney(stats.latteFactor, currency)}
+              </div>
+              <p className="text-xs text-zx-positive">
+                {formatPercent(stats.latteFactorPercent / 100)} {t('dashboard.cards.vsLastMonth')}
+              </p>
             </CardContent>
           </Card>
 
-          <Card className="border-[#1F2937] bg-[#111827]">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">{t('dashboard.cards.emergencyFund')}</CardTitle>
-              <Shield className="h-4 w-4 text-blue-400" />
+              <Shield className="h-4 w-4 text-zx-positive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 })} / {stats.targetMonths} {t('dashboard.cards.months')}
+              <div className="font-zx-display text-2xl font-bold">
+                {formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 })} / {stats.targetMonths}{' '}
+                {t('dashboard.cards.months')}
               </div>
-              <div className="mt-2 h-2 w-full rounded-full bg-gray-700">
+              <div className="mt-2 h-2 w-full rounded-full bg-zx-surface-2">
                 <div
-                  className="h-2 rounded-full bg-blue-500"
+                  className="progress-fill h-2 rounded-full"
                   style={{ width: `${Math.min(100, (stats.emergencyMonths / stats.targetMonths) * 100)}%` }}
                 />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-[#1F2937] bg-[#111827]">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">{t('dashboard.cards.payYourselfFirst')}</CardTitle>
-              <PiggyBank className="h-4 w-4 text-purple-400" />
+              <PiggyBank className="h-4 w-4 text-zx-gold" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatNumber(stats.payYourselfProgress)}%</div>
-              <p className="text-xs text-gray-400">
+              <div className="font-zx-display text-2xl font-bold text-zx-gold">
+                {formatNumber(stats.payYourselfProgress)}%
+              </div>
+              <p className="text-xs text-zx-text-soft">
                 {t('dashboard.cards.reached', {
                   saved: formatMoney(stats.payYourselfSaved, currency),
                   target: formatMoney(stats.payYourselfTarget, currency),
@@ -115,11 +128,12 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="rounded-2xl border border-[#1F2937] bg-[#111827] p-4">
+        {/* Weekly focus */}
+        <div className="rounded-zx border border-zx-line bg-zx-surface p-4 shadow-zx zx-transition">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="mb-2 font-semibold">{t('dashboard.weeklyFocus.title')}</h3>
-              <ul className="list-inside list-disc space-y-1 text-sm text-gray-300">
+              <h3 className="mb-2 font-semibold text-zx-text">{t('dashboard.weeklyFocus.title')}</h3>
+              <ul className="list-inside list-disc space-y-1 text-sm text-zx-text-soft">
                 <li>{t('dashboard.weeklyFocus.item1', { amount: formatMoney(500000, currency) })}</li>
                 <li>{t('dashboard.weeklyFocus.item2', { amount: formatMoney(2000000, currency) })}</li>
               </ul>
@@ -127,7 +141,7 @@ export default function Dashboard() {
             {canAccess('ai_coach') ? (
               <Link
                 to="/ai-coach"
-                className="shrink-0 rounded-lg border border-[#374151] px-3 py-2 text-sm text-gray-200 transition hover:bg-[#0B1020]"
+                className="shrink-0 rounded-zx-sm border border-zx-line px-3 py-2 text-sm text-zx-text-soft transition hover:bg-zx-surface-2"
               >
                 {t('dashboard.weeklyFocus.askCoach')}
               </Link>
@@ -138,6 +152,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-
-

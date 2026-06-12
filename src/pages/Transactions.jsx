@@ -48,19 +48,19 @@ export default function Transactions() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B1020] text-white">
+    <div className="min-h-screen bg-zx-bg text-zx-text">
       <AppNav />
       <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold">Transactions</h1>
-            <p className="text-sm text-gray-400">Track income, expenses, and Latte Factor flags.</p>
-            {loading && <p className="text-sm text-gray-400">Loading transactions...</p>}
-            {refreshing && <p className="text-sm text-blue-300">Refreshing transactions...</p>}
+            <p className="text-sm text-zx-text-soft">Track income, expenses, and Latte Factor flags.</p>
+            {loading && <p className="text-sm text-zx-text-soft">Loading transactions...</p>}
+            {refreshing && <p className="text-sm text-zx-accent">Refreshing transactions...</p>}
           </div>
           <Link
             to="/transactions/new"
-            className="inline-flex items-center justify-center gap-2 rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+            className="inline-flex items-center justify-center gap-2 rounded bg-zx-accent px-4 py-2 text-sm font-medium text-zx-text transition hover:opacity-90"
           >
             <Plus className="h-4 w-4" /> Add Transaction
           </Link>
@@ -68,25 +68,25 @@ export default function Transactions() {
 
         {error && <div className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>}
 
-        <section className="overflow-hidden rounded-lg border border-[#1F2937] bg-[#111827]">
+        <section className="overflow-hidden rounded-lg border border-zx-line bg-zx-surface">
           {transactions.length === 0 ? (
             <div className="space-y-4 p-6 text-center">
-              <p className="text-gray-300">{loading ? 'Loading transactions...' : 'No transactions yet.'}</p>
+              <p className="text-zx-text-soft">{loading ? 'Loading transactions...' : 'No transactions yet.'}</p>
               {!loading && (
-                <Link to="/transactions/new" className="text-sm font-medium text-blue-400 hover:text-blue-300">
+                <Link to="/transactions/new" className="text-sm font-medium text-zx-accent hover:text-zx-accent">
                   Add your first transaction
                 </Link>
               )}
             </div>
           ) : (
             <>
-              <div className="divide-y divide-[#1F2937] md:hidden">
+              <div className="divide-y divide-zx-line md:hidden">
                 {transactions.map((transaction) => (
                   <article key={transaction.id} className="space-y-3 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
-                        <p className="text-sm text-gray-400">{formatDate(transaction.date)}</p>
-                        <h3 className="font-semibold text-white">{transaction.category}</h3>
+                        <p className="text-sm text-zx-text-soft">{formatDate(transaction.date)}</p>
+                        <h3 className="font-semibold text-zx-text">{transaction.category}</h3>
                       </div>
                       <p className="text-right font-mono text-base font-semibold">
                         {formatMoney(transaction.amount, transaction.currency || currency)}
@@ -97,7 +97,7 @@ export default function Transactions() {
                       <span
                         className={`rounded-full px-2.5 py-1 ${
                           transaction.type === 'income'
-                            ? 'bg-green-950 text-green-300'
+                            ? 'bg-green-950 text-zx-positive'
                             : 'bg-orange-950 text-orange-300'
                         }`}
                       >
@@ -107,16 +107,16 @@ export default function Transactions() {
                         <span className="rounded-full bg-red-950 px-2.5 py-1 text-red-300">Latte Factor</span>
                       )}
                       {transaction.isRecurring && (
-                        <span className="rounded-full bg-[#0B1020] px-2.5 py-1 text-gray-300">Recurring</span>
+                        <span className="rounded-full bg-zx-bg px-2.5 py-1 text-zx-text-soft">Recurring</span>
                       )}
                     </div>
 
-                    <p className="text-sm text-gray-400">{transaction.note || 'No note'}</p>
+                    <p className="text-sm text-zx-text-soft">{transaction.note || 'No note'}</p>
 
                     <div className="flex gap-2">
                       <Link
                         to={`/transactions/${transaction.id}/edit`}
-                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#0B1020] px-3 py-2 text-sm text-blue-300 transition hover:bg-[#1F2937]"
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-zx-bg px-3 py-2 text-sm text-zx-accent transition hover:bg-zx-surface-2"
                       >
                         <Pencil className="h-4 w-4" /> Edit
                       </Link>
@@ -134,7 +134,7 @@ export default function Transactions() {
 
               <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-                <thead className="bg-[#0B1020] text-xs uppercase tracking-wide text-gray-400">
+                <thead className="bg-zx-bg text-xs uppercase tracking-wide text-zx-text-soft">
                   <tr>
                     <th className="px-4 py-3">Date</th>
                     <th className="px-4 py-3">Category</th>
@@ -147,14 +147,14 @@ export default function Transactions() {
                 </thead>
                 <tbody>
                   {transactions.map((transaction) => (
-                    <tr key={transaction.id} className="border-t border-[#1F2937]">
-                      <td className="px-4 py-3 text-gray-300">{formatDate(transaction.date)}</td>
+                    <tr key={transaction.id} className="border-t border-zx-line">
+                      <td className="px-4 py-3 text-zx-text-soft">{formatDate(transaction.date)}</td>
                       <td className="px-4 py-3 font-medium">{transaction.category}</td>
                       <td className="px-4 py-3">
                         <span
                           className={`rounded px-2 py-1 text-xs ${
                             transaction.type === 'income'
-                              ? 'bg-green-950 text-green-300'
+                              ? 'bg-green-950 text-zx-positive'
                               : 'bg-orange-950 text-orange-300'
                           }`}
                         >
@@ -164,16 +164,16 @@ export default function Transactions() {
                       <td className="px-4 py-3 text-right font-mono">
                         {formatMoney(transaction.amount, transaction.currency || currency)}
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-300">
+                      <td className="px-4 py-3 text-xs text-zx-text-soft">
                         {transaction.isLatteFactor ? 'Latte Factor' : '-'}
                         {transaction.isRecurring ? ' / Recurring' : ''}
                       </td>
-                      <td className="max-w-[220px] truncate px-4 py-3 text-gray-400">{transaction.note || '-'}</td>
+                      <td className="max-w-[220px] truncate px-4 py-3 text-zx-text-soft">{transaction.note || '-'}</td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-2">
                           <Link
                             to={`/transactions/${transaction.id}/edit`}
-                            className="inline-flex items-center gap-2 rounded bg-[#0B1020] px-3 py-2 text-blue-300 transition hover:bg-[#1F2937]"
+                            className="inline-flex items-center gap-2 rounded bg-zx-bg px-3 py-2 text-zx-accent transition hover:bg-zx-surface-2"
                           >
                             <Pencil className="h-4 w-4" /> Edit
                           </Link>

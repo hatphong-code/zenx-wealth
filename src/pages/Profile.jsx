@@ -174,61 +174,61 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B1020] text-white">
+    <div className="min-h-screen bg-zx-bg text-zx-text">
       <AppNav />
       <main className="mx-auto max-w-4xl space-y-6 p-4 pb-24 md:p-6">
         <div className="flex items-center gap-3">
           {user?.photoURL ? (
             <img src={user.photoURL} alt="" className="h-12 w-12 rounded-full" />
           ) : (
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#111827]">
-              <UserCircle className="h-7 w-7 text-gray-300" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-surface">
+              <UserCircle className="h-7 w-7 text-zx-text-soft" />
             </div>
           )}
           <div className="space-y-1">
             <h1 className="text-2xl font-bold">User Profile</h1>
-            <p className="text-sm text-gray-400">Account and personal finance settings.</p>
-            {loading && <p className="text-sm text-gray-400">Loading profile...</p>}
-            {refreshing && <p className="text-sm text-blue-300">Refreshing profile...</p>}
+            <p className="text-sm text-zx-text-soft">Account and personal finance settings.</p>
+            {loading && <p className="text-sm text-zx-text-soft">Loading profile...</p>}
+            {refreshing && <p className="text-sm text-zx-accent">Refreshing profile...</p>}
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border border-[#1F2937] bg-[#111827] p-5">
+        <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border border-zx-line bg-zx-surface p-5">
           <section className="space-y-4">
             <h2 className="text-lg font-semibold">Account</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block space-y-2">
-                <span className="text-sm text-gray-300">Display name</span>
+                <span className="text-sm text-zx-text-soft">Display name</span>
                 <input
                   type="text"
                   value={form.displayName}
                   onChange={(event) => updateField('displayName', event.target.value)}
-                  className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                   required
                 />
               </label>
 
               <label className="block space-y-2">
-                <span className="text-sm text-gray-300">Email</span>
+                <span className="text-sm text-zx-text-soft">Email</span>
                 <input
                   type="email"
                   value={form.email}
-                  className="w-full rounded border border-gray-700 bg-[#0B1020] p-3 text-gray-400"
+                  className="w-full rounded border border-zx-line bg-zx-bg p-3 text-zx-text-soft"
                   disabled
                 />
               </label>
             </div>
           </section>
 
-          <section className="space-y-4 border-t border-[#1F2937] pt-5">
+          <section className="space-y-4 border-t border-zx-line pt-5">
             <h2 className="text-lg font-semibold">Financial Settings</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block space-y-2">
-                <span className="text-sm text-gray-300">Currency</span>
+                <span className="text-sm text-zx-text-soft">Currency</span>
                 <select
                   value={form.currency}
                   onChange={(event) => updateField('currency', event.target.value)}
-                  className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                 >
                   <option value="VND">VND</option>
                   <option value="USD">USD</option>
@@ -236,17 +236,17 @@ export default function Profile() {
               </label>
 
               <label className="block space-y-2">
-                <span className="text-sm text-gray-300">Monthly essential expense</span>
+                <span className="text-sm text-zx-text-soft">Monthly essential expense</span>
                 <input
                   type="number"
                   min="1"
                   step="any"
                   value={form.monthlyEssentialExpense}
                   onChange={(event) => updateField('monthlyEssentialExpense', event.target.value)}
-                  className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                   required
                 />
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-zx-text-soft">
                   {form.monthlyEssentialExpense
                     ? `~ ${formatMoney(form.monthlyEssentialExpense, form.currency)}`
                     : `Hint: ${formatMoney(defaultSettings.monthlyEssentialExpense, form.currency)}`}
@@ -254,20 +254,20 @@ export default function Profile() {
               </label>
 
               <label className="block space-y-2">
-                <span className="text-sm text-gray-300">Emergency fund target months</span>
+                <span className="text-sm text-zx-text-soft">Emergency fund target months</span>
                 <input
                   type="number"
                   min="1"
                   step="1"
                   value={form.emergencyFundTargetMonths}
                   onChange={(event) => updateField('emergencyFundTargetMonths', event.target.value)}
-                  className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                   required
                 />
               </label>
 
               <label className="block space-y-2">
-                <span className="text-sm text-gray-300">Pay Yourself First rate (%)</span>
+                <span className="text-sm text-zx-text-soft">Pay Yourself First rate (%)</span>
                 <input
                   type="number"
                   min="0"
@@ -275,7 +275,7 @@ export default function Profile() {
                   step="1"
                   value={form.payYourselfFirstRate}
                   onChange={(event) => updateField('payYourselfFirstRate', event.target.value)}
-                  className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                   required
                 />
               </label>
@@ -283,12 +283,12 @@ export default function Profile() {
           </section>
 
           {error && <p className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
-          {message && <p className="rounded border border-green-900 bg-green-950/40 p-3 text-sm text-green-300">{message}</p>}
+          {message && <p className="rounded border border-green-900 bg-green-950/40 p-3 text-sm text-zx-positive">{message}</p>}
 
           <Button
             type="submit"
             disabled={saving}
-            className="inline-flex w-full items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 bg-zx-accent text-zx-on-accent hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
           >
             <Save className="h-4 w-4" />
             {saving ? 'Saving...' : 'Save Profile'}

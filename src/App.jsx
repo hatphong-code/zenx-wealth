@@ -36,21 +36,21 @@ function LockedFeature({ featureKey, subscriptionTier, isAdmin }) {
   const tierLabel = subscriptionTier === 'premium' ? t('common.premium') : t('common.free');
 
   return (
-    <div className="min-h-screen bg-[#0B1020] p-4 text-white md:p-6">
-      <div className="mx-auto max-w-2xl rounded-2xl border border-[#1F2937] bg-[#111827] p-6">
-        <p className="text-xs font-medium uppercase tracking-[0.24em] text-amber-300">
+    <div className="min-h-screen bg-zx-bg p-4 text-zx-text md:p-6">
+      <div className="mx-auto max-w-2xl rounded-zx border border-zx-line bg-zx-surface p-6 shadow-zx">
+        <p className="text-xs font-medium uppercase tracking-[0.24em] text-zx-gold">
           {t('locked.badge', { tier: tierLabel })}
         </p>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight">
           {t('locked.title', { feature: featureLabel })}
         </h1>
-        <p className="mt-3 text-sm leading-6 text-gray-300">{t('locked.body')}</p>
+        <p className="mt-3 text-sm leading-6 text-zx-text-soft">{t('locked.body')}</p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <a href="/" className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white">
+          <a href="/" className="rounded-zx-sm bg-zx-accent px-4 py-2 text-sm font-medium text-zx-on-accent">
             {t('locked.backDashboard')}
           </a>
           {isAdmin && (
-            <a href="/admin/access" className="rounded-xl border border-[#374151] px-4 py-2 text-sm text-gray-200">
+            <a href="/admin/access" className="rounded-zx-sm border border-zx-line px-4 py-2 text-sm text-zx-text-soft">
               {t('locked.openAdmin')}
             </a>
           )}

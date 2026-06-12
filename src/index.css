@@ -1,3 +1,47 @@
+@import "../ZenXWealthUI/tokens/colors.css";
+@import "../ZenXWealthUI/tokens/typography.css";
+@import "../ZenXWealthUI/tokens/spacing.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    font-family: var(--zx-font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--zx-bg);
+    color: var(--zx-text);
+    transition: background-color 0.5s ease, color 0.45s ease;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.5;
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  /* Gradient backgrounds */
+  .bg-zx-hero  { background: var(--zx-bg-gradient); }
+  .bg-zx-fill  { background: var(--zx-fill); }
+
+  /* Smooth theme transitions on surfaces */
+  .zx-transition {
+    transition:
+      background-color 0.5s ease,
+      color 0.45s ease,
+      border-color 0.5s ease,
+      box-shadow 0.5s ease;
+  }
+
+  /* Progress / ring fill using design-system gradient */
+  .progress-fill {
+    background: var(--zx-fill);
+    transition: width 0.7s cubic-bezier(.2,.7,.3,1);
+  }
+}

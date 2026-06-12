@@ -1,6 +1,8 @@
 export function Card({ children, className = '' }) {
   return (
-    <div className={`rounded-lg border border-[#1F2937] bg-[#111827] shadow-[0_10px_30px_rgba(0,0,0,0.18)] ${className}`}>
+    <div
+      className={`rounded-zx border border-zx-line bg-zx-surface shadow-zx zx-transition ${className}`}
+    >
       {children}
     </div>
   );
@@ -11,7 +13,11 @@ export function CardHeader({ children, className = '' }) {
 }
 
 export function CardTitle({ children, className = '' }) {
-  return <h3 className={`text-base font-semibold tracking-tight ${className}`}>{children}</h3>;
+  return (
+    <h3 className={`font-zx-head text-base font-semibold tracking-tight text-zx-text ${className}`}>
+      {children}
+    </h3>
+  );
 }
 
 export function CardContent({ children, className = '' }) {

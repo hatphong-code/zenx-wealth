@@ -142,7 +142,7 @@ export default function AddTransaction() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0B1020] text-white">
+      <div className="min-h-screen bg-zx-bg text-zx-text">
         <AppNav />
         <div className="p-10 text-center">Loading transaction...</div>
       </div>
@@ -152,35 +152,35 @@ export default function AddTransaction() {
   const activeSuggestions = categorySuggestions[form.type] || [];
 
   return (
-    <div className="min-h-screen bg-[#0B1020] text-white">
+    <div className="min-h-screen bg-zx-bg text-zx-text">
       <AppNav />
       <main className="mx-auto max-w-2xl p-4 pb-24 md:p-6">
         <h1 className="mb-6 text-2xl font-bold">{isEditing ? 'Edit Transaction' : 'Add Transaction'}</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-5 rounded-lg border border-[#1F2937] bg-[#111827] p-5">
+        <form onSubmit={handleSubmit} className="space-y-5 rounded-lg border border-zx-line bg-zx-surface p-5">
           <label className="block space-y-2">
-            <span className="text-sm text-gray-300">Amount</span>
+            <span className="text-sm text-zx-text-soft">Amount</span>
             <input
               type="number"
               min="1"
               step="any"
               value={form.amount}
               onChange={(event) => updateField('amount', event.target.value)}
-              className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
               required
             />
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-zx-text-soft">
               {form.amount ? `~ ${formatMoney(form.amount, currency)}` : 'Enter the amount without separators.'}
             </span>
           </label>
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block space-y-2">
-              <span className="text-sm text-gray-300">Type</span>
+              <span className="text-sm text-zx-text-soft">Type</span>
               <select
                 value={form.type}
                 onChange={(event) => updateField('type', event.target.value)}
-                className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
               >
                 <option value="expense">Expense</option>
                 <option value="income">Income</option>
@@ -188,26 +188,26 @@ export default function AddTransaction() {
             </label>
 
             <label className="block space-y-2">
-              <span className="text-sm text-gray-300">Date</span>
+              <span className="text-sm text-zx-text-soft">Date</span>
               <input
                 type="date"
                 value={form.date}
                 onChange={(event) => updateField('date', event.target.value)}
-                className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                 required
               />
             </label>
           </div>
 
           <label className="block space-y-2">
-            <span className="text-sm text-gray-300">Category</span>
+            <span className="text-sm text-zx-text-soft">Category</span>
             <input
               type="text"
               list={`transaction-categories-${form.type}`}
               value={form.category}
               onChange={(event) => updateField('category', event.target.value)}
               placeholder="Eating out, salary, transport..."
-              className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
               required
             />
             <datalist id={`transaction-categories-${form.type}`}>
@@ -223,8 +223,8 @@ export default function AddTransaction() {
                   onClick={() => updateField('category', item)}
                   className={`rounded-full border px-3 py-1.5 text-xs transition ${
                     form.category === item
-                      ? 'border-blue-500 bg-blue-600/15 text-blue-200'
-                      : 'border-[#374151] bg-[#0B1020] text-gray-300 hover:border-[#4B5563] hover:text-white'
+                      ? 'border-zx-accent bg-zx-accent-soft text-zx-accent'
+                      : 'border-zx-line bg-zx-bg text-zx-text-soft hover:border-zx-line hover:text-zx-text'
                   }`}
                 >
                   {item}
@@ -234,7 +234,7 @@ export default function AddTransaction() {
           </label>
 
           <div className="grid gap-3 md:grid-cols-2">
-            <label className="flex items-center gap-3 rounded border border-[#1F2937] bg-[#0B1020] p-3 text-sm text-gray-200">
+            <label className="flex items-center gap-3 rounded border border-zx-line bg-zx-bg p-3 text-sm text-zx-text-soft">
               <input
                 type="checkbox"
                 checked={form.isLatteFactor}
@@ -244,7 +244,7 @@ export default function AddTransaction() {
               />
               Latte Factor
             </label>
-            <label className="flex items-center gap-3 rounded border border-[#1F2937] bg-[#0B1020] p-3 text-sm text-gray-200">
+            <label className="flex items-center gap-3 rounded border border-zx-line bg-zx-bg p-3 text-sm text-zx-text-soft">
               <input
                 type="checkbox"
                 checked={form.isRecurring}
@@ -256,12 +256,12 @@ export default function AddTransaction() {
           </div>
 
           <label className="block space-y-2">
-            <span className="text-sm text-gray-300">Note</span>
+            <span className="text-sm text-zx-text-soft">Note</span>
             <textarea
               value={form.note}
               onChange={(event) => updateField('note', event.target.value)}
               rows={3}
-              className="w-full rounded border border-gray-600 bg-[#1F2937] p-3 text-white outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
             />
           </label>
 
@@ -271,14 +271,14 @@ export default function AddTransaction() {
             <Button
               type="submit"
               disabled={saving}
-              className="w-full bg-blue-600 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full bg-zx-accent text-zx-on-accent hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Save Transaction'}
             </Button>
             <Button
               type="button"
               onClick={() => navigate('/transactions')}
-              className="w-full border border-gray-600 bg-transparent text-white hover:bg-[#1F2937]"
+              className="w-full border border-zx-line bg-transparent text-zx-text hover:bg-zx-surface-2"
             >
               Cancel
             </Button>

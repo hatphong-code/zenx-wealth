@@ -64,32 +64,32 @@ export default function WealthRoadmap() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B1020] text-white">
+    <div className="min-h-screen bg-zx-bg text-zx-text">
       <AppNav />
       <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
-        <section className="rounded-2xl border border-[#1F2937] bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_42%),linear-gradient(180deg,#111827_0%,#0B1020_100%)] p-5 md:p-6">
+        <section className="rounded-zx border border-zx-line bg-zx-hero p-5 md:p-6">
           <div className="space-y-3">
             <h1 className="text-2xl font-bold tracking-tight">Wealth Roadmap</h1>
-            <p className="max-w-2xl text-sm text-gray-300">Track which phase of financial rebuilding you are actually in.</p>
+            <p className="max-w-2xl text-sm text-zx-text-soft">Track which phase of financial rebuilding you are actually in.</p>
             <div className="flex flex-wrap gap-4 text-sm">
-              {loading && <p className="text-gray-400">Loading roadmap...</p>}
-              {refreshing && <p className="text-blue-300">Refreshing roadmap...</p>}
+              {loading && <p className="text-zx-text-soft">Loading roadmap...</p>}
+              {refreshing && <p className="text-zx-accent">Refreshing roadmap...</p>}
             </div>
           </div>
         </section>
 
         <section className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-[#1F2937] bg-[#111827] p-4">
-            <p className="text-sm text-gray-400">Current phase</p>
+          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+            <p className="text-sm text-zx-text-soft">Current phase</p>
             <p className="mt-2 text-lg font-semibold">{currentPhase?.title || 'Not available'}</p>
           </div>
-          <div className="rounded-lg border border-[#1F2937] bg-[#111827] p-4">
-            <p className="text-sm text-gray-400">Completed phases</p>
+          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+            <p className="text-sm text-zx-text-soft">Completed phases</p>
             <p className="mt-2 text-2xl font-bold">{data.completedPhases} / {data.phases.length}</p>
           </div>
-          <div className="rounded-lg border border-[#1F2937] bg-[#111827] p-4">
-            <p className="text-sm text-gray-400">Next milestone</p>
-            <p className="mt-2 text-sm font-medium text-gray-200">
+          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+            <p className="text-sm text-zx-text-soft">Next milestone</p>
+            <p className="mt-2 text-sm font-medium text-zx-text-soft">
               {currentPhase?.checklist.find((item) => !item.completed)?.label || 'All current checklist items are done.'}
             </p>
           </div>
@@ -102,15 +102,15 @@ export default function WealthRoadmap() {
             {data.phases.map((phase, index) => (
               <div
                 key={phase.id}
-                className={`rounded-xl border px-4 py-3 text-sm ${
+                className={`rounded-zx-sm border px-4 py-3 text-sm ${
                   phase.id === data.currentPhaseId
-                    ? 'border-blue-500 bg-blue-600/10 text-white'
+                    ? 'border-zx-accent bg-zx-accent/10 text-zx-text'
                     : phase.completed
                       ? 'border-emerald-800 bg-emerald-950/30 text-emerald-200'
-                      : 'border-[#1F2937] bg-[#111827] text-gray-300'
+                      : 'border-zx-line bg-zx-surface text-zx-text-soft'
                 }`}
               >
-                <p className="text-xs uppercase tracking-wide text-gray-500">Phase {index + 1}</p>
+                <p className="text-xs uppercase tracking-wide text-zx-text-soft">Phase {index + 1}</p>
                 <p className="mt-1 font-medium">{phase.title}</p>
               </div>
             ))}
@@ -119,17 +119,17 @@ export default function WealthRoadmap() {
 
         <section className="space-y-4">
           {data.phases.map((phase) => (
-            <article key={phase.id} className={`rounded-lg border p-5 ${phase.id === data.currentPhaseId ? 'border-blue-500 bg-[#111827]' : 'border-[#1F2937] bg-[#111827]'}`}>
+            <article key={phase.id} className={`rounded-lg border p-5 ${phase.id === data.currentPhaseId ? 'border-zx-accent bg-zx-surface' : 'border-zx-line bg-zx-surface'}`}>
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold">{phase.title}</h2>
-                    {phase.completed && <CheckCircle2 className="h-5 w-5 text-green-400" />}
+                    {phase.completed && <CheckCircle2 className="h-5 w-5 text-zx-positive" />}
                   </div>
-                  <p className="text-sm text-gray-400">{phase.description}</p>
+                  <p className="text-sm text-zx-text-soft">{phase.description}</p>
                 </div>
                 {savingPhaseId === phase.id && (
-                  <div className="inline-flex items-center gap-2 rounded bg-[#0B1020] px-3 py-2 text-xs text-blue-300">
+                  <div className="inline-flex items-center gap-2 rounded bg-zx-bg px-3 py-2 text-xs text-zx-accent">
                     <Save className="h-3.5 w-3.5" /> Saving
                   </div>
                 )}
@@ -137,7 +137,7 @@ export default function WealthRoadmap() {
 
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 {phase.checklist.map((item) => (
-                  <label key={item.key} className="flex items-start gap-3 rounded border border-[#1F2937] bg-[#0B1020] p-3">
+                  <label key={item.key} className="flex items-start gap-3 rounded border border-zx-line bg-zx-bg p-3">
                     <input
                       type="checkbox"
                       checked={item.completed}
@@ -145,8 +145,8 @@ export default function WealthRoadmap() {
                       className="mt-1 h-4 w-4"
                     />
                     <span className="space-y-1">
-                      <span className="block text-sm text-gray-200">{item.label}</span>
-                      <span className="block text-xs text-gray-500">
+                      <span className="block text-sm text-zx-text-soft">{item.label}</span>
+                      <span className="block text-xs text-zx-text-soft">
                         {item.autoValue ? 'Auto signal detected' : 'Manual progress needed'}
                       </span>
                     </span>
