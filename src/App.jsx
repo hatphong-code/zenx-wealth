@@ -7,6 +7,9 @@ import { useI18n } from './i18n/useI18n';
 import AppShell from './components/AppShell';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const TrackHub = lazy(() => import('./pages/TrackHub'));
+const PlanHub = lazy(() => import('./pages/PlanHub'));
+const ReviewHub = lazy(() => import('./pages/ReviewHub'));
 const LatteFactor = lazy(() => import('./pages/LatteFactor'));
 const Login = lazy(() => import('./pages/Login'));
 const AddTransaction = lazy(() => import('./pages/AddTransaction'));
@@ -91,6 +94,9 @@ export default function App() {
       <Routes>
         <Route path="/login" element={routeElement(<Login />)} />
         <Route path="/" element={routeElement(<PrivateRoute featureKey="dashboard"><Dashboard /></PrivateRoute>)} />
+        <Route path="/track" element={routeElement(<PrivateRoute featureKey="transactions"><TrackHub /></PrivateRoute>)} />
+        <Route path="/plan" element={routeElement(<PrivateRoute featureKey="roadmap"><PlanHub /></PrivateRoute>)} />
+        <Route path="/review" element={routeElement(<PrivateRoute featureKey="weekly_review"><ReviewHub /></PrivateRoute>)} />
         <Route path="/transactions" element={routeElement(<PrivateRoute featureKey="transactions"><Transactions /></PrivateRoute>)} />
         <Route path="/transactions/new" element={routeElement(<PrivateRoute featureKey="add_transaction"><AddTransaction /></PrivateRoute>)} />
         <Route path="/transactions/:transactionId/edit" element={routeElement(<PrivateRoute featureKey="transactions"><AddTransaction /></PrivateRoute>)} />

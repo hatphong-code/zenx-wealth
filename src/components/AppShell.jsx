@@ -13,39 +13,56 @@ import { auth } from '../services/firebaseAuth';
 /* ─────────────── nav data ─────────────── */
 
 const NAV_GROUPS = [
-  { id: 'home',    icon: Home,           mobileTo: '/',              label: 'Home' },
-  { id: 'track',   icon: Wallet,         mobileTo: '/transactions',  label: 'Track' },
-  { id: 'plan',    icon: Compass,        mobileTo: '/roadmap',       label: 'Plan' },
-  { id: 'review',  icon: ClipboardCheck, mobileTo: '/weekly-review', label: 'Review' },
-  { id: 'profile', icon: UserCircle,     mobileTo: '/settings',      label: 'Profile' },
+  { id: 'home',    icon: Home,           mobileTo: '/',       label: 'Home' },
+  { id: 'track',   icon: Wallet,         mobileTo: '/track',  label: 'Track' },
+  { id: 'plan',    icon: Compass,        mobileTo: '/plan',   label: 'Plan' },
+  { id: 'review',  icon: ClipboardCheck, mobileTo: '/review', label: 'Review' },
+  { id: 'profile', icon: UserCircle,     mobileTo: '/settings', label: 'Profile' },
 ];
+
+const isTrack  = p => ['/track','/transactions','/transactions/new','/latte'].includes(p) || /^\/transactions\/[^/]+\/edit$/.test(p);
+const isPlan   = p => ['/plan','/roadmap','/assets','/pay-yourself-first','/emergency','/debts','/income','/trading-risk'].includes(p);
+const isReview = p => ['/review','/weekly-review','/reports','/ai-coach'].includes(p);
+const isProfile= p => ['/settings','/profile','/admin/access'].includes(p);
 
 const SUB_ITEMS = {
   home:    [{ to: '/', featureKey: 'dashboard', matches: p => p === '/' }],
   track:   [
+    { to: '/track',            featureKey: 'transactions',    matches: p => p === '/track' },
     { to: '/transactions',     featureKey: 'transactions',    matches: p => p === '/transactions' || /^\/transactions\/[^/]+\/edit$/.test(p) },
     { to: '/transactions/new', featureKey: 'add_transaction', matches: p => p === '/transactions/new' },
     { to: '/latte',            featureKey: 'latte_factor',    matches: p => p === '/latte' },
   ],
   plan: [
+    { to: '/plan',               featureKey: 'roadmap',            matches: p => p === '/plan' },
     { to: '/roadmap',            featureKey: 'roadmap',            matches: p => p === '/roadmap' },
-    { to: '/assets',             featureKey: 'assets',             matches: p => p === '/assets' },
-    { to: '/pay-yourself-first', featureKey: 'pay_yourself_first', matches: p => p === '/pay-yourself-first' },
     { to: '/emergency',          featureKey: 'emergency_fund',     matches: p => p === '/emergency' },
+    { to: '/pay-yourself-first', featureKey: 'pay_yourself_first', matches: p => p === '/pay-yourself-first' },
     { to: '/debts',              featureKey: 'debt_control',       matches: p => p === '/debts' },
     { to: '/income',             featureKey: 'income_builder',     matches: p => p === '/income' },
+    { to: '/assets',             featureKey: 'assets',             matches: p => p === '/assets' },
     { to: '/trading-risk',       featureKey: 'trading_risk',       matches: p => p === '/trading-risk' },
   ],
   review: [
+    { to: '/review',        featureKey: 'weekly_review', matches: p => p === '/review' },
     { to: '/weekly-review', featureKey: 'weekly_review', matches: p => p === '/weekly-review' },
     { to: '/reports',       featureKey: 'reports',       matches: p => p === '/reports' },
     { to: '/ai-coach',      featureKey: 'ai_coach',      matches: p => p === '/ai-coach' },
   ],
   profile: [
-    { to: '/settings', featureKey: 'settings', matches: p => p === '/settings' },
-    { to: '/profile',  featureKey: 'profile',  matches: p => p === '/profile' },
-    { to: '/admin/access', featureKey: 'admin_access', adminOnly: true, matches: p => p === '/admin/access' },
+    { to: '/settings',     featureKey: 'settings',      matches: p => p === '/settings' },
+    { to: '/profile',      featureKey: 'profile',       matches: p => p === '/profile' },
+    { to: '/admin/access', featureKey: 'admin_access',  adminOnly: true, matches: p => p === '/admin/access' },
   ],
+};
+
+// Group matching for activeGroup detection
+const GROUP_MATCH = {
+  home:    p => p === '/',
+  track:   isTrack,
+  plan:    isPlan,
+  review:  isReview,
+  profile: isProfile,
 };
 
 /* ─────────────── hooks ─────────────── */
@@ -63,7 +80,7 @@ function useNav() {
   })).filter(g => g.items.length > 0), [canAccess, isAdmin]);
 
   const activeGroup = useMemo(() =>
-    visibleGroups.find(g => g.items.some(item => item.matches(location.pathname))) || visibleGroups[0],
+    visibleGroups.find(g => GROUP_MATCH[g.id]?.(location.pathname)) || visibleGroups[0],
     [location.pathname, visibleGroups]
   );
 
