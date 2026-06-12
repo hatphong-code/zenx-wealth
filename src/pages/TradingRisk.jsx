@@ -128,14 +128,14 @@ export default function TradingRisk() {
 
   return (
       <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
-        <section className="rounded-zx border border-zx-line bg-zx-hero p-5 md:p-6">
+        <section className="pb-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 rounded-lg border border-amber-900 bg-amber-950/40 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-gold">
               <AlertTriangle className="h-3.5 w-3.5" />
               High Risk Module
               </div>
-              <h1 className="text-2xl font-bold tracking-tight">Trading Risk</h1>
+              <h1 className="font-zx-head text-2xl font-bold text-zx-text">Trading Risk</h1>
               <p className="max-w-2xl text-sm text-zx-text-soft">
                 Keep trading inside a defined risk box. This module is for controlled risk capital, not for core personal finance.
               </p>
@@ -163,7 +163,7 @@ export default function TradingRisk() {
               <CardTitle>Trading capital</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{formatMoney(data.config.capital, currency)}</p>
+              <p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(data.config.capital, currency)}</p>
               <p className="mt-1 text-xs text-zx-text-soft">Only risk capital belongs here.</p>
             </CardContent>
           </Card>

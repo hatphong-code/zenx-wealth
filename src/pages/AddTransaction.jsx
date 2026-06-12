@@ -146,8 +146,8 @@ export default function AddTransaction() {
   const activeSuggestions = categorySuggestions[form.type] || [];
 
   return (
-      <main className="mx-auto max-w-2xl p-4 pb-24 md:p-6">
-        <h1 className="mb-6 text-2xl font-bold">{isEditing ? 'Edit Transaction' : 'Add Transaction'}</h1>
+      <main className="max-w-2xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+        <h1 className="font-zx-head text-2xl font-bold text-zx-text mb-4">{isEditing ? 'Edit Transaction' : 'Add Transaction'}</h1>
 
         <form onSubmit={handleSubmit} className="space-y-5 rounded-lg border border-zx-line bg-zx-surface p-5">
           <label className="block space-y-2">

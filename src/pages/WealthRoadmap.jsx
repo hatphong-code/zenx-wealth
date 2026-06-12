@@ -63,10 +63,10 @@ export default function WealthRoadmap() {
   };
 
   return (
-      <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
-        <section className="rounded-zx border border-zx-line bg-zx-hero p-5 md:p-6">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+        <section className="pb-6">
           <div className="space-y-3">
-            <h1 className="text-2xl font-bold tracking-tight">Wealth Roadmap</h1>
+            <h1 className="font-zx-head text-2xl font-bold text-zx-text">Wealth Roadmap</h1>
             <p className="max-w-2xl text-sm text-zx-text-soft">Track which phase of financial rebuilding you are actually in.</p>
             <div className="flex flex-wrap gap-4 text-sm">
               {loading && <p className="text-zx-text-soft">Loading roadmap...</p>}
@@ -76,15 +76,15 @@ export default function WealthRoadmap() {
         </section>
 
         <section className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Current phase</p>
             <p className="mt-2 text-lg font-semibold">{currentPhase?.title || 'Not available'}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Completed phases</p>
-            <p className="mt-2 text-2xl font-bold">{data.completedPhases} / {data.phases.length}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{data.completedPhases} / {data.phases.length}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Next milestone</p>
             <p className="mt-2 text-sm font-medium text-zx-text-soft">
               {currentPhase?.checklist.find((item) => !item.completed)?.label || 'All current checklist items are done.'}
@@ -120,7 +120,7 @@ export default function WealthRoadmap() {
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-semibold">{phase.title}</h2>
+                    <h2 className="font-zx-head text-lg font-semibold text-zx-text">{phase.title}</h2>
                     {phase.completed && <CheckCircle2 className="h-5 w-5 text-zx-positive" />}
                   </div>
                   <p className="text-sm text-zx-text-soft">{phase.description}</p>

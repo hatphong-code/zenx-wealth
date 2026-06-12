@@ -123,7 +123,7 @@ export default function Assets() {
             <Landmark className="h-7 w-7 text-emerald-400" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold">Assets</h1>
+            <h1 className="font-zx-head text-2xl font-bold text-zx-text">Assets</h1>
             <p className="text-sm text-zx-text-soft">Track the asset side of your balance sheet, not only spending control.</p>
             {loading && <p className="text-sm text-zx-text-soft">Loading assets...</p>}
             {refreshing && <p className="text-sm text-zx-accent">Refreshing assets...</p>}
@@ -133,15 +133,15 @@ export default function Assets() {
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Card>
             <CardHeader><CardTitle>Total assets</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{formatMoney(summary.totalAssets, currency)}</p></CardContent>
+            <CardContent><p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(summary.totalAssets, currency)}</p></CardContent>
           </Card>
           <Card>
             <CardHeader><CardTitle>Liquid assets</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{formatMoney(summary.liquidAssets, currency)}</p></CardContent>
+            <CardContent><p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(summary.liquidAssets, currency)}</p></CardContent>
           </Card>
           <Card>
             <CardHeader><CardTitle>Long-term assets</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{formatMoney(summary.longTermAssets, currency)}</p></CardContent>
+            <CardContent><p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(summary.longTermAssets, currency)}</p></CardContent>
           </Card>
           <Card>
             <CardHeader><CardTitle>Risk assets</CardTitle></CardHeader>
@@ -151,7 +151,7 @@ export default function Assets() {
 
         <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-zx-line bg-zx-surface p-5">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">{editingId ? 'Edit asset account' : 'Add asset account'}</h2>
+            <h2 className="font-zx-head text-lg font-semibold text-zx-text">{editingId ? 'Edit asset account' : 'Add asset account'}</h2>
             {editingId && (
               <button type="button" onClick={resetForm} className="text-sm text-zx-text-soft transition hover:text-zx-text">
                 Cancel edit
@@ -186,7 +186,7 @@ export default function Assets() {
           </Button>
         </form>
 
-        <section className="overflow-hidden rounded-lg border border-zx-line bg-zx-surface">
+        <section className="overflow-hidden">
           <div className="border-b border-zx-line p-4">
             <h2 className="font-semibold">Asset accounts</h2>
           </div>

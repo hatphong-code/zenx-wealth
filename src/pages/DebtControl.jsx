@@ -135,30 +135,30 @@ export default function DebtControl() {
   const { currency, debts, summary } = data;
 
   return (
-      <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Debt Control</h1>
+          <h1 className="font-zx-head text-2xl font-bold text-zx-text">Debt Control</h1>
           <p className="text-sm text-zx-text-soft">Track debt pressure and prioritize payoff intelligently.</p>
           {loading && <p className="text-sm text-zx-text-soft">Loading debts...</p>}
           {refreshing && <p className="text-sm text-zx-accent">Refreshing debt overview...</p>}
         </div>
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Total debt</p>
-            <p className="mt-2 text-2xl font-bold">{formatMoney(summary.totalDebt, currency)}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(summary.totalDebt, currency)}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Bad debt</p>
             <p className="mt-2 text-2xl font-bold text-red-300">{formatMoney(summary.badDebt, currency)}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Monthly payment</p>
-            <p className="mt-2 text-2xl font-bold">{formatMoney(summary.monthlyPayment, currency)}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(summary.monthlyPayment, currency)}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Payoff progress</p>
-            <p className="mt-2 text-2xl font-bold">{formatNumber(summary.payoffProgress)}%</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatNumber(summary.payoffProgress)}%</p>
           </div>
         </section>
 
@@ -174,7 +174,7 @@ export default function DebtControl() {
 
         <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-zx-line bg-zx-surface p-5">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">{editingId ? 'Edit debt' : 'Add debt'}</h2>
+            <h2 className="font-zx-head text-lg font-semibold text-zx-text">{editingId ? 'Edit debt' : 'Add debt'}</h2>
             {editingId && (
               <button type="button" onClick={resetForm} className="text-sm text-zx-text-soft transition hover:text-zx-text">
                 Cancel edit
@@ -229,7 +229,7 @@ export default function DebtControl() {
           </Button>
         </form>
 
-        <section className="overflow-hidden rounded-lg border border-zx-line bg-zx-surface">
+        <section className="overflow-hidden">
           <div className="border-b border-zx-line p-4">
             <h2 className="font-semibold">Debt portfolio</h2>
           </div>

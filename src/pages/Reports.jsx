@@ -36,7 +36,7 @@ export default function Reports() {
 
   return (
       <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
-        <section className="rounded-zx border border-zx-line bg-zx-hero p-5 md:p-6">
+        <section className="pb-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-lg border border-zx-line bg-zx-surface px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-text-soft">
               <BarChart3 className="h-3.5 w-3.5" />
@@ -57,11 +57,11 @@ export default function Reports() {
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Card>
             <CardHeader><CardTitle>{t('reports.cards.netWorth')}</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{formatMoney(data.balanceSheet.netWorth, currency)}</p></CardContent>
+            <CardContent><p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(data.balanceSheet.netWorth, currency)}</p></CardContent>
           </Card>
           <Card>
             <CardHeader><CardTitle>{t('reports.cards.totalAssets')}</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{formatMoney(data.balanceSheet.totalAssets, currency)}</p></CardContent>
+            <CardContent><p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(data.balanceSheet.totalAssets, currency)}</p></CardContent>
           </Card>
           <Card>
             <CardHeader><CardTitle>{t('reports.cards.totalDebt')}</CardTitle></CardHeader>
@@ -69,7 +69,7 @@ export default function Reports() {
           </Card>
           <Card>
             <CardHeader><CardTitle>{t('reports.cards.avgMonthlyCashFlow')}</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold">{formatMoney(data.monthlyClose.averageNetCashFlow, currency)}</p></CardContent>
+            <CardContent><p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(data.monthlyClose.averageNetCashFlow, currency)}</p></CardContent>
           </Card>
         </section>
 

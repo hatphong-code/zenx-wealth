@@ -70,13 +70,13 @@ export default function PayYourselfFirst() {
   };
 
   return (
-      <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-surface">
             <PiggyBank className="h-7 w-7 text-zx-accent" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold">Pay Yourself First</h1>
+            <h1 className="font-zx-head text-2xl font-bold text-zx-text">Pay Yourself First</h1>
             <p className="text-sm text-zx-text-soft">Turn income into a default allocation rule before lifestyle absorbs it.</p>
             {loading && <p className="text-sm text-zx-text-soft">Loading allocation status...</p>}
             {refreshing && <p className="text-sm text-zx-accent">Refreshing allocation status...</p>}
@@ -84,25 +84,25 @@ export default function PayYourselfFirst() {
         </div>
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">This month income base</p>
-            <p className="mt-2 text-2xl font-bold">{formatMoney(data.totalIncome, data.currency)}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(data.totalIncome, data.currency)}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Required this month</p>
-            <p className="mt-2 text-2xl font-bold">{formatMoney(data.status.required, data.currency)}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(data.status.required, data.currency)}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Done</p>
-            <p className="mt-2 text-2xl font-bold">{formatMoney(data.status.done, data.currency)}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(data.status.done, data.currency)}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Remaining</p>
             <p className="mt-2 text-2xl font-bold text-orange-300">{formatMoney(data.status.remaining, data.currency)}</p>
           </div>
         </section>
 
-        <section className="rounded-lg border border-zx-line bg-zx-surface p-5">
+        <section className="py-5">
           <div className="mb-3 flex items-center justify-between text-sm text-zx-text-soft">
             <span>Progress</span>
             <span>{formatNumber(data.status.progress)}%</span>
@@ -114,7 +114,7 @@ export default function PayYourselfFirst() {
 
         <form onSubmit={handleSave} className="space-y-5 rounded-lg border border-zx-line bg-zx-surface p-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Income allocation rule</h2>
+            <h2 className="font-zx-head text-lg font-semibold text-zx-text">Income allocation rule</h2>
             <span className={`text-sm ${totalPercent === 100 ? 'text-zx-positive' : 'text-orange-300'}`}>
               Total: {formatNumber(totalPercent)}%
             </span>
@@ -150,8 +150,8 @@ export default function PayYourselfFirst() {
           </Button>
         </form>
 
-        <section className="rounded-lg border border-zx-line bg-zx-surface p-5">
-          <h2 className="text-lg font-semibold">Suggested allocation this month</h2>
+        <section className="py-5">
+          <h2 className="font-zx-head text-lg font-semibold text-zx-text">Suggested allocation this month</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
             {data.allocations.map((item) => (
               <div key={item.key} className="rounded border border-zx-line bg-zx-bg p-4">

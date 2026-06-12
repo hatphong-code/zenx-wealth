@@ -47,10 +47,10 @@ export default function Transactions() {
   };
 
   return (
-      <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold">Transactions</h1>
+            <h1 className="font-zx-head text-2xl font-bold text-zx-text">Transactions</h1>
             <p className="text-sm text-zx-text-soft">Track income, expenses, and Latte Factor flags.</p>
             {loading && <p className="text-sm text-zx-text-soft">Loading transactions...</p>}
             {refreshing && <p className="text-sm text-zx-accent">Refreshing transactions...</p>}
@@ -65,7 +65,7 @@ export default function Transactions() {
 
         {error && <div className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>}
 
-        <section className="overflow-hidden rounded-lg border border-zx-line bg-zx-surface">
+        <section className="overflow-hidden">
           {transactions.length === 0 ? (
             <div className="space-y-4 p-6 text-center">
               <p className="text-zx-text-soft">{loading ? 'Loading transactions...' : 'No transactions yet.'}</p>

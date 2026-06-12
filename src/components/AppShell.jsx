@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import {
-  ClipboardCheck, Compass, Home, LogOut, Plus, UserCircle, Wallet,
+  ChevronRight, ClipboardCheck, Compass, Home, LogOut, Plus, UserCircle, Wallet, X,
 } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
@@ -10,7 +10,9 @@ import { useI18n } from '../i18n/useI18n';
 import { useTheme } from '../hooks/useTheme';
 import { auth } from '../services/firebaseAuth';
 
-const navGroups = [
+/* ─────────────── nav data ─────────────── */
+
+const NAV_GROUPS = [
   { id: 'home',    icon: Home,           mobileTo: '/',              label: 'Home' },
   { id: 'track',   icon: Wallet,         mobileTo: '/transactions',  label: 'Track' },
   { id: 'plan',    icon: Compass,        mobileTo: '/roadmap',       label: 'Plan' },
@@ -18,12 +20,12 @@ const navGroups = [
   { id: 'profile', icon: UserCircle,     mobileTo: '/settings',      label: 'Profile' },
 ];
 
-const subItems = {
+const SUB_ITEMS = {
   home:    [{ to: '/', featureKey: 'dashboard', matches: p => p === '/' }],
   track:   [
-    { to: '/transactions',      featureKey: 'transactions',    matches: p => p === '/transactions' || /^\/transactions\/[^/]+\/edit$/.test(p) },
-    { to: '/transactions/new',  featureKey: 'add_transaction', matches: p => p === '/transactions/new' },
-    { to: '/latte',             featureKey: 'latte_factor',    matches: p => p === '/latte' },
+    { to: '/transactions',     featureKey: 'transactions',    matches: p => p === '/transactions' || /^\/transactions\/[^/]+\/edit$/.test(p) },
+    { to: '/transactions/new', featureKey: 'add_transaction', matches: p => p === '/transactions/new' },
+    { to: '/latte',            featureKey: 'latte_factor',    matches: p => p === '/latte' },
   ],
   plan: [
     { to: '/roadmap',            featureKey: 'roadmap',            matches: p => p === '/roadmap' },
@@ -40,20 +42,22 @@ const subItems = {
     { to: '/ai-coach',      featureKey: 'ai_coach',      matches: p => p === '/ai-coach' },
   ],
   profile: [
-    { to: '/settings',     featureKey: 'settings', matches: p => p === '/settings' },
-    { to: '/profile',      featureKey: 'profile',  matches: p => p === '/profile' },
+    { to: '/settings', featureKey: 'settings', matches: p => p === '/settings' },
+    { to: '/profile',  featureKey: 'profile',  matches: p => p === '/profile' },
     { to: '/admin/access', featureKey: 'admin_access', adminOnly: true, matches: p => p === '/admin/access' },
   ],
 };
+
+/* ─────────────── hooks ─────────────── */
 
 function useNav() {
   const location = useLocation();
   const { user } = useAuth();
   const { canAccess, isAdmin } = useFeatureAccess(user);
 
-  const visibleGroups = useMemo(() => navGroups.map(g => ({
+  const visibleGroups = useMemo(() => NAV_GROUPS.map(g => ({
     ...g,
-    items: (subItems[g.id] || []).filter(item =>
+    items: (SUB_ITEMS[g.id] || []).filter(item =>
       item.adminOnly ? isAdmin : canAccess(item.featureKey)
     ),
   })).filter(g => g.items.length > 0), [canAccess, isAdmin]);
@@ -71,65 +75,64 @@ function useNav() {
   return { visibleGroups, activeGroup, activeItem };
 }
 
+/* ─────────────── tiny components ─────────────── */
+
 function Avatar({ size = 34 }) {
   const { user } = useAuth();
   if (user?.photoURL) {
     return <img src={user.photoURL} alt="" className="rounded-full object-cover flex-shrink-0"
       style={{ width: size, height: size }} />;
   }
-  const initials = (user?.displayName || user?.email || 'U').slice(0, 1).toUpperCase();
+  const initial = (user?.displayName || user?.email || 'U').slice(0, 1).toUpperCase();
   return (
-    <div className="flex items-center justify-center rounded-full font-bold text-zx-on-accent flex-shrink-0"
+    <div className="rounded-full flex items-center justify-center font-bold text-zx-on-accent flex-shrink-0"
       style={{ width: size, height: size, fontSize: size * 0.42,
-        background: 'linear-gradient(135deg, var(--zx-accent), var(--zx-gold-fg))' }}>
-      {initials}
+        background: 'linear-gradient(135deg,var(--zx-accent),var(--zx-gold-fg))' }}>
+      {initial}
     </div>
   );
 }
 
 function ThemeToggle({ compact = false }) {
   const { theme, setTheme } = useTheme();
-  const opts = [
-    { value: 'young', label: 'Ấm' },
-    { value: 'mid',   label: 'Tư gia' },
-  ];
   if (compact) {
     return (
       <button onClick={() => setTheme(theme === 'mid' ? 'young' : 'mid')}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-zx-sm border border-zx-line text-xs font-medium text-zx-text-soft hover:text-zx-text hover:border-zx-accent transition zx-transition">
-        <span className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+        title="Đổi giao diện"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-zx-sm border border-zx-line text-xs font-medium text-zx-text-soft hover:text-zx-text hover:border-zx-accent transition">
+        <span className="w-2 h-2 rounded-full flex-shrink-0"
           style={{ background: theme === 'mid' ? '#C9A24B' : '#C8643C' }} />
         {theme === 'mid' ? 'Tư gia' : 'Ấm'}
       </button>
     );
   }
   return (
-    <div className="flex items-center gap-1 p-1 rounded-zx-sm bg-zx-surface-2">
-      {opts.map(o => (
-        <button key={o.value} onClick={() => setTheme(o.value)}
+    <div className="p-1 rounded-zx-sm bg-zx-surface-2 flex gap-1">
+      {[{ v: 'young', l: 'Ấm' }, { v: 'mid', l: 'Tư gia' }].map(o => (
+        <button key={o.v} onClick={() => setTheme(o.v)}
           className={`flex-1 text-xs font-medium py-1.5 rounded transition ${
-            theme === o.value
-              ? 'bg-zx-accent text-zx-on-accent'
-              : 'text-zx-text-soft hover:text-zx-text'
-          }`}>
-          {o.label}
-        </button>
+            theme === o.v ? 'bg-zx-accent text-zx-on-accent' : 'text-zx-text-soft hover:text-zx-text'
+          }`}>{o.l}</button>
       ))}
     </div>
   );
 }
 
-function Sidebar({ visibleGroups, activeGroup, onNav }) {
+/* ─────────────── sidebar (desktop) ─────────────── */
+
+function Sidebar({ visibleGroups, activeGroup, expandedGroups, onGroupClick, onItemClick }) {
   const { t } = useI18n();
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const isDark = theme === 'mid';
   const handleSignOut = async () => { await signOut(auth); navigate('/login'); };
 
   return (
     <aside className="hidden md:flex w-56 flex-col border-r border-zx-line bg-zx-surface/60 backdrop-blur-sm zx-transition flex-shrink-0">
+
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5">
+      <div className="flex items-center gap-3 px-5 py-5 flex-shrink-0">
         <div className={`flex items-center justify-center font-bold text-sm flex-shrink-0 ${
           isDark ? 'rounded-full border border-zx-gold text-zx-gold' : 'rounded-zx-sm text-zx-on-accent bg-zx-accent'
         }`} style={{ width: 32, height: 32, fontFamily: 'var(--zx-font-display)' }}>
@@ -138,25 +141,51 @@ function Sidebar({ visibleGroups, activeGroup, onNav }) {
         <span className="font-zx-head font-semibold text-base text-zx-text">ZenX Wealth</span>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto">
+      {/* Nav accordion */}
+      <nav className="flex-1 px-3 overflow-y-auto space-y-px">
         {visibleGroups.map(g => {
           const isActive = activeGroup?.id === g.id;
+          const isExpanded = expandedGroups.has(g.id);
+          const hasMultiple = g.items.length > 1;
           const Icon = g.icon;
+
           return (
-            <button key={g.id} onClick={() => onNav(g.mobileTo)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-zx-sm text-sm font-medium transition text-left ${
-                isActive ? 'bg-zx-accent-soft text-zx-accent' : 'text-zx-text-soft hover:bg-zx-surface-2 hover:text-zx-text'
-              }`}>
-              <Icon className="h-4 w-4 flex-shrink-0" />
-              {t(`nav.groups.${g.id}`, {}, g.label)}
-            </button>
+            <div key={g.id}>
+              {/* Group row */}
+              <button onClick={() => onGroupClick(g)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-zx-sm text-sm font-medium transition text-left ${
+                  isActive ? 'text-zx-accent' : 'text-zx-text-soft hover:bg-zx-surface-2 hover:text-zx-text'
+                }`}>
+                <Icon className="h-4 w-4 flex-shrink-0" />
+                <span className="flex-1">{t(`nav.groups.${g.id}`, {}, g.label)}</span>
+                {hasMultiple && (
+                  <ChevronRight className={`h-3.5 w-3.5 flex-shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                )}
+              </button>
+
+              {/* Sub-items */}
+              {hasMultiple && isExpanded && (
+                <div className="ml-7 pl-3 border-l border-zx-line space-y-px pb-1">
+                  {g.items.map(item => {
+                    const isItemActive = item.matches(location.pathname);
+                    return (
+                      <button key={item.to} onClick={() => onItemClick(item.to)}
+                        className={`w-full text-left px-3 py-2 rounded-zx-sm text-sm transition ${
+                          isItemActive ? 'text-zx-accent font-medium' : 'text-zx-text-soft hover:text-zx-text'
+                        }`}>
+                        {t(`nav.items.${item.featureKey}`, {}, item.featureKey)}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>
 
-      {/* Bottom: theme toggle + sign out */}
-      <div className="border-t border-zx-line p-3 space-y-1.5">
+      {/* Bottom: theme + sign out */}
+      <div className="border-t border-zx-line p-3 space-y-1.5 flex-shrink-0">
         <div className="px-1">
           <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-1.5 px-2">Giao diện</p>
           <ThemeToggle />
@@ -171,57 +200,46 @@ function Sidebar({ visibleGroups, activeGroup, onNav }) {
   );
 }
 
-function TopBar({ activeGroup, activeItem, onNav }) {
+/* ─────────────── top bar (desktop) ─────────────── */
+
+function TopBar({ activeGroup, activeItem }) {
   const { user } = useAuth();
   const { t } = useI18n();
-  const location = useLocation();
-  const pageTitle = activeGroup ? t(`nav.groups.${activeGroup.id}`, {}, activeGroup.label) : '';
   const firstName = user?.displayName?.split(' ').pop() || user?.email?.split('@')[0] || 'bạn';
-  const hasSubItems = (activeGroup?.items?.length || 0) > 1;
+  const pageLabel = activeItem
+    ? t(`nav.items.${activeItem.featureKey}`, {}, activeItem.featureKey)
+    : activeGroup ? t(`nav.groups.${activeGroup.id}`, {}, activeGroup.label) : '';
 
   return (
-    <div className="flex-shrink-0 border-b border-zx-line zx-transition">
-      <div className="flex items-center justify-between gap-4 px-6 py-4">
-        <div className="min-w-0">
-          <p className="text-xs text-zx-text-soft">{t('dashboard.greeting', { name: firstName })}</p>
-          <h1 className="font-zx-head text-xl font-semibold text-zx-text leading-tight mt-0.5">{pageTitle}</h1>
-        </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <Link to="/transactions/new"
-            className="inline-flex items-center gap-2 rounded-zx-sm bg-zx-accent px-3 py-2 text-sm font-medium text-zx-on-accent transition hover:opacity-90">
-            <Plus className="h-4 w-4" />
-            {t('nav.add')}
-          </Link>
-          <Avatar />
-        </div>
+    <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-zx-line flex-shrink-0 zx-transition">
+      <div className="min-w-0">
+        <p className="text-xs text-zx-text-soft">{t('dashboard.greeting', { name: firstName })}</p>
+        <h1 className="font-zx-head text-xl font-semibold text-zx-text leading-tight mt-0.5">{pageLabel}</h1>
       </div>
-
-      {hasSubItems && (
-        <div className="flex items-center gap-1 overflow-x-auto px-6 pb-3">
-          {activeGroup.items.map(item => {
-            const isActive = item.matches(location.pathname);
-            return (
-              <button key={item.to} onClick={() => onNav(item.to)}
-                className={`shrink-0 rounded-zx-sm px-3 py-1.5 text-sm transition ${
-                  isActive ? 'bg-zx-surface-2 text-zx-text font-medium' : 'text-zx-text-soft hover:text-zx-text'
-                }`}>
-                {t(`nav.items.${item.featureKey}`, {}, item.featureKey)}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <Link to="/transactions/new"
+          className="inline-flex items-center gap-2 rounded-zx-sm bg-zx-accent px-3 py-2 text-sm font-medium text-zx-on-accent hover:opacity-90 transition">
+          <Plus className="h-4 w-4" />
+          {t('nav.add')}
+        </Link>
+        <Avatar />
+      </div>
     </div>
   );
 }
 
-function MobileTopBar({ activeGroup }) {
+/* ─────────────── mobile top bar ─────────────── */
+
+function MobileTopBar({ activeGroup, activeItem }) {
   const { t } = useI18n();
-  const pageTitle = activeGroup ? t(`nav.groups.${activeGroup.id}`, {}, activeGroup.label) : '';
+  const label = activeItem
+    ? t(`nav.items.${activeItem.featureKey}`, {}, activeItem.featureKey)
+    : activeGroup ? t(`nav.groups.${activeGroup.id}`, {}, activeGroup.label) : '';
+
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-zx-line flex-shrink-0 md:hidden zx-transition">
-      <span className="font-zx-head font-semibold text-zx-text">{pageTitle}</span>
-      <div className="flex items-center gap-2">
+    <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-zx-line flex-shrink-0 zx-transition">
+      <span className="font-zx-head font-semibold text-zx-text truncate">{label}</span>
+      <div className="flex items-center gap-2 flex-shrink-0">
         <ThemeToggle compact />
         <Link to="/transactions/new"
           className="flex items-center justify-center w-8 h-8 rounded-full bg-zx-accent text-zx-on-accent">
@@ -233,21 +251,23 @@ function MobileTopBar({ activeGroup }) {
   );
 }
 
-function BottomTabs({ visibleGroups, activeGroup, onNav }) {
+/* ─────────────── mobile bottom tabs ─────────────── */
+
+function BottomTabs({ visibleGroups, activeGroup, onTabClick }) {
   const { t } = useI18n();
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-zx-line bg-zx-surface/95 backdrop-blur zx-transition"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <div className="grid px-2 py-1" style={{ gridTemplateColumns: `repeat(${visibleGroups.length}, 1fr)` }}>
+      <div className="grid px-1 py-1" style={{ gridTemplateColumns: `repeat(${visibleGroups.length},1fr)` }}>
         {visibleGroups.map(g => {
           const isActive = activeGroup?.id === g.id;
           const Icon = g.icon;
           return (
-            <button key={g.id} onClick={() => onNav(g.mobileTo)}
+            <button key={g.id} onClick={() => onTabClick(g)}
               className={`flex flex-col items-center justify-center gap-1 py-2 rounded-zx-sm text-[11px] font-medium transition ${
                 isActive ? 'text-zx-accent' : 'text-zx-text-soft'
               }`}>
-              <Icon className="h-5 w-5" strokeWidth={isActive ? 2 : 1.7} />
+              <Icon className="h-5 w-5" strokeWidth={isActive ? 2 : 1.6} />
               <span>{t(`nav.groups.${g.id}`, {}, g.label)}</span>
             </button>
           );
@@ -257,36 +277,144 @@ function BottomTabs({ visibleGroups, activeGroup, onNav }) {
   );
 }
 
+/* ─────────────── mobile bottom sheet ─────────────── */
+
+function BottomSheet({ group, activeItem, onClose, onItemClick, t }) {
+  const location = useLocation();
+  if (!group) return null;
+  return (
+    <div className="md:hidden fixed inset-0 z-50">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Sheet */}
+      <div className="absolute bottom-0 inset-x-0 bg-zx-surface rounded-t-zx border-t border-zx-line zx-transition"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        {/* Handle */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-3">
+          <div>
+            <div className="w-8 h-1 rounded-full bg-zx-line mx-auto mb-3" />
+            <p className="font-zx-head font-semibold text-base text-zx-text">
+              {t(`nav.groups.${group.id}`, {}, group.label)}
+            </p>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-zx-surface-2 transition text-zx-text-soft">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Items */}
+        <div className="px-4 pb-4">
+          {group.items.map((item, i) => {
+            const isActive = item.matches(location.pathname);
+            return (
+              <div key={item.to}>
+                {i > 0 && <div className="h-px bg-zx-line" />}
+                <button onClick={() => onItemClick(item.to)}
+                  className="w-full flex items-center justify-between py-4 text-sm text-left transition hover:text-zx-accent">
+                  <span className={isActive ? 'text-zx-accent font-semibold' : 'text-zx-text'}>
+                    {t(`nav.items.${item.featureKey}`, {}, item.featureKey)}
+                  </span>
+                  {isActive && <span className="text-zx-accent text-xs font-semibold">✦</span>}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────── shell ─────────────── */
+
 export default function AppShell({ children }) {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { visibleGroups, activeGroup, activeItem } = useNav();
-  const onNav = (path) => navigate(path);
+  const [expandedGroups, setExpandedGroups] = useState(() => new Set());
+  const [bottomSheet, setBottomSheet] = useState(null);
+
+  // Auto-expand active group
+  useEffect(() => {
+    if (activeGroup) {
+      setExpandedGroups(prev => new Set([...prev, activeGroup.id]));
+    }
+  }, [activeGroup?.id]);
+
+  const navigate_ = (path) => { navigate(path); setBottomSheet(null); };
+
+  const handleSidebarGroupClick = (g) => {
+    if (g.items.length <= 1) {
+      navigate_(g.mobileTo);
+    } else {
+      setExpandedGroups(prev => {
+        const next = new Set(prev);
+        if (next.has(g.id)) {
+          next.delete(g.id);
+        } else {
+          next.add(g.id);
+          navigate_(g.mobileTo); // navigate to group default on expand
+        }
+        return next;
+      });
+    }
+  };
+
+  const handleBottomTabClick = (g) => {
+    if (g.items.length <= 1) {
+      navigate_(g.mobileTo);
+    } else if (activeGroup?.id === g.id) {
+      setBottomSheet(g); // already on this group → show sheet
+    } else {
+      navigate_(g.mobileTo); // different group → navigate to default
+    }
+  };
 
   return (
     <div className="flex h-screen bg-zx-bg text-zx-text overflow-hidden zx-transition">
       {/* Desktop sidebar */}
-      <Sidebar visibleGroups={visibleGroups} activeGroup={activeGroup} onNav={onNav} />
+      <Sidebar
+        visibleGroups={visibleGroups}
+        activeGroup={activeGroup}
+        expandedGroups={expandedGroups}
+        onGroupClick={handleSidebarGroupClick}
+        onItemClick={navigate_}
+      />
 
       {/* Main column */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Desktop top bar */}
         <div className="hidden md:block">
-          <TopBar activeGroup={activeGroup} activeItem={activeItem} onNav={onNav} />
+          <TopBar activeGroup={activeGroup} activeItem={activeItem} />
         </div>
 
         {/* Mobile top bar */}
-        <MobileTopBar activeGroup={activeGroup} />
+        <MobileTopBar activeGroup={activeGroup} activeItem={activeItem} />
 
-        {/* Scrollable content — pb-20 so content isn't hidden under fixed bottom tabs on mobile */}
+        {/* Scrollable content */}
         <main className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
-          <div className="pb-20 md:pb-0">
+          <div className="pb-24 md:pb-0">
             {children}
           </div>
         </main>
       </div>
 
-      {/* Fixed bottom tabs (mobile only) */}
-      <BottomTabs visibleGroups={visibleGroups} activeGroup={activeGroup} onNav={onNav} />
+      {/* Fixed bottom tabs (mobile) */}
+      <BottomTabs
+        visibleGroups={visibleGroups}
+        activeGroup={activeGroup}
+        onTabClick={handleBottomTabClick}
+      />
+
+      {/* Bottom sheet */}
+      <BottomSheet
+        group={bottomSheet}
+        activeItem={activeItem}
+        onClose={() => setBottomSheet(null)}
+        onItemClick={navigate_}
+        t={t}
+      />
     </div>
   );
 }

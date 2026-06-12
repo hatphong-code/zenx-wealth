@@ -76,15 +76,15 @@ export default function WeeklyReview() {
   };
 
   return (
-      <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
-        <section className="rounded-zx border border-zx-line bg-zx-hero p-5 md:p-6">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+        <section className="pb-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex items-start gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-zx bg-zx-surface">
                 <ClipboardCheck className="h-7 w-7 text-zx-positive" />
               </div>
               <div className="space-y-2">
-                <h1 className="text-2xl font-bold tracking-tight">Weekly Review</h1>
+                <h1 className="font-zx-head text-2xl font-bold text-zx-text">Weekly Review</h1>
                 <p className="text-sm text-zx-text-soft">Review this week, capture one lesson, and commit one next action.</p>
                 <p className="text-xs uppercase tracking-wide text-zx-text-soft">
                   Week of {formatDate(weekMeta.weekStart)} to {formatDate(weekMeta.weekEnd)}
@@ -99,35 +99,35 @@ export default function WeeklyReview() {
         </section>
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Income this week</p>
-            <p className="mt-2 text-2xl font-bold">{formatMoney(review.income, review.currency)}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(review.income, review.currency)}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Expense this week</p>
-            <p className="mt-2 text-2xl font-bold">{formatMoney(review.expense, review.currency)}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(review.expense, review.currency)}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Latte Factor</p>
-            <p className="mt-2 text-2xl font-bold">{formatMoney(review.latteFactorTotal, review.currency)}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(review.latteFactorTotal, review.currency)}</p>
             <p className="mt-1 text-xs text-zx-text-soft">
               {review.topLatteCategory ? `Top category: ${review.topLatteCategory}` : 'No Latte Factor recorded.'}
             </p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Savings rate</p>
-            <p className="mt-2 text-2xl font-bold">{formatPercent(review.savingsRate)}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatPercent(review.savingsRate)}</p>
           </div>
         </section>
 
         <section className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Emergency fund months</p>
-            <p className="mt-2 text-2xl font-bold">{formatNumber(review.emergencyFundMonths, { maximumFractionDigits: 1 })} months</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatNumber(review.emergencyFundMonths, { maximumFractionDigits: 1 })} months</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Wealth discipline score</p>
-            <p className="mt-2 text-2xl font-bold">{review.wealthDisciplineScore}/100</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{review.wealthDisciplineScore}/100</p>
           </div>
         </section>
 

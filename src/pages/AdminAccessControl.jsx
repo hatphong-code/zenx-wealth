@@ -101,7 +101,7 @@ export default function AdminAccessControl() {
 
   return (
       <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
-        <section className="rounded-zx border border-zx-line bg-zx-hero p-5 md:p-6">
+        <section className="pb-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-zx-line bg-zx-surface px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-accent">
@@ -116,11 +116,11 @@ export default function AdminAccessControl() {
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-zx-sm border border-zx-line bg-zx-surface/90 p-4">
                 <p className="text-xs uppercase tracking-wide text-zx-text-soft">{t('adminAccess.freeEnabled')}</p>
-                <p className="mt-2 text-2xl font-bold">{counts.free}</p>
+                <p className="font-zx-display mt-2 text-2xl font-bold">{counts.free}</p>
               </div>
               <div className="rounded-zx-sm border border-zx-line bg-zx-surface/90 p-4">
                 <p className="text-xs uppercase tracking-wide text-zx-text-soft">{t('adminAccess.premiumEnabled')}</p>
-                <p className="mt-2 text-2xl font-bold">{counts.premium}</p>
+                <p className="font-zx-display mt-2 text-2xl font-bold">{counts.premium}</p>
               </div>
             </div>
           </div>

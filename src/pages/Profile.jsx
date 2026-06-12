@@ -173,7 +173,7 @@ export default function Profile() {
   };
 
   return (
-      <main className="mx-auto max-w-4xl space-y-6 p-4 pb-24 md:p-6">
+      <main className="max-w-4xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
         <div className="flex items-center gap-3">
           {user?.photoURL ? (
             <img src={user.photoURL} alt="" className="h-12 w-12 rounded-full" />
@@ -183,16 +183,16 @@ export default function Profile() {
             </div>
           )}
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold">User Profile</h1>
+            <h1 className="font-zx-head text-2xl font-bold text-zx-text">User Profile</h1>
             <p className="text-sm text-zx-text-soft">Account and personal finance settings.</p>
             {loading && <p className="text-sm text-zx-text-soft">Loading profile...</p>}
             {refreshing && <p className="text-sm text-zx-accent">Refreshing profile...</p>}
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border border-zx-line bg-zx-surface p-5">
+        <form onSubmit={handleSubmit} className="py-6 space-y-6">
           <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Account</h2>
+            <h2 className="font-zx-head text-lg font-semibold text-zx-text">Account</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block space-y-2">
                 <span className="text-sm text-zx-text-soft">Display name</span>
@@ -218,7 +218,7 @@ export default function Profile() {
           </section>
 
           <section className="space-y-4 border-t border-zx-line pt-5">
-            <h2 className="text-lg font-semibold">Financial Settings</h2>
+            <h2 className="font-zx-head text-lg font-semibold text-zx-text">Financial Settings</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block space-y-2">
                 <span className="text-sm text-zx-text-soft">Currency</span>

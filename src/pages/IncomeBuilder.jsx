@@ -126,36 +126,36 @@ export default function IncomeBuilder() {
   const { currency, incomeSources, summary } = data;
 
   return (
-      <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Income Builder</h1>
+          <h1 className="font-zx-head text-2xl font-bold text-zx-text">Income Builder</h1>
           <p className="text-sm text-zx-text-soft">Grow active income capacity instead of relying on cost cutting alone.</p>
           {loading && <p className="text-sm text-zx-text-soft">Loading income sources...</p>}
           {refreshing && <p className="text-sm text-zx-accent">Refreshing income builder...</p>}
         </div>
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Current monthly income</p>
-            <p className="mt-2 text-2xl font-bold">{formatMoney(summary.currentMonthlyIncome, currency)}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(summary.currentMonthlyIncome, currency)}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Target monthly income</p>
-            <p className="mt-2 text-2xl font-bold">{formatMoney(summary.targetMonthlyIncome, currency)}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(summary.targetMonthlyIncome, currency)}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Income gap</p>
             <p className="mt-2 text-2xl font-bold text-orange-300">{formatMoney(summary.gap, currency)}</p>
           </div>
-          <div className="rounded-lg border border-zx-line bg-zx-surface p-4">
+          <div className="py-4">
             <p className="text-sm text-zx-text-soft">Active sources</p>
-            <p className="mt-2 text-2xl font-bold">{summary.activeSources}</p>
+            <p className="font-zx-display mt-2 text-2xl font-bold">{summary.activeSources}</p>
           </div>
         </section>
 
         <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-zx-line bg-zx-surface p-5">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">{editingId ? 'Edit income source' : 'Add income source'}</h2>
+            <h2 className="font-zx-head text-lg font-semibold text-zx-text">{editingId ? 'Edit income source' : 'Add income source'}</h2>
             {editingId && (
               <button type="button" onClick={resetForm} className="text-sm text-zx-text-soft transition hover:text-zx-text">
                 Cancel edit
@@ -202,7 +202,7 @@ export default function IncomeBuilder() {
           </Button>
         </form>
 
-        <section className="overflow-hidden rounded-lg border border-zx-line bg-zx-surface">
+        <section className="overflow-hidden">
           <div className="border-b border-zx-line p-4">
             <h2 className="font-semibold">Income pipeline</h2>
           </div>
