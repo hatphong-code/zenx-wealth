@@ -258,10 +258,6 @@ function MobileTopBar({ activeGroup, activeItem }) {
       <span className="font-zx-head font-semibold text-zx-text truncate">{label}</span>
       <div className="flex items-center gap-2 flex-shrink-0">
         <ThemeToggle compact />
-        <Link to="/transactions/new"
-          className="flex items-center justify-center w-8 h-8 rounded-full bg-zx-accent text-zx-on-accent">
-          <Plus className="h-4 w-4" />
-        </Link>
         <Avatar size={30} />
       </div>
     </div>
@@ -416,6 +412,15 @@ export default function AppShell({ children }) {
           </div>
         </main>
       </div>
+
+      {/* QuickCapture FAB — mobile only, always visible */}
+      <Link
+        to="/transactions/new"
+        className="md:hidden fixed bottom-[76px] right-4 z-40 w-14 h-14 rounded-full bg-zx-accent text-zx-on-accent shadow-zx flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
+        title="Thêm giao dịch nhanh"
+      >
+        <Plus className="h-6 w-6" strokeWidth={2.5} />
+      </Link>
 
       {/* Fixed bottom tabs (mobile) */}
       <BottomTabs
