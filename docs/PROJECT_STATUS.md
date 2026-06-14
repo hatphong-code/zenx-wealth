@@ -1,12 +1,12 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-12 (v1.4)
+Last updated: 2026-06-14 (v1.8)
 
 ## Current Phase
 
-**Design system applied + Mobile-first UX foundation complete.**
+**Design system + Enhanced analytics + Smart recurring detection + Personalized coaching.**
 
-The app has transitioned from a functional MVP with hardcoded styles to a full design-system-driven product with two audience themes (Ấm / Tư gia), a status-driven hub navigation for mobile, and a consistent ít khung visual language across all pages.
+The app has matured from MVP to a polished financial OS with two-theme design system, mobile-first hub navigation, recurring transaction auto-detection, and AI-powered personalized insights. Desktop layout optimized with sidebar stats and 2-column layout.
 
 ## Firebase Project
 
@@ -128,24 +128,40 @@ users/{userId}/tradingRisk/{recordId}
 appConfig/access-control
 ```
 
-## Completed in v1.1–v1.4 (2026-06-12)
+## Completed in v1.1–v1.8 (2026-06-14)
 
-- **QuickCapture FAB** — fixed `+` above bottom tabs on all mobile pages
-- **Latte→Convert** — TrackHub bottom sheet → creates emergency fund record → success state
-- **Net Worth tile** — Dashboard hero: assets − debts alongside net cash flow
-- **Savings Rate tile** — replaced redundant cash flow tile with savings %
-- **Smart AddTransaction** — Vietnamese UI, type toggle, Latte auto-detect by keyword, quick-tap chips
-- **PlanHub ETA** — months to next emergency fund milestone at current rate
-- **Milestone celebration** — ✦ + colored label at 1/3/6/12 month thresholds
-- **Latte tip in PlanHub** — "Cắt Latte Factor = +X/tháng" contextual insight
-- **Guided 3-step Weekly Review** — Numbers → Reflect (AI insight) → Commit; success screen
-- **AI contextual insight** — personalized text from latte %, savings rate, score
-- **ReviewHub score history** — last 5 weekly scores as mini bar chart sparkline
+### v1.1–v1.4 Foundation
+- QuickCapture FAB, Latte→Convert flow, Net Worth + Savings tiles
+- Smart AddTransaction, PlanHub ETA, Milestone celebrations, Latte insights
+- Guided 3-step Weekly Review with AI contextual insights
+- ReviewHub score history sparkline
+
+### v1.5 Desktop Polish
+- **Sidebar stats component** — net cash flow, emergency fund bar, current phase
+- **Dashboard 2-column layout** — hero + stats (left), focus + quick access (sticky right)
+- Better visual hierarchy for desktop
+
+### v1.6 PWA / Add to Homescreen
+- Service worker with Workbox caching strategies
+- Offline-first read for last-synced data
+- Web manifest + PNG icons (192/512) with gold Z branding
+- Meta tags for iOS/Android home screen install
+
+### v1.7 Recurring Transaction Detection
+- Auto-analysis of last 12 months — groups expenses by category, amount, day-of-month
+- Auto-flagged in Transactions list with ↻ Monthly badge
+- TrackHub recurring insight section showing monthly fixed costs
+- Pattern detection: ±3 day tolerance, 2+ occurrences = recurring
+
+### v1.8 Enhanced AI Coach
+- Personalized headline generation based on financial state
+- Operating insight analysis — detailed feedback tied to savings rate thresholds
+- Better tone + context per user phase
 
 ## Known Gaps
 
-- Latte Factor month-over-month percentage still simplified
-- AI Coach is rule-based, not LLM-backed
+- Recurring detection doesn't persist flags to Firestore (read-only on fetch)
+- AI Coach is enhanced rule-based, not LLM-backed (no external API calls)
 - Reports still reads raw records for list-heavy routes
 - Free/Premium gating has no billing backend
 - Firebase Auth must have Apple/Google/Email providers enabled in console
@@ -153,9 +169,8 @@ appConfig/access-control
 
 ## Next Recommended Work
 
-1. **Desktop layout polish** — sidebar stat summaries, wider Dashboard on large screens
-2. **PWA / Add to homescreen** — service worker, offline read, home icon
-3. **Recurring transaction detection** — auto-flag expenses that repeat monthly
-4. **AI Coach LLM upgrade** — replace rule-based with actual LLM analysis
-5. **Monthly financial letter** — personalized 200-word month-end summary
-6. **Goal tracking** — 12-month goal → weekly trajectory signal
+1. **Monthly financial letter** — personalized 200-word month-end summary (v1.9)
+2. **Goal tracking** — 12-month goal + weekly trajectory signal (v1.10)
+3. **Transaction search/filter** — improved discovery for large histories
+4. **Budget templates** — pre-built category structures by life phase
+5. **LLM integration** — backend Cloud Function calling Claude API for insights
