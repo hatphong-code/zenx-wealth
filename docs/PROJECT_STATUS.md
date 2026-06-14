@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-14 (v1.8)
+Last updated: 2026-06-14 (v1.10)
 
 ## Current Phase
 
@@ -158,10 +158,24 @@ appConfig/access-control
 - Operating insight analysis — detailed feedback tied to savings rate thresholds
 - Better tone + context per user phase
 
+### v1.9 Monthly Financial Letter
+- Personalized month-end 200–300 word summary
+- Key metrics: net cash flow, savings rate, Latte Factor, emergency fund progress
+- Adaptive messaging based on financial state
+- Download as Markdown, email delivery placeholder
+
+### v1.10 Goal Tracking
+- 12-month financial goal from Settings with auto-parsing
+- Weekly trajectory calculation — target savings rate to reach goal
+- On-track signal (90% threshold), visual progress bar
+- Remaining weeks countdown, weekly savings guidance
+
 ## Known Gaps
 
 - Recurring detection doesn't persist flags to Firestore (read-only on fetch)
 - AI Coach is enhanced rule-based, not LLM-backed (no external API calls)
+- Monthly letter email delivery is not yet implemented (download only)
+- Goal parsing is simple regex-based (handles "X triệu" format, but not all variations)
 - Reports still reads raw records for list-heavy routes
 - Free/Premium gating has no billing backend
 - Firebase Auth must have Apple/Google/Email providers enabled in console
@@ -169,8 +183,8 @@ appConfig/access-control
 
 ## Next Recommended Work
 
-1. **Monthly financial letter** — personalized 200-word month-end summary (v1.9)
-2. **Goal tracking** — 12-month goal + weekly trajectory signal (v1.10)
-3. **Transaction search/filter** — improved discovery for large histories
-4. **Budget templates** — pre-built category structures by life phase
-5. **LLM integration** — backend Cloud Function calling Claude API for insights
+1. **Transaction search/filter** — improved discovery for large histories
+2. **Budget templates** — pre-built category structures by life phase
+3. **LLM integration** — backend Cloud Function calling Claude API for insights
+4. **Mobile wallet sync** — connect bank/payment app for auto-transactions (future phase)
+5. **Financial health score** — composite metric (net worth + savings rate + consistency)
