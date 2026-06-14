@@ -8,7 +8,10 @@ import { useAuth } from '../auth/useAuth';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useI18n } from '../i18n/useI18n';
 import { useTheme } from '../hooks/useTheme';
+import { useDashboardStats } from '../hooks/useDashboardStats';
+import { useWealthRoadmapData } from '../hooks/useWealthRoadmapData';
 import { auth } from '../services/firebaseAuth';
+import { fmtShort } from '../utils/formatters';
 
 /* ─────────────── nav data ─────────────── */
 
@@ -135,9 +138,53 @@ function ThemeToggle({ compact = false }) {
   );
 }
 
+/* ─────────────── sidebar stats ─────────────── */
+
+function SidebarStats({ userId }) {
+  const { stats } = useDashboardStats(userId);
+  const { data: roadmap } = useWealthRoadmapData(userId);
+  const currentPhase = roadmap.phases.find(p => p.id === roadmap.currentPhaseId) || roadmap.phases[0];
+  const emgPct = stats.targetMonths > 0 ? (stats.emergencyMonths / stats.targetMonths) * 100 : 0;
+  const isPositive = stats.netCashFlow >= 0;
+
+  return (
+    <div className="border-t border-zx-line px-4 py-3 space-y-3 flex-shrink-0">
+      {/* Net cash flow pulse */}
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">Tháng này</span>
+        <span className={`font-zx-display text-sm font-bold ${isPositive ? 'text-zx-positive' : 'text-zx-accent'}`}>
+          {isPositive ? '+' : ''}{fmtShort(stats.netCashFlow)} ₫
+        </span>
+      </div>
+
+      {/* Emergency fund mini */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">Quỹ dự phòng</span>
+          <span className="text-[10px] font-medium text-zx-text-soft">
+            {stats.emergencyMonths.toFixed(1)}/{stats.targetMonths}
+          </span>
+        </div>
+        <div className="h-1 rounded-full bg-zx-surface-2 overflow-hidden">
+          <div className="h-full rounded-full bg-zx-positive transition-all duration-700"
+            style={{ width: `${Math.min(100, emgPct)}%` }} />
+        </div>
+      </div>
+
+      {/* Current phase */}
+      {currentPhase && (
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft shrink-0">GĐ {roadmap.completedPhases + 1}</span>
+          <span className="text-[10px] text-zx-text-soft truncate">{currentPhase.title}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─────────────── sidebar (desktop) ─────────────── */
 
-function Sidebar({ visibleGroups, activeGroup, expandedGroups, onGroupClick, onItemClick }) {
+function Sidebar({ visibleGroups, activeGroup, expandedGroups, onGroupClick, onItemClick, userId }) {
   const { t } = useI18n();
   const { theme } = useTheme();
   const navigate = useNavigate();
@@ -201,8 +248,11 @@ function Sidebar({ visibleGroups, activeGroup, expandedGroups, onGroupClick, onI
         })}
       </nav>
 
+      {/* Mini stats */}
+      <SidebarStats userId={userId} />
+
       {/* Bottom: theme + sign out */}
-      <div className="border-t border-zx-line p-3 space-y-1.5 flex-shrink-0">
+      <div className="p-3 space-y-1.5 flex-shrink-0">
         <div className="px-1">
           <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-1.5 px-2">Giao diện</p>
           <ThemeToggle />
@@ -344,6 +394,7 @@ function BottomSheet({ group, activeItem, onClose, onItemClick, t }) {
 export default function AppShell({ children }) {
   const navigate = useNavigate();
   const { t } = useI18n();
+  const { user } = useAuth();
   const { visibleGroups, activeGroup, activeItem } = useNav();
   const [expandedGroups, setExpandedGroups] = useState(() => new Set());
   const [bottomSheet, setBottomSheet] = useState(null);
@@ -393,6 +444,7 @@ export default function AppShell({ children }) {
         expandedGroups={expandedGroups}
         onGroupClick={handleSidebarGroupClick}
         onItemClick={navigate_}
+        userId={user?.uid}
       />
 
       {/* Main column */}

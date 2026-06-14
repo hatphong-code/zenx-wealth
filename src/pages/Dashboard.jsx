@@ -59,7 +59,10 @@ export default function Dashboard() {
     : 0;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+      {/* Desktop 2-column: left=data, right=focus+actions (sticky) */}
+      <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-10 lg:items-start">
+      <div> {/* left column */}
 
       {/* ── Hero: Dòng tiền + Tài sản ròng ── */}
       <section className="pb-7">
@@ -164,57 +167,64 @@ export default function Dashboard() {
         ))}
       </section>
 
-      <HL />
+      </div> {/* end left column */}
 
-      {/* ── Weekly focus ── */}
-      <section className="py-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-zx-head font-semibold text-sm text-zx-text uppercase tracking-[0.1em]">
-            {t('dashboard.weeklyFocus.title')}
-          </h2>
-          {canAccess('ai_coach') && (
-            <Link to="/ai-coach"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-zx-accent rounded-full bg-zx-accent-soft px-3 py-1.5 transition hover:opacity-80">
-              ✦ {t('dashboard.weeklyFocus.askCoach')}
-            </Link>
-          )}
-        </div>
-        {[
-          t('dashboard.weeklyFocus.item1', { amount: fmtShort(500000) }),
-          t('dashboard.weeklyFocus.item2', { amount: fmtShort(2000000) }),
-        ].map((text, i) => (
-          <div key={i}>
-            {i > 0 && <HL />}
-            <div className="flex items-center gap-3 py-3">
-              <span className="w-5 h-5 rounded-full border border-zx-line flex-shrink-0" />
-              <span className="text-sm text-zx-text">{text}</span>
-            </div>
+      {/* ── Right column (desktop sticky) / Below on mobile ── */}
+      <div className="lg:sticky lg:top-6">
+
+        <div className="lg:hidden h-px bg-zx-line" />
+
+        {/* ── Weekly focus ── */}
+        <section className="py-6 lg:pt-0">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-zx-head font-semibold text-sm text-zx-text uppercase tracking-[0.1em]">
+              {t('dashboard.weeklyFocus.title')}
+            </h2>
+            {canAccess('ai_coach') && (
+              <Link to="/ai-coach"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-zx-accent rounded-full bg-zx-accent-soft px-3 py-1.5 transition hover:opacity-80">
+                ✦ {t('dashboard.weeklyFocus.askCoach')}
+              </Link>
+            )}
           </div>
-        ))}
-      </section>
-
-      <HL />
-
-      {/* ── Quick access ── */}
-      <section className="pt-5 pb-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zx-text-soft mb-3">
-          Truy cập nhanh
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {[
-            { to: '/transactions/new', labelKey: 'dashboard.actions.add_transaction', featureKey: 'add_transaction' },
-            { to: '/emergency',        labelKey: 'dashboard.actions.emergency_fund',  featureKey: 'emergency_fund' },
-            { to: '/weekly-review',    labelKey: 'dashboard.actions.weekly_review',   featureKey: 'weekly_review' },
-            { to: '/reports',          labelKey: 'dashboard.actions.reports',         featureKey: 'reports' },
-          ].filter(a => canAccess(a.featureKey)).map(a => (
-            <Link key={a.to} to={a.to}
-              className="flex items-center justify-between rounded-zx-sm border border-zx-line px-3 py-2.5 text-sm text-zx-text-soft transition hover:border-zx-accent hover:text-zx-text">
-              {t(a.labelKey)}
-              <ArrowRight className="h-3.5 w-3.5 flex-shrink-0" />
-            </Link>
+            t('dashboard.weeklyFocus.item1', { amount: fmtShort(500000) }),
+            t('dashboard.weeklyFocus.item2', { amount: fmtShort(2000000) }),
+          ].map((text, i) => (
+            <div key={i}>
+              {i > 0 && <HL />}
+              <div className="flex items-center gap-3 py-3">
+                <span className="w-5 h-5 rounded-full border border-zx-line flex-shrink-0" />
+                <span className="text-sm text-zx-text">{text}</span>
+              </div>
+            </div>
           ))}
-        </div>
-      </section>
+        </section>
+
+        <HL />
+
+        {/* ── Quick access ── */}
+        <section className="pt-5 pb-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zx-text-soft mb-3">
+            Truy cập nhanh
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { to: '/transactions/new', labelKey: 'dashboard.actions.add_transaction', featureKey: 'add_transaction' },
+              { to: '/emergency',        labelKey: 'dashboard.actions.emergency_fund',  featureKey: 'emergency_fund' },
+              { to: '/weekly-review',    labelKey: 'dashboard.actions.weekly_review',   featureKey: 'weekly_review' },
+              { to: '/reports',          labelKey: 'dashboard.actions.reports',         featureKey: 'reports' },
+            ].filter(a => canAccess(a.featureKey)).map(a => (
+              <Link key={a.to} to={a.to}
+                className="flex items-center justify-between rounded-zx-sm border border-zx-line px-3 py-2.5 text-sm text-zx-text-soft transition hover:border-zx-accent hover:text-zx-text">
+                {t(a.labelKey)}
+                <ArrowRight className="h-3.5 w-3.5 flex-shrink-0" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      </div> {/* end right column */}
+      </div> {/* end 2-col grid */}
     </div>
   );
 }
