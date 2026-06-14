@@ -101,10 +101,10 @@ export default function Transactions() {
                         {transaction.type}
                       </span>
                       {transaction.isLatteFactor && (
-                        <span className="rounded-full bg-red-950 px-2.5 py-1 text-red-300">Latte Factor</span>
+                        <span className="rounded-full bg-red-950 px-2.5 py-1 text-red-300">☕ Latte</span>
                       )}
                       {transaction.isRecurring && (
-                        <span className="rounded-full bg-zx-bg px-2.5 py-1 text-zx-text-soft">Recurring</span>
+                        <span className="rounded-full bg-zx-surface-2 px-2.5 py-1 text-zx-text-soft">↻ Monthly</span>
                       )}
                     </div>
 
@@ -161,9 +161,16 @@ export default function Transactions() {
                       <td className="px-4 py-3 text-right font-mono">
                         {formatMoney(transaction.amount, transaction.currency || currency)}
                       </td>
-                      <td className="px-4 py-3 text-xs text-zx-text-soft">
-                        {transaction.isLatteFactor ? 'Latte Factor' : '-'}
-                        {transaction.isRecurring ? ' / Recurring' : ''}
+                      <td className="px-4 py-3 flex flex-wrap gap-1">
+                        {transaction.isLatteFactor && (
+                          <span className="rounded text-[10px] bg-red-950 text-red-300 px-2 py-0.5">Latte</span>
+                        )}
+                        {transaction.isRecurring && (
+                          <span className="rounded text-[10px] bg-zx-surface-2 text-zx-text-soft px-2 py-0.5">Monthly</span>
+                        )}
+                        {!transaction.isLatteFactor && !transaction.isRecurring && (
+                          <span className="text-zx-text-soft">-</span>
+                        )}
                       </td>
                       <td className="max-w-[220px] truncate px-4 py-3 text-zx-text-soft">{transaction.note || '-'}</td>
                       <td className="px-4 py-3 text-right">

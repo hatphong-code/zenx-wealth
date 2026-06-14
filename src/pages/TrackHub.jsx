@@ -265,6 +265,55 @@ export default function TrackHub() {
 
       <HL />
 
+      {/* ── Recurring transactions insight ── */}
+      {txData.transactions.length > 0 && (
+        <>
+          <section className="py-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
+              Giao dịch định kỳ
+            </p>
+            {(() => {
+              const recurringTxs = txData.transactions.filter(tx => tx.isRecurring && tx.type === 'expense');
+              const recurringByCategory = {};
+              recurringTxs.forEach(tx => {
+                if (!recurringByCategory[tx.category]) {
+                  recurringByCategory[tx.category] = [];
+                }
+                recurringByCategory[tx.category].push(tx.amount);
+              });
+
+              const monthlyRecurringTotal = Object.values(recurringByCategory).reduce(
+                (sum, amounts) => sum + Math.min(...amounts),
+                0
+              );
+
+              return recurringTxs.length === 0 ? (
+                <p className="text-sm text-zx-text-soft">Chưa có giao dịch định kỳ được phát hiện.</p>
+              ) : (
+                <>
+                  <div className="flex items-baseline gap-2 mb-4">
+                    <p className="font-zx-display text-2xl font-bold text-zx-gold">
+                      {fmtShort(monthlyRecurringTotal)}
+                    </p>
+                    <p className="text-sm text-zx-text-soft">₫/tháng (chi phí cố định)</p>
+                  </div>
+                  <div className="space-y-2">
+                    {Object.entries(recurringByCategory).map(([cat, amounts]) => (
+                      <div key={cat} className="flex items-center justify-between text-sm">
+                        <p className="text-zx-text-soft">↻ {cat}</p>
+                        <p className="text-zx-text font-medium">{fmtShort(Math.min(...amounts))}</p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
+          </section>
+
+          <HL />
+        </>
+      )}
+
       {/* ── Giao dịch gần đây ── */}
       <section className="py-6">
         <div className="flex items-center justify-between mb-4">

@@ -2,6 +2,7 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore/lite';
 import { db } from './firebaseDb';
 import { getCachedValue, loadWithCache, removeCachedValue, setCachedValue } from './sessionCache';
 import { getUserProfile } from './userService';
+import { detectRecurringTransactions } from './recurringDetectionService';
 
 const TRANSACTIONS_CACHE_TTL_MS = 60 * 1000;
 
@@ -15,9 +16,12 @@ async function fetchTransactions(userId) {
     query(collection(db, 'users', userId, 'transactions'), orderBy('date', 'desc'))
   );
 
+  const txs = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+  const withRecurring = detectRecurringTransactions(txs);
+
   return {
     currency: userProfile.settings?.currency || 'VND',
-    transactions: snapshot.docs.map((item) => ({ id: item.id, ...item.data() })),
+    transactions: withRecurring,
   };
 }
 
