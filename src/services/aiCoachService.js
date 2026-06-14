@@ -92,6 +92,74 @@ function template(text, params = {}) {
   return text.replace(/\{(\w+)\}/g, (_, key) => String(params[key] ?? ''));
 }
 
+function generatePersonalizedHeadline(reports, roadmap, locale = 'vi') {
+  const cf = copyFor(locale);
+  const { monthly, monthlyClose, balanceSheet, risk } = reports;
+  const currentPhase = roadmap.phases.find((p) => p.id === roadmap.currentPhaseId);
+
+  // Analyze current state for personalized headline
+  const isNegativeCash = monthly.netCashFlow < 0;
+  const negativeNetWorth = balanceSheet.netWorth < 0;
+  const hasLatte = monthly.latteFactor > 0;
+  const consistentPositive = monthlyClose.positiveMonths >= 3;
+  const highRisk = risk.monthlyStatus === 'Stop' || risk.dailyStatus === 'Stop';
+
+  if (highRisk) {
+    return locale === 'vi' ? 'Dừng giao dịch, reset kỷ luật' : 'Stop trading, reset discipline';
+  }
+  if (isNegativeCash && negativeNetWorth) {
+    return locale === 'vi' ? 'Cấp cứu dòng tiền — mục tiêu 0' : 'Cash flow critical — target zero';
+  }
+  if (isNegativeCash) {
+    return locale === 'vi' ? 'Sửa dòng tiền tháng này' : 'Repair this month\'s cash flow';
+  }
+  if (hasLatte && !negativeNetWorth) {
+    return locale === 'vi' ? 'Chuyển rò rỉ sang bảo vệ' : 'Redirect leakage into protection';
+  }
+  if (consistentPositive && balanceSheet.netWorth > 0 && monthly.savingsRate >= 0.3) {
+    return locale === 'vi' ? 'Tăng tốc — mở bucket dài hạn' : 'Accelerate — open long-term bucket';
+  }
+  if (consistentPositive) {
+    return locale === 'vi' ? 'Giữ nhịp — lãi kép sẽ làm việc' : 'Stay consistent — compounding works';
+  }
+  return cf.focusDefaultTitle;
+}
+
+function generateOperatingInsight(reports, locale = 'vi') {
+  const cf = copyFor(locale);
+  const rate = reports.monthlyClose.averageSavingsRate;
+  const ratePercent = Math.round(rate * 100);
+
+  let detail = '';
+  if (rate < 0.05) {
+    detail = locale === 'vi'
+      ? 'Còn quá thắt. Cần tìm thêm dòng chảy vào.'
+      : 'Still too tight. Need more inflow.';
+  } else if (rate < 0.1) {
+    detail = locale === 'vi'
+      ? 'Bắt đầu thở được. Tiếp tục siết từng % nữa.'
+      : 'Starting to breathe. Keep tightening by 1%.';
+  } else if (rate < 0.2) {
+    detail = locale === 'vi'
+      ? 'Lành mạnh. Đủ để xây dựng bảo vệ.'
+      : 'Healthy. Enough to build protection.';
+  } else if (rate < 0.3) {
+    detail = locale === 'vi'
+      ? 'Tốt. Có thể mở 2-3 bucket đồng thời.'
+      : 'Good. Can open 2-3 buckets in parallel.';
+  } else {
+    detail = locale === 'vi'
+      ? 'Xuất sắc. Tăng tốc là bước tiếp theo.'
+      : 'Excellent. Acceleration is next.';
+  }
+
+  return {
+    tone: rate >= 0.2 ? 'good' : 'warning',
+    title: cf.insightOperatingTitle,
+    body: template(cf.insightOperatingBody, { rate: ratePercent }) + ' ' + detail,
+  };
+}
+
 function getAICoachCacheKey(userId) {
   return `ai-coach:${userId}`;
 }
@@ -177,10 +245,12 @@ export function buildCoachState({ profile, reports, roadmap, locale = 'vi' }) {
 
   const currentPhase = roadmap.phases.find((phase) => phase.id === roadmap.currentPhaseId);
 
+  const personalizedHeadline = generatePersonalizedHeadline(reports, roadmap, locale);
+
   const focus = actions[0] || {
     id: 'steady-compounding',
     priority: copy.focusPriorityNext,
-    title: copy.focusDefaultTitle,
+    title: personalizedHeadline,
     body: copy.focusDefaultBody,
     route: '/reports',
     buttonLabel: copy.focusDefaultButton,
@@ -194,11 +264,7 @@ export function buildCoachState({ profile, reports, roadmap, locale = 'vi' }) {
         ? copy.insightBalanceGood
         : copy.insightBalanceWarning,
     },
-    {
-      tone: reports.monthlyClose.averageSavingsRate >= 0.2 ? 'good' : 'warning',
-      title: copy.insightOperatingTitle,
-      body: template(copy.insightOperatingBody, { rate: Math.round(reports.monthlyClose.averageSavingsRate * 100) }),
-    },
+    generateOperatingInsight(reports, locale),
     {
       tone: 'neutral',
       title: copy.insightRoadmapTitle,
@@ -208,7 +274,7 @@ export function buildCoachState({ profile, reports, roadmap, locale = 'vi' }) {
 
   return {
     currency,
-    headline: focus.title,
+    headline: personalizedHeadline,
     focus,
     wins,
     watchouts,
