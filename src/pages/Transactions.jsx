@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { deleteDoc, doc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
+import { useI18n } from '../i18n/useI18n';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { formatDate, formatMoney } from '../utils/formatters';
@@ -17,12 +18,13 @@ import { invalidateAICoachCache } from '../services/aiCoachService';
 
 export default function Transactions() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { data, setData, loading, refreshing, error, setError } = useTransactionsData(user?.uid);
   const { transactions, currency } = data;
 
   const handleDelete = async (transactionId) => {
     if (!user) return;
-    const shouldDelete = window.confirm('Delete this transaction?');
+    const shouldDelete = window.confirm(t('transactions.confirmDelete'));
     if (!shouldDelete) return;
 
     try {
@@ -50,16 +52,16 @@ export default function Transactions() {
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
-            <h1 className="font-zx-head text-2xl font-bold text-zx-text">Transactions</h1>
-            <p className="text-sm text-zx-text-soft">Track income, expenses, and Latte Factor flags.</p>
-            {loading && <p className="text-sm text-zx-text-soft">Loading transactions...</p>}
-            {refreshing && <p className="text-sm text-zx-accent">Refreshing transactions...</p>}
+            <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('transactions.title')}</h1>
+            <p className="text-sm text-zx-text-soft">{t('transactions.subtitle')}</p>
+            {loading && <p className="text-sm text-zx-text-soft">{t('transactions.loading')}</p>}
+            {refreshing && <p className="text-sm text-zx-accent">{t('transactions.refreshing')}</p>}
           </div>
           <Link
             to="/transactions/new"
             className="inline-flex items-center justify-center gap-2 rounded bg-zx-accent px-4 py-2 text-sm font-medium text-zx-text transition hover:opacity-90"
           >
-            <Plus className="h-4 w-4" /> Add Transaction
+            <Plus className="h-4 w-4" /> {t('transactions.addButton')}
           </Link>
         </div>
 
@@ -68,10 +70,10 @@ export default function Transactions() {
         <section className="overflow-hidden">
           {transactions.length === 0 ? (
             <div className="space-y-4 p-6 text-center">
-              <p className="text-zx-text-soft">{loading ? 'Loading transactions...' : 'No transactions yet.'}</p>
+              <p className="text-zx-text-soft">{loading ? t('transactions.loading') : t('transactions.empty')}</p>
               {!loading && (
                 <Link to="/transactions/new" className="text-sm font-medium text-zx-accent hover:text-zx-accent">
-                  Add your first transaction
+                  {t('transactions.addFirst')}
                 </Link>
               )}
             </div>
@@ -108,21 +110,21 @@ export default function Transactions() {
                       )}
                     </div>
 
-                    <p className="text-sm text-zx-text-soft">{transaction.note || 'No note'}</p>
+                    <p className="text-sm text-zx-text-soft">{transaction.note || t('common.noNote')}</p>
 
                     <div className="flex gap-2">
                       <Link
                         to={`/transactions/${transaction.id}/edit`}
                         className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-zx-bg px-3 py-2 text-sm text-zx-accent transition hover:bg-zx-surface-2"
                       >
-                        <Pencil className="h-4 w-4" /> Edit
+                        <Pencil className="h-4 w-4" /> {t('common.edit')}
                       </Link>
                       <Button
                         type="button"
                         onClick={() => handleDelete(transaction.id)}
                         className="flex-1 bg-red-950 px-3 py-2 text-red-300 hover:bg-red-900"
                       >
-                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                        <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
                       </Button>
                     </div>
                   </article>
@@ -133,13 +135,13 @@ export default function Transactions() {
               <table className="w-full min-w-[760px] border-collapse text-left text-sm">
                 <thead className="bg-zx-bg text-xs uppercase tracking-wide text-zx-text-soft">
                   <tr>
-                    <th className="px-4 py-3">Date</th>
-                    <th className="px-4 py-3">Category</th>
-                    <th className="px-4 py-3">Type</th>
-                    <th className="px-4 py-3 text-right">Amount</th>
-                    <th className="px-4 py-3">Flags</th>
-                    <th className="px-4 py-3">Note</th>
-                    <th className="px-4 py-3 text-right">Action</th>
+                    <th className="px-4 py-3">{t('transactions.table.date')}</th>
+                    <th className="px-4 py-3">{t('transactions.table.category')}</th>
+                    <th className="px-4 py-3">{t('transactions.table.type')}</th>
+                    <th className="px-4 py-3 text-right">{t('transactions.table.amount')}</th>
+                    <th className="px-4 py-3">{t('transactions.table.flags')}</th>
+                    <th className="px-4 py-3">{t('transactions.table.note')}</th>
+                    <th className="px-4 py-3 text-right">{t('transactions.table.action')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -179,14 +181,14 @@ export default function Transactions() {
                             to={`/transactions/${transaction.id}/edit`}
                             className="inline-flex items-center gap-2 rounded bg-zx-bg px-3 py-2 text-zx-accent transition hover:bg-zx-surface-2"
                           >
-                            <Pencil className="h-4 w-4" /> Edit
+                            <Pencil className="h-4 w-4" /> {t('common.edit')}
                           </Link>
                           <Button
                             type="button"
                             onClick={() => handleDelete(transaction.id)}
                             className="inline-flex items-center gap-2 bg-red-950 px-3 py-2 text-red-300 hover:bg-red-900"
                           >
-                            <Trash2 className="h-4 w-4" /> Delete
+                            <Trash2 className="h-4 w-4" /> {t('common.delete')}
                           </Button>
                         </div>
                       </td>

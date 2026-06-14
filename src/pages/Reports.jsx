@@ -102,11 +102,11 @@ export default function Reports() {
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                ['Tracked assets', data.balanceSheet.trackedAssets],
-                ['Emergency fund', data.balanceSheet.emergencyFund],
-                ['Liquid assets', data.balanceSheet.liquidAssets],
-                ['Long-term assets', data.balanceSheet.longTermAssets],
-                ['Risk assets', data.balanceSheet.riskAssets],
+                [t('reports.balanceSheet.trackedAssets'), data.balanceSheet.trackedAssets],
+                [t('reports.balanceSheet.emergencyFund'), data.balanceSheet.emergencyFund],
+                [t('reports.balanceSheet.liquidAssets'), data.balanceSheet.liquidAssets],
+                [t('reports.balanceSheet.longTermAssets'), data.balanceSheet.longTermAssets],
+                [t('reports.balanceSheet.riskAssets'), data.balanceSheet.riskAssets],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-center justify-between rounded-zx-sm border border-zx-line bg-zx-bg px-4 py-3">
                   <span className="text-sm text-zx-text-soft">{label}</span>
@@ -115,7 +115,7 @@ export default function Reports() {
               ))}
               <div className="rounded-zx-sm border border-[#3F2A2A] bg-[#1A1313] px-4 py-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-zx-text-soft">Debt-to-asset ratio</span>
+                  <span className="text-sm text-zx-text-soft">{t('reports.balanceSheet.debtToAssetRatio')}</span>
                   <span className="font-semibold text-zx-text">{formatPercent(data.balanceSheet.debtToAssetRatio)}</span>
                 </div>
               </div>
@@ -172,21 +172,21 @@ export default function Reports() {
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="rounded-lg border border-zx-line bg-zx-bg p-4">
-                <p className="text-sm text-zx-text-soft">Positive months</p>
+                <p className="text-sm text-zx-text-soft">{t('reports.monthlyClose.positiveMonths')}</p>
                 <p className="mt-2 text-lg font-semibold">{data.monthlyClose.positiveMonths} / {data.trends.cashFlow.length}</p>
               </div>
               <div className="rounded-lg border border-zx-line bg-zx-bg p-4">
-                <p className="text-sm text-zx-text-soft">Average savings rate</p>
+                <p className="text-sm text-zx-text-soft">{t('reports.monthlyClose.avgSavingsRate')}</p>
                 <p className="mt-2 text-lg font-semibold">{formatPercent(data.monthlyClose.averageSavingsRate)}</p>
               </div>
               <div className="rounded-lg border border-zx-line bg-zx-bg p-4">
-                <p className="text-sm text-zx-text-soft">Best month</p>
+                <p className="text-sm text-zx-text-soft">{t('reports.monthlyClose.bestMonth')}</p>
                 <p className="mt-2 text-lg font-semibold">
                   {data.monthlyClose.bestMonth?.label || '-'} {data.monthlyClose.bestMonth ? `· ${formatMoney(data.monthlyClose.bestMonth.netCashFlow, currency)}` : ''}
                 </p>
               </div>
               <div className="rounded-lg border border-zx-line bg-zx-bg p-4">
-                <p className="text-sm text-zx-text-soft">Latest net worth delta</p>
+                <p className="text-sm text-zx-text-soft">{t('reports.monthlyClose.latestNetWorthDelta')}</p>
                 <p className="mt-2 text-lg font-semibold">{formatMoney(data.monthlyClose.latestNetWorthDelta, currency)}</p>
               </div>
             </CardContent>
@@ -198,10 +198,10 @@ export default function Reports() {
             </CardHeader>
             <CardContent className="space-y-4">
               {[
-                ['Daily trading risk', data.risk.dailyStatus, data.risk.todayPnl],
-                ['Monthly trading risk', data.risk.monthlyStatus, data.risk.monthPnl],
-                ['Emergency coverage', `${formatNumber(data.monthly.emergencyMonths, { maximumFractionDigits: 1 })} months`, null],
-                ['Debt pressure', formatPercent(data.monthly.debtPressure), null],
+                [t('reports.risk.dailyTrading'), data.risk.dailyStatus, data.risk.todayPnl],
+                [t('reports.risk.monthlyTrading'), data.risk.monthlyStatus, data.risk.monthPnl],
+                [t('reports.risk.emergencyCoverage'), `${formatNumber(data.monthly.emergencyMonths, { maximumFractionDigits: 1 })} ${t('reports.risk.months')}`, null],
+                [t('reports.risk.debtPressure'), formatPercent(data.monthly.debtPressure), null],
               ].map(([label, status, value]) => (
                 <div key={label} className="rounded-lg border border-zx-line bg-zx-bg p-4">
                   <p className="text-sm text-zx-text-soft">{label}</p>

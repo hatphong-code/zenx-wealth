@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { updateProfile } from 'firebase/auth';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
+import { useI18n } from '../i18n/useI18n';
 import { Save, UserCircle } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { db } from '../services/firebaseDb';
@@ -49,6 +50,7 @@ function toForm(user, userData = {}) {
 
 export default function Profile() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [form, setForm] = useState(toForm(user));
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -108,17 +110,17 @@ export default function Profile() {
     const payYourselfPercent = Number(form.payYourselfFirstRate);
 
     if (!Number.isFinite(monthlyEssentialExpense) || monthlyEssentialExpense <= 0) {
-      setError('Monthly essential expense must be greater than 0.');
+      setError(t('profile.errors.monthlyExpenseRequired'));
       return;
     }
 
     if (!Number.isFinite(emergencyFundTargetMonths) || emergencyFundTargetMonths <= 0) {
-      setError('Emergency fund target months must be greater than 0.');
+      setError(t('profile.errors.emergencyTargetRequired'));
       return;
     }
 
     if (!Number.isFinite(payYourselfPercent) || payYourselfPercent < 0 || payYourselfPercent > 100) {
-      setError('Pay Yourself First rate must stay between 0 and 100.');
+      setError(t('profile.errors.pyfRateInvalid'));
       return;
     }
 
@@ -164,7 +166,7 @@ export default function Profile() {
       const weekMeta = getCurrentWeekMeta();
       invalidateWeeklyReviewCache(user.uid, weekMeta.weekKey);
       invalidateWealthRoadmapCache(user.uid);
-      setMessage('Profile saved.');
+      setMessage(t('profile.saveSuccess'));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -183,19 +185,19 @@ export default function Profile() {
             </div>
           )}
           <div className="space-y-1">
-            <h1 className="font-zx-head text-2xl font-bold text-zx-text">User Profile</h1>
-            <p className="text-sm text-zx-text-soft">Account and personal finance settings.</p>
-            {loading && <p className="text-sm text-zx-text-soft">Loading profile...</p>}
-            {refreshing && <p className="text-sm text-zx-accent">Refreshing profile...</p>}
+            <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('profile.title')}</h1>
+            <p className="text-sm text-zx-text-soft">{t('profile.subtitle')}</p>
+            {loading && <p className="text-sm text-zx-text-soft">{t('profile.loading')}</p>}
+            {refreshing && <p className="text-sm text-zx-accent">{t('profile.refreshing')}</p>}
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="py-6 space-y-6">
           <section className="space-y-4">
-            <h2 className="font-zx-head text-lg font-semibold text-zx-text">Account</h2>
+            <h2 className="font-zx-head text-lg font-semibold text-zx-text">{t('profile.account')}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block space-y-2">
-                <span className="text-sm text-zx-text-soft">Display name</span>
+                <span className="text-sm text-zx-text-soft">{t('profile.displayName')}</span>
                 <input
                   type="text"
                   value={form.displayName}
@@ -206,7 +208,7 @@ export default function Profile() {
               </label>
 
               <label className="block space-y-2">
-                <span className="text-sm text-zx-text-soft">Email</span>
+                <span className="text-sm text-zx-text-soft">{t('profile.email')}</span>
                 <input
                   type="email"
                   value={form.email}
@@ -218,10 +220,10 @@ export default function Profile() {
           </section>
 
           <section className="space-y-4 border-t border-zx-line pt-5">
-            <h2 className="font-zx-head text-lg font-semibold text-zx-text">Financial Settings</h2>
+            <h2 className="font-zx-head text-lg font-semibold text-zx-text">{t('profile.financialSettings')}</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block space-y-2">
-                <span className="text-sm text-zx-text-soft">Currency</span>
+                <span className="text-sm text-zx-text-soft">{t('profile.currency')}</span>
                 <select
                   value={form.currency}
                   onChange={(event) => updateField('currency', event.target.value)}
@@ -233,7 +235,7 @@ export default function Profile() {
               </label>
 
               <label className="block space-y-2">
-                <span className="text-sm text-zx-text-soft">Monthly essential expense</span>
+                <span className="text-sm text-zx-text-soft">{t('profile.monthlyExpense')}</span>
                 <input
                   type="number"
                   min="1"
@@ -251,7 +253,7 @@ export default function Profile() {
               </label>
 
               <label className="block space-y-2">
-                <span className="text-sm text-zx-text-soft">Emergency fund target months</span>
+                <span className="text-sm text-zx-text-soft">{t('profile.emergencyTarget')}</span>
                 <input
                   type="number"
                   min="1"
@@ -264,7 +266,7 @@ export default function Profile() {
               </label>
 
               <label className="block space-y-2">
-                <span className="text-sm text-zx-text-soft">Pay Yourself First rate (%)</span>
+                <span className="text-sm text-zx-text-soft">{t('profile.pyfRate')}</span>
                 <input
                   type="number"
                   min="0"
@@ -288,7 +290,7 @@ export default function Profile() {
             className="inline-flex w-full items-center justify-center gap-2 bg-zx-accent text-zx-on-accent hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
           >
             <Save className="h-4 w-4" />
-            {saving ? 'Saving...' : 'Save Profile'}
+            {saving ? t('profile.saving') : t('profile.saveButton')}
           </Button>
         </form>
       </main>
