@@ -25,6 +25,7 @@ const TradingRisk = lazy(() => import('./pages/TradingRisk'));
 const Assets = lazy(() => import('./pages/Assets'));
 const Reports = lazy(() => import('./pages/Reports'));
 const AICoach = lazy(() => import('./pages/AICoach'));
+const MonthlyLetter = lazy(() => import('./pages/MonthlyLetter'));
 const Settings = lazy(() => import('./pages/Settings'));
 const AdminAccessControl = lazy(() => import('./pages/AdminAccessControl'));
 
@@ -111,6 +112,7 @@ export default function App() {
         <Route path="/weekly-review" element={routeElement(<PrivateRoute featureKey="weekly_review"><WeeklyReview /></PrivateRoute>)} />
         <Route path="/reports" element={routeElement(<PrivateRoute featureKey="reports"><Reports /></PrivateRoute>)} />
         <Route path="/ai-coach" element={routeElement(<PrivateRoute featureKey="ai_coach"><AICoach /></PrivateRoute>)} />
+        <Route path="/monthly-letter" element={routeElement(<PrivateRoute featureKey="reports"><MonthlyLetter /></PrivateRoute>)} />
         <Route path="/profile" element={routeElement(<PrivateRoute featureKey="profile"><Profile /></PrivateRoute>)} />
         <Route path="/settings" element={routeElement(<PrivateRoute featureKey="settings"><Settings /></PrivateRoute>)} />
         <Route path="/admin/access" element={routeElement(<PrivateRoute adminOnly><AdminAccessControl /></PrivateRoute>)} />
