@@ -20,11 +20,13 @@ import { useEmergencyFundData } from '../hooks/useEmergencyFundData';
 import { getCurrentWeekMeta, invalidateWeeklyReviewCache } from '../services/weeklyReviewService';
 import { invalidateWealthRoadmapCache } from '../services/wealthRoadmapService';
 import { invalidateAICoachCache } from '../services/aiCoachService';
+import { useI18n } from '../i18n/useI18n';
 
 const today = new Date().toISOString().slice(0, 10);
 
 export default function EmergencyFund() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { data, setData, loading, refreshing, error, setError } = useEmergencyFundData(user?.uid);
   const { records, settings } = data;
   const [editingId, setEditingId] = useState(null);
@@ -58,7 +60,7 @@ export default function EmergencyFund() {
     event.preventDefault();
     if (!user) return;
     const amount = Number(form.amount);
-    if (!Number.isFinite(amount) || amount <= 0) { setError('Amount must be greater than 0.'); return; }
+    if (!Number.isFinite(amount) || amount <= 0) { setError(t('emergency.errors.amountRequired')); return; }
     setSaving(true); setError('');
     try {
       const nextRecord = {
@@ -88,7 +90,7 @@ export default function EmergencyFund() {
   };
 
   const handleDelete = async (recordId) => {
-    if (!user || !window.confirm('Delete this emergency fund entry?')) return;
+    if (!user || !window.confirm(t('emergency.confirmDelete'))) return;
     try {
       await deleteDoc(doc(db, 'users', user.uid, 'emergencyFund', recordId));
       const nextData = { ...data, records: records.filter((r) => r.id !== recordId) };
@@ -110,18 +112,18 @@ export default function EmergencyFund() {
             <Shield className="h-7 w-7 text-zx-positive" />
           </div>
           <div className="space-y-1">
-            <h1 className="font-zx-head text-2xl font-bold">Emergency Fund</h1>
-            <p className="text-sm text-zx-text-soft">Track how many months of essential expenses are covered.</p>
-            {loading && <p className="text-sm text-zx-text-soft">Loading emergency fund...</p>}
-            {refreshing && <p className="text-sm text-zx-accent">Refreshing emergency fund...</p>}
+            <h1 className="font-zx-head text-2xl font-bold">{t('emergency.title')}</h1>
+            <p className="text-sm text-zx-text-soft">{t('emergency.subtitle')}</p>
+            {loading && <p className="text-sm text-zx-text-soft">{t('emergency.loading')}</p>}
+            {refreshing && <p className="text-sm text-zx-accent">{t('emergency.refreshing')}</p>}
           </div>
         </div>
 
         <section className="grid gap-4 md:grid-cols-3">
           {[
-            { label: 'Current balance', value: formatMoney(balance, settings.currency) },
-            { label: 'Covered months', value: `${formatNumber(coveredMonths, { maximumFractionDigits: 1 })} / ${settings.emergencyFundTargetMonths} months` },
-            { label: 'Target balance', value: formatMoney(targetBalance, settings.currency) },
+            { label: t('emergency.stats.balance'), value: formatMoney(balance, settings.currency) },
+            { label: t('emergency.stats.covered'), value: `${formatNumber(coveredMonths, { maximumFractionDigits: 1 })} / ${settings.emergencyFundTargetMonths} months` },
+            { label: t('emergency.stats.target'), value: formatMoney(targetBalance, settings.currency) },
           ].map((stat) => (
             <div key={stat.label} className="rounded-zx-sm border border-zx-line bg-zx-surface p-4 shadow-zx zx-transition">
               <p className="text-sm text-zx-text-soft">{stat.label}</p>
@@ -132,7 +134,7 @@ export default function EmergencyFund() {
 
         <section className="rounded-zx-sm border border-zx-line bg-zx-surface p-5 shadow-zx zx-transition">
           <div className="mb-3 flex items-center justify-between text-sm text-zx-text-soft">
-            <span>Progress</span><span>{progress}%</span>
+            <span>{t('common.progress')}</span><span>{progress}%</span>
           </div>
           <div className="h-3 rounded-full bg-zx-surface-2">
             <div className="progress-fill h-3 rounded-full" style={{ width: `${progress}%` }} />
@@ -141,45 +143,45 @@ export default function EmergencyFund() {
 
         <form onSubmit={handleSubmit} className="space-y-4 rounded-zx-sm border border-zx-line bg-zx-surface p-5 shadow-zx zx-transition">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold">{editingId ? 'Edit fund record' : 'Add fund record'}</h2>
+            <h2 className="text-lg font-semibold">{editingId ? t('emergency.form.editTitle') : t('emergency.form.addTitle')}</h2>
             {editingId && (
-              <button type="button" onClick={resetForm} className="text-sm text-zx-text-soft transition hover:text-zx-text">Cancel edit</button>
+              <button type="button" onClick={resetForm} className="text-sm text-zx-text-soft transition hover:text-zx-text">{t('common.cancelEdit')}</button>
             )}
           </div>
           <div className="grid gap-4 md:grid-cols-[1fr_180px]">
             <label className="block space-y-2">
-              <span className="text-sm text-zx-text-soft">Amount</span>
+              <span className="text-sm text-zx-text-soft">{t('common.amount')}</span>
               <input type="number" min="1" step="any" value={form.amount}
                 onChange={(e) => updateField('amount', e.target.value)} className={inputCls} required />
               <span className="text-xs text-zx-text-soft">
-                {form.amount ? `~ ${formatMoney(form.amount, settings.currency)}` : 'Enter the amount without separators.'}
+                {form.amount ? `~ ${formatMoney(form.amount, settings.currency)}` : t('emergency.form.amountHint')}
               </span>
             </label>
             <label className="block space-y-2">
-              <span className="text-sm text-zx-text-soft">Date</span>
+              <span className="text-sm text-zx-text-soft">{t('common.date')}</span>
               <input type="date" value={form.date} onChange={(e) => updateField('date', e.target.value)} className={inputCls} required />
             </label>
           </div>
           <label className="block space-y-2">
-            <span className="text-sm text-zx-text-soft">Note</span>
+            <span className="text-sm text-zx-text-soft">{t('common.note')}</span>
             <input type="text" value={form.note} onChange={(e) => updateField('note', e.target.value)}
-              placeholder="Salary transfer, bonus, cash reserve..." className={inputCls} />
+              placeholder={t('emergency.form.notePlaceholder')} className={inputCls} />
           </label>
           {error && <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
           <Button type="submit" disabled={saving}
             className="inline-flex w-full items-center justify-center gap-2 bg-zx-accent text-zx-on-accent hover:opacity-90 disabled:cursor-not-allowed md:w-auto">
             <Plus className="h-4 w-4" />
-            {saving ? 'Saving...' : editingId ? 'Save Record' : 'Add Record'}
+            {saving ? t('common.saving') : editingId ? t('emergency.form.saveButton') : t('emergency.form.addButton')}
           </Button>
         </form>
 
         <section className="overflow-hidden rounded-zx-sm border border-zx-line bg-zx-surface shadow-zx zx-transition">
           <div className="border-b border-zx-line p-4">
-            <h2 className="font-semibold">Fund history</h2>
+            <h2 className="font-semibold">{t('emergency.history')}</h2>
           </div>
           {activeRecords.length === 0 ? (
             <div className="p-6 text-center text-zx-text-soft">
-              {loading ? 'Loading emergency fund...' : 'No emergency fund entries yet.'}
+              {loading ? t('emergency.loading') : t('emergency.empty')}
             </div>
           ) : (
             <>
@@ -189,7 +191,7 @@ export default function EmergencyFund() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-sm text-zx-text-soft">{formatDate(record.date)}</p>
-                        <p className="mt-1 text-sm text-zx-text-soft">{record.note || 'No note'}</p>
+                        <p className="mt-1 text-sm text-zx-text-soft">{record.note || t('common.noNote')}</p>
                       </div>
                       <p className="font-mono text-base font-semibold">
                         {formatMoney(record.amount, record.currency || settings.currency)}
@@ -198,11 +200,11 @@ export default function EmergencyFund() {
                     <div className="flex gap-2">
                       <Button type="button" onClick={() => handleEdit(record)}
                         className="flex-1 bg-zx-surface-2 px-3 py-2 text-zx-accent hover:opacity-80">
-                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                        <Pencil className="mr-2 h-4 w-4" /> {t('common.edit')}
                       </Button>
                       <Button type="button" onClick={() => handleDelete(record.id)}
                         className="flex-1 bg-red-950 px-3 py-2 text-red-300 hover:bg-red-900">
-                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                        <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
                       </Button>
                     </div>
                   </article>
@@ -213,10 +215,10 @@ export default function EmergencyFund() {
                 <table className="w-full min-w-[640px] border-collapse text-left text-sm">
                   <thead className="bg-zx-surface-2 text-xs uppercase tracking-wide text-zx-text-soft">
                     <tr>
-                      <th className="px-4 py-3">Date</th>
-                      <th className="px-4 py-3 text-right">Amount</th>
-                      <th className="px-4 py-3">Note</th>
-                      <th className="px-4 py-3 text-right">Action</th>
+                      <th className="px-4 py-3">{t('common.date')}</th>
+                      <th className="px-4 py-3 text-right">{t('common.amount')}</th>
+                      <th className="px-4 py-3">{t('common.note')}</th>
+                      <th className="px-4 py-3 text-right">{t('common.action')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -229,11 +231,11 @@ export default function EmergencyFund() {
                           <div className="flex justify-end gap-2">
                             <Button type="button" onClick={() => handleEdit(record)}
                               className="inline-flex items-center gap-2 bg-zx-surface-2 px-3 py-2 text-zx-accent hover:opacity-80">
-                              <Pencil className="h-4 w-4" /> Edit
+                              <Pencil className="h-4 w-4" /> {t('common.edit')}
                             </Button>
                             <Button type="button" onClick={() => handleDelete(record.id)}
                               className="inline-flex items-center gap-2 bg-red-950 px-3 py-2 text-red-300 hover:bg-red-900">
-                              <Trash2 className="h-4 w-4" /> Delete
+                              <Trash2 className="h-4 w-4" /> {t('common.delete')}
                             </Button>
                           </div>
                         </td>

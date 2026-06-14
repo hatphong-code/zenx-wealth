@@ -9,14 +9,7 @@ import {
   saveAllocationRule,
 } from '../services/payYourselfFirstService';
 import { usePayYourselfFirstData } from '../hooks/usePayYourselfFirstData';
-
-const allocationLabels = {
-  living: 'Living',
-  emergencyFund: 'Emergency Fund',
-  longTermAsset: 'Long-term Asset',
-  businessLearning: 'Business / Learning',
-  highRiskTrading: 'High Risk / Trading',
-};
+import { useI18n } from '../i18n/useI18n';
 
 export default function PayYourselfFirst() {
   const { user } = useAuth();
@@ -24,6 +17,7 @@ export default function PayYourselfFirst() {
   const [form, setForm] = useState(data.allocationRule);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const { t } = useI18n();
 
   useEffect(() => {
     setForm(data.allocationRule);
@@ -44,7 +38,7 @@ export default function PayYourselfFirst() {
     );
     const ruleTotal = Object.values(normalized).reduce((sum, value) => sum + value, 0);
     if (ruleTotal !== 100) {
-      setError('Allocation rule must sum to exactly 100%.');
+      setError(t('payYourself.errors.allocationSum'));
       return;
     }
 
@@ -61,7 +55,7 @@ export default function PayYourselfFirst() {
       const nextData = await saveAllocationRule(user.uid, profile, normalized);
       setData(nextData);
       setForm(nextData.allocationRule);
-      setMessage('Allocation rule saved.');
+      setMessage(t('payYourself.saveSuccess'));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -76,35 +70,35 @@ export default function PayYourselfFirst() {
             <PiggyBank className="h-7 w-7 text-zx-accent" />
           </div>
           <div className="space-y-1">
-            <h1 className="font-zx-head text-2xl font-bold text-zx-text">Pay Yourself First</h1>
-            <p className="text-sm text-zx-text-soft">Turn income into a default allocation rule before lifestyle absorbs it.</p>
-            {loading && <p className="text-sm text-zx-text-soft">Loading allocation status...</p>}
-            {refreshing && <p className="text-sm text-zx-accent">Refreshing allocation status...</p>}
+            <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('payYourself.title')}</h1>
+            <p className="text-sm text-zx-text-soft">{t('payYourself.subtitle')}</p>
+            {loading && <p className="text-sm text-zx-text-soft">{t('payYourself.loading')}</p>}
+            {refreshing && <p className="text-sm text-zx-accent">{t('payYourself.refreshing')}</p>}
           </div>
         </div>
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <div className="py-4">
-            <p className="text-sm text-zx-text-soft">This month income base</p>
+            <p className="text-sm text-zx-text-soft">{t('payYourself.stats.incomeBase')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(data.totalIncome, data.currency)}</p>
           </div>
           <div className="py-4">
-            <p className="text-sm text-zx-text-soft">Required this month</p>
+            <p className="text-sm text-zx-text-soft">{t('payYourself.stats.required')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(data.status.required, data.currency)}</p>
           </div>
           <div className="py-4">
-            <p className="text-sm text-zx-text-soft">Done</p>
+            <p className="text-sm text-zx-text-soft">{t('payYourself.stats.done')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(data.status.done, data.currency)}</p>
           </div>
           <div className="py-4">
-            <p className="text-sm text-zx-text-soft">Remaining</p>
+            <p className="text-sm text-zx-text-soft">{t('payYourself.stats.remaining')}</p>
             <p className="mt-2 text-2xl font-bold text-orange-300">{formatMoney(data.status.remaining, data.currency)}</p>
           </div>
         </section>
 
         <section className="py-5">
           <div className="mb-3 flex items-center justify-between text-sm text-zx-text-soft">
-            <span>Progress</span>
+            <span>{t('common.progress')}</span>
             <span>{formatNumber(data.status.progress)}%</span>
           </div>
           <div className="h-3 rounded-full bg-zx-surface-2">
@@ -114,16 +108,16 @@ export default function PayYourselfFirst() {
 
         <form onSubmit={handleSave} className="space-y-5 rounded-lg border border-zx-line bg-zx-surface p-5">
           <div className="flex items-center justify-between">
-            <h2 className="font-zx-head text-lg font-semibold text-zx-text">Income allocation rule</h2>
+            <h2 className="font-zx-head text-lg font-semibold text-zx-text">{t('payYourself.ruleTitle')}</h2>
             <span className={`text-sm ${totalPercent === 100 ? 'text-zx-positive' : 'text-orange-300'}`}>
-              Total: {formatNumber(totalPercent)}%
+              {t('payYourself.totalLabel', { value: formatNumber(totalPercent) })}
             </span>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
             {Object.entries(form).map(([key, value]) => (
               <label key={key} className="space-y-2">
-                <span className="text-sm text-zx-text-soft">{allocationLabels[key]}</span>
+                <span className="text-sm text-zx-text-soft">{t('payYourself.allocationLabels.' + key)}</span>
                 <input
                   type="number"
                   min="0"
@@ -146,16 +140,16 @@ export default function PayYourselfFirst() {
             className="inline-flex items-center gap-2 bg-purple-600 text-zx-text hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
-            {saving ? 'Saving...' : 'Save Allocation Rule'}
+            {saving ? t('common.saving') : t('payYourself.saveButton')}
           </Button>
         </form>
 
         <section className="py-5">
-          <h2 className="font-zx-head text-lg font-semibold text-zx-text">Suggested allocation this month</h2>
+          <h2 className="font-zx-head text-lg font-semibold text-zx-text">{t('payYourself.allocationTitle')}</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
             {data.allocations.map((item) => (
               <div key={item.key} className="rounded border border-zx-line bg-zx-bg p-4">
-                <p className="text-sm text-zx-text-soft">{allocationLabels[item.key]}</p>
+                <p className="text-sm text-zx-text-soft">{t('payYourself.allocationLabels.' + item.key)}</p>
                 <p className="mt-2 text-lg font-semibold">{formatNumber(item.percentage)}%</p>
                 <p className="mt-1 text-sm text-zx-text-soft">{formatMoney(item.amount, data.currency)}</p>
               </div>
@@ -165,5 +159,3 @@ export default function PayYourselfFirst() {
       </main>
   );
 }
-
-

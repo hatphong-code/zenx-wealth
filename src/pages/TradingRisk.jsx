@@ -15,6 +15,7 @@ import {
 } from '../services/tradingRiskService';
 import { useTradingRiskData } from '../hooks/useTradingRiskData';
 import { invalidateAICoachCache } from '../services/aiCoachService';
+import { useI18n } from '../i18n/useI18n';
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -39,6 +40,7 @@ export default function TradingRisk() {
   const [message, setMessage] = useState('');
 
   const { currency, summary } = data;
+  const { t } = useI18n();
 
   useEffect(() => {
     setConfigForm(data.config || defaultTradingRiskConfig);
@@ -79,7 +81,7 @@ export default function TradingRisk() {
       setTradingRiskCache(user.uid, nextData);
       invalidateReportsCache(user.uid);
       invalidateAICoachCache(user.uid);
-      setMessage('Trading risk rules saved.');
+      setMessage(t('trading.saveSuccess'));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -93,7 +95,7 @@ export default function TradingRisk() {
 
     const pnl = Number(journalForm.pnl);
     if (!Number.isFinite(pnl)) {
-      setError('P&L must be a valid number.');
+      setError(t('trading.errors.invalidPnl'));
       return;
     }
 
@@ -118,7 +120,7 @@ export default function TradingRisk() {
       invalidateReportsCache(user.uid);
       invalidateAICoachCache(user.uid);
       setJournalForm({ date: today, pnl: '', note: '' });
-      setMessage('Trading journal entry saved.');
+      setMessage(t('trading.entrySaved'));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -133,15 +135,15 @@ export default function TradingRisk() {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 rounded-lg border border-amber-900 bg-amber-950/40 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-gold">
               <AlertTriangle className="h-3.5 w-3.5" />
-              High Risk Module
+              {t('trading.badge')}
               </div>
-              <h1 className="font-zx-head text-2xl font-bold text-zx-text">Trading Risk</h1>
+              <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('trading.title')}</h1>
               <p className="max-w-2xl text-sm text-zx-text-soft">
-                Keep trading inside a defined risk box. This module is for controlled risk capital, not for core personal finance.
+                {t('trading.subtitle')}
               </p>
               <div className="flex flex-wrap gap-4 text-sm">
-                {loading && <p className="text-zx-text-soft">Loading trading risk monitor...</p>}
-                {refreshing && <p className="text-zx-accent">Refreshing trading risk monitor...</p>}
+                {loading && <p className="text-zx-text-soft">{t('trading.loading')}</p>}
+                {refreshing && <p className="text-zx-accent">{t('trading.refreshing')}</p>}
               </div>
             </div>
             <button
@@ -149,7 +151,7 @@ export default function TradingRisk() {
               onClick={syncConfigIfFresh}
               className="text-sm text-zx-text-soft transition hover:text-zx-text"
             >
-              Reset unsaved config
+              {t('trading.resetConfig')}
             </button>
           </div>
         </section>
@@ -160,11 +162,11 @@ export default function TradingRisk() {
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Card>
             <CardHeader>
-              <CardTitle>Trading capital</CardTitle>
+              <CardTitle>{t('trading.cards.capital')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(data.config.capital, currency)}</p>
-              <p className="mt-1 text-xs text-zx-text-soft">Only risk capital belongs here.</p>
+              <p className="mt-1 text-xs text-zx-text-soft">{t('trading.cards.capitalHint')}</p>
             </CardContent>
           </Card>
           <Card>
@@ -175,7 +177,7 @@ export default function TradingRisk() {
               <p className={`text-2xl font-bold ${summary.todayPnl >= 0 ? 'text-zx-positive' : 'text-red-300'}`}>
                 {formatMoney(summary.todayPnl, currency)}
               </p>
-              <p className="mt-1 text-xs text-zx-text-soft">Daily loss limit {formatPercent(data.config.dailyLossLimitPct / 100)}</p>
+              <p className="mt-1 text-xs text-zx-text-soft">{t('trading.cards.dailyLimitHint', { pct: formatPercent(data.config.dailyLossLimitPct / 100) })}</p>
             </CardContent>
           </Card>
           <Card>
@@ -186,16 +188,16 @@ export default function TradingRisk() {
               <p className={`text-2xl font-bold ${summary.weekPnl >= 0 ? 'text-zx-positive' : 'text-red-300'}`}>
                 {formatMoney(summary.weekPnl, currency)}
               </p>
-              <p className="mt-1 text-xs text-zx-text-soft">Weekly loss limit {formatPercent(data.config.weeklyLossLimitPct / 100)}</p>
+              <p className="mt-1 text-xs text-zx-text-soft">{t('trading.cards.weeklyLimitHint', { pct: formatPercent(data.config.weeklyLossLimitPct / 100) })}</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Suggested withdrawal</CardTitle>
+              <CardTitle>{t('trading.cards.withdrawal')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-zx-accent">{formatMoney(summary.suggestedWithdrawal, currency)}</p>
-              <p className="mt-1 text-xs text-zx-text-soft">Based on realized gains and withdrawal rule.</p>
+              <p className="mt-1 text-xs text-zx-text-soft">{t('trading.cards.withdrawalHint')}</p>
             </CardContent>
           </Card>
         </section>
@@ -203,13 +205,13 @@ export default function TradingRisk() {
         <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
           <Card>
             <CardHeader>
-              <CardTitle>Risk monitor</CardTitle>
+              <CardTitle>{t('trading.monitor')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {[
-                { label: 'Daily risk used', value: summary.daily, context: summary.todayPnl },
-                { label: 'Weekly risk used', value: summary.weekly, context: summary.weekPnl },
-                { label: 'Monthly risk used', value: summary.monthly, context: summary.monthPnl },
+                { label: t('trading.monitorRows.daily'), value: summary.daily, context: summary.todayPnl },
+                { label: t('trading.monitorRows.weekly'), value: summary.weekly, context: summary.weekPnl },
+                { label: t('trading.monitorRows.monthly'), value: summary.monthly, context: summary.monthPnl },
               ].map((item) => (
                 <div key={item.label} className="rounded-lg border border-zx-line bg-zx-bg p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
@@ -225,7 +227,7 @@ export default function TradingRisk() {
                   </div>
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center justify-between text-xs text-zx-text-soft">
-                      <span>Used</span>
+                      <span>{t('trading.used')}</span>
                       <span>{formatNumber(item.value.usedPct, { maximumFractionDigits: 1 })}%</span>
                     </div>
                     <div className="h-2 rounded-full bg-zx-surface">
@@ -234,7 +236,7 @@ export default function TradingRisk() {
                         style={{ width: `${Math.min(100, item.value.usedPct)}%` }}
                       />
                     </div>
-                    <p className="text-xs text-zx-text-soft">Limit amount: {formatMoney(item.value.limitAmount, currency)}</p>
+                    <p className="text-xs text-zx-text-soft">{t('trading.limitAmount')} {formatMoney(item.value.limitAmount, currency)}</p>
                   </div>
                 </div>
               ))}
@@ -243,13 +245,13 @@ export default function TradingRisk() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Rule set</CardTitle>
+              <CardTitle>{t('trading.ruleSet')}</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSaveConfig} className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="space-y-2">
-                    <span className="text-sm text-zx-text-soft">Trading capital</span>
+                    <span className="text-sm text-zx-text-soft">{t('trading.configFields.capital')}</span>
                     <input
                       type="number"
                       min="0"
@@ -260,7 +262,7 @@ export default function TradingRisk() {
                     />
                   </label>
                   <label className="space-y-2">
-                    <span className="text-sm text-zx-text-soft">Profit withdrawal (%)</span>
+                    <span className="text-sm text-zx-text-soft">{t('trading.configFields.withdrawal')}</span>
                     <input
                       type="number"
                       min="0"
@@ -272,7 +274,7 @@ export default function TradingRisk() {
                     />
                   </label>
                   <label className="space-y-2">
-                    <span className="text-sm text-zx-text-soft">Daily max loss (%)</span>
+                    <span className="text-sm text-zx-text-soft">{t('trading.configFields.dailyMax')}</span>
                     <input
                       type="number"
                       min="0"
@@ -283,7 +285,7 @@ export default function TradingRisk() {
                     />
                   </label>
                   <label className="space-y-2">
-                    <span className="text-sm text-zx-text-soft">Weekly max loss (%)</span>
+                    <span className="text-sm text-zx-text-soft">{t('trading.configFields.weeklyMax')}</span>
                     <input
                       type="number"
                       min="0"
@@ -294,7 +296,7 @@ export default function TradingRisk() {
                     />
                   </label>
                   <label className="space-y-2 md:col-span-2">
-                    <span className="text-sm text-zx-text-soft">Monthly drawdown limit (%)</span>
+                    <span className="text-sm text-zx-text-soft">{t('trading.configFields.monthlyMax')}</span>
                     <input
                       type="number"
                       min="0"
@@ -308,7 +310,7 @@ export default function TradingRisk() {
 
                 <Button type="submit" disabled={savingConfig} className="w-full bg-zx-accent text-zx-on-accent hover:opacity-90">
                   <Save className="mr-2 h-4 w-4" />
-                  {savingConfig ? 'Saving rules...' : 'Save Risk Rules'}
+                  {savingConfig ? t('trading.savingRules') : t('trading.saveRules')}
                 </Button>
               </form>
             </CardContent>
@@ -320,14 +322,14 @@ export default function TradingRisk() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-zx-accent" />
-                Trading journal
+                {t('trading.journalTitle')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSaveJournal} className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="space-y-2">
-                    <span className="text-sm text-zx-text-soft">Date</span>
+                    <span className="text-sm text-zx-text-soft">{t('common.date')}</span>
                     <input
                       type="date"
                       value={journalForm.date}
@@ -348,18 +350,18 @@ export default function TradingRisk() {
                   </label>
                 </div>
                 <label className="space-y-2">
-                  <span className="text-sm text-zx-text-soft">Note</span>
+                  <span className="text-sm text-zx-text-soft">{t('common.note')}</span>
                   <textarea
                     rows={3}
                     value={journalForm.note}
                     onChange={(event) => updateJournal('note', event.target.value)}
-                    placeholder="Reason for the trade result, discipline note, or planned cooldown."
+                    placeholder={t('trading.journalFields.notePlaceholder')}
                     className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                   />
                 </label>
                 <Button type="submit" disabled={savingJournal} className="w-full bg-amber-600 text-zx-text hover:bg-amber-700">
                   <BarChart3 className="mr-2 h-4 w-4" />
-                  {savingJournal ? 'Saving entry...' : 'Add Trading Entry'}
+                  {savingJournal ? t('trading.savingEntry') : t('trading.addEntry')}
                 </Button>
               </form>
             </CardContent>
@@ -367,12 +369,12 @@ export default function TradingRisk() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Recent entries</CardTitle>
+              <CardTitle>{t('trading.recentEntries')}</CardTitle>
             </CardHeader>
             <CardContent>
               {data.records.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-zx-line bg-zx-bg p-6 text-center text-sm text-zx-text-soft">
-                  No trading entries yet. Add realized P&amp;L entries to start monitoring risk consumption.
+                  {t('trading.noEntries')}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -380,7 +382,7 @@ export default function TradingRisk() {
                     <div key={record.id} className="flex flex-col gap-2 rounded-lg border border-zx-line bg-zx-bg p-4 md:flex-row md:items-center md:justify-between">
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-zx-text">{formatDate(record.date)}</p>
-                        <p className="text-sm text-zx-text-soft">{record.note || 'No note'}</p>
+                        <p className="text-sm text-zx-text-soft">{record.note || t('common.noNote')}</p>
                       </div>
                       <p className={`text-lg font-semibold ${Number(record.pnl || 0) >= 0 ? 'text-zx-positive' : 'text-red-300'}`}>
                         {formatMoney(record.pnl, currency)}

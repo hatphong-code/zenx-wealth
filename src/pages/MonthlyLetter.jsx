@@ -49,14 +49,14 @@ export default function MonthlyLetter() {
   };
 
   const handleEmailRequest = () => {
-    alert('Email delivery coming soon. Save or download this letter now.');
+    alert(t('monthlyLetter.emailSoon'));
   };
 
   return (
     <main className="mx-auto max-w-2xl px-4 md:px-8 py-6 pb-24 md:pb-8">
       <div className="space-y-2 mb-6">
         <h1 className="font-zx-head text-2xl font-bold text-zx-text">
-          {letter?.month ? `Bản tin tháng ${letter.month}` : 'Monthly Letter'}
+          {letter?.month ? `Bản tin tháng ${letter.month}` : t('monthlyLetter.title')}
         </h1>
         <p className="text-sm text-zx-text-soft">
           Tóm tắt tài chính cá nhân được tạo tự động cuối tháng.
@@ -97,19 +97,19 @@ export default function MonthlyLetter() {
               onClick={handleDownload}
               className="flex items-center justify-center gap-2 bg-zx-accent text-zx-on-accent hover:opacity-90"
             >
-              <Download className="h-4 w-4" /> Download
+              <Download className="h-4 w-4" /> {t('monthlyLetter.downloadButton')}
             </Button>
             <Button
               onClick={handleEmailRequest}
               className="flex items-center justify-center gap-2 bg-zx-surface-2 text-zx-text-soft hover:border-zx-accent"
             >
-              <Mail className="h-4 w-4" /> Email
+              <Mail className="h-4 w-4" /> {t('monthlyLetter.emailButton')}
             </Button>
           </div>
         </>
       ) : (
         <div className="text-center p-10 text-zx-text-soft">
-          No letter available for this month yet.
+          {t('monthlyLetter.noLetter')}
         </div>
       )}
     </main>

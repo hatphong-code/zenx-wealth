@@ -61,7 +61,7 @@ export default function GoalTracking() {
     return (
       <main className="mx-auto max-w-2xl px-4 md:px-8 py-6 pb-24 md:pb-8">
         <div className="space-y-2 mb-6">
-          <h1 className="font-zx-head text-2xl font-bold text-zx-text">12-Month Goal</h1>
+          <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('goalTracking.title')}</h1>
           <p className="text-sm text-zx-text-soft">Đặt mục tiêu tài chính trong Settings để theo dõi tiến độ.</p>
         </div>
         <div className="rounded-zx border border-zx-line bg-zx-surface p-6 text-center">
@@ -82,7 +82,7 @@ export default function GoalTracking() {
     <main className="mx-auto max-w-2xl px-4 md:px-8 py-6 pb-24 md:pb-8">
       <div className="space-y-2 mb-6">
         <h1 className="font-zx-head text-2xl font-bold text-zx-text">
-          {isOnTrack ? '✓' : '⚠'} 12-Month Goal
+          {isOnTrack ? '✓' : '⚠'} {t('goalTracking.title')}
         </h1>
         <p className="text-sm text-zx-text-soft">{goalText}</p>
       </div>
@@ -116,7 +116,7 @@ export default function GoalTracking() {
             <p className="font-mono text-sm font-semibold text-zx-text">{fmtShort(goalAmount)}</p>
           </div>
           <div>
-            <p className="text-xs text-zx-text-soft">Weeks Left</p>
+            <p className="text-xs text-zx-text-soft">{t('goalTracking.weeksLeft')}</p>
             <p className="font-mono text-sm font-semibold text-zx-accent">{weeksLeft}</p>
           </div>
         </div>

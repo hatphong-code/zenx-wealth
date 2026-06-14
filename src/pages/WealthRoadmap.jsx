@@ -3,11 +3,13 @@ import { CheckCircle2, Save } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { saveRoadmapPhase, setWealthRoadmapCache } from '../services/wealthRoadmapService';
 import { useWealthRoadmapData } from '../hooks/useWealthRoadmapData';
+import { useI18n } from '../i18n/useI18n';
 
 export default function WealthRoadmap() {
   const { user } = useAuth();
   const { data, setData, loading, refreshing, error, setError } = useWealthRoadmapData(user?.uid);
   const [savingPhaseId, setSavingPhaseId] = useState('');
+  const { t } = useI18n();
 
   const currentPhase = useMemo(
     () => data.phases.find((phase) => phase.id === data.currentPhaseId) || data.phases[0] || null,
@@ -66,28 +68,28 @@ export default function WealthRoadmap() {
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
         <section className="pb-6">
           <div className="space-y-3">
-            <h1 className="font-zx-head text-2xl font-bold text-zx-text">Wealth Roadmap</h1>
-            <p className="max-w-2xl text-sm text-zx-text-soft">Track which phase of financial rebuilding you are actually in.</p>
+            <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('roadmap.title')}</h1>
+            <p className="max-w-2xl text-sm text-zx-text-soft">{t('roadmap.subtitle')}</p>
             <div className="flex flex-wrap gap-4 text-sm">
-              {loading && <p className="text-zx-text-soft">Loading roadmap...</p>}
-              {refreshing && <p className="text-zx-accent">Refreshing roadmap...</p>}
+              {loading && <p className="text-zx-text-soft">{t('roadmap.loading')}</p>}
+              {refreshing && <p className="text-zx-accent">{t('roadmap.refreshing')}</p>}
             </div>
           </div>
         </section>
 
         <section className="grid gap-4 md:grid-cols-3">
           <div className="py-4">
-            <p className="text-sm text-zx-text-soft">Current phase</p>
-            <p className="mt-2 text-lg font-semibold">{currentPhase?.title || 'Not available'}</p>
+            <p className="text-sm text-zx-text-soft">{t('roadmap.stats.currentPhase')}</p>
+            <p className="mt-2 text-lg font-semibold">{currentPhase?.title || t('roadmap.stats.notAvailable')}</p>
           </div>
           <div className="py-4">
-            <p className="text-sm text-zx-text-soft">Completed phases</p>
+            <p className="text-sm text-zx-text-soft">{t('roadmap.stats.completed')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{data.completedPhases} / {data.phases.length}</p>
           </div>
           <div className="py-4">
-            <p className="text-sm text-zx-text-soft">Next milestone</p>
+            <p className="text-sm text-zx-text-soft">{t('roadmap.stats.nextMilestone')}</p>
             <p className="mt-2 text-sm font-medium text-zx-text-soft">
-              {currentPhase?.checklist.find((item) => !item.completed)?.label || 'All current checklist items are done.'}
+              {currentPhase?.checklist.find((item) => !item.completed)?.label || t('roadmap.stats.allDone')}
             </p>
           </div>
         </section>
@@ -107,7 +109,7 @@ export default function WealthRoadmap() {
                       : 'border-zx-line bg-zx-surface text-zx-text-soft'
                 }`}
               >
-                <p className="text-xs uppercase tracking-wide text-zx-text-soft">Phase {index + 1}</p>
+                <p className="text-xs uppercase tracking-wide text-zx-text-soft">{t('roadmap.phaseLabel', { index: index + 1 })}</p>
                 <p className="mt-1 font-medium">{phase.title}</p>
               </div>
             ))}
@@ -127,7 +129,7 @@ export default function WealthRoadmap() {
                 </div>
                 {savingPhaseId === phase.id && (
                   <div className="inline-flex items-center gap-2 rounded bg-zx-bg px-3 py-2 text-xs text-zx-accent">
-                    <Save className="h-3.5 w-3.5" /> Saving
+                    <Save className="h-3.5 w-3.5" /> {t('roadmap.saving')}
                   </div>
                 )}
               </div>
@@ -144,7 +146,7 @@ export default function WealthRoadmap() {
                     <span className="space-y-1">
                       <span className="block text-sm text-zx-text-soft">{item.label}</span>
                       <span className="block text-xs text-zx-text-soft">
-                        {item.autoValue ? 'Auto signal detected' : 'Manual progress needed'}
+                        {item.autoValue ? t('roadmap.autoSignal') : t('roadmap.manualNeeded')}
                       </span>
                     </span>
                   </label>

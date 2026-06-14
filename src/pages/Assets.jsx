@@ -17,6 +17,7 @@ import { useAssetsData } from '../hooks/useAssetsData';
 import { invalidateReportsCache } from '../services/reportsService';
 import { invalidateWealthRoadmapCache } from '../services/wealthRoadmapService';
 import { invalidateAICoachCache } from '../services/aiCoachService';
+import { useI18n } from '../i18n/useI18n';
 
 const initialForm = {
   name: '',
@@ -27,6 +28,7 @@ const initialForm = {
 
 export default function Assets() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { data, setData, loading, refreshing, error, setError } = useAssetsData(user?.uid);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -58,7 +60,7 @@ export default function Assets() {
 
     const balance = Number(form.balance);
     if (!form.name.trim() || !Number.isFinite(balance) || balance < 0) {
-      setError('Account name and balance must be valid.');
+      setError(t('assets.errors.invalidForm'));
       return;
     }
 
@@ -99,7 +101,7 @@ export default function Assets() {
 
   const handleDelete = async (accountId) => {
     if (!user) return;
-    if (!window.confirm('Delete this asset account?')) return;
+    if (!window.confirm(t('assets.confirmDelete'))) return;
 
     try {
       await removeAccount(user.uid, accountId);
@@ -123,75 +125,75 @@ export default function Assets() {
             <Landmark className="h-7 w-7 text-emerald-400" />
           </div>
           <div className="space-y-1">
-            <h1 className="font-zx-head text-2xl font-bold text-zx-text">Assets</h1>
-            <p className="text-sm text-zx-text-soft">Track the asset side of your balance sheet, not only spending control.</p>
-            {loading && <p className="text-sm text-zx-text-soft">Loading assets...</p>}
-            {refreshing && <p className="text-sm text-zx-accent">Refreshing assets...</p>}
+            <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('assets.title')}</h1>
+            <p className="text-sm text-zx-text-soft">{t('assets.subtitle')}</p>
+            {loading && <p className="text-sm text-zx-text-soft">{t('assets.loading')}</p>}
+            {refreshing && <p className="text-sm text-zx-accent">{t('assets.refreshing')}</p>}
           </div>
         </div>
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Card>
-            <CardHeader><CardTitle>Total assets</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{t('assets.stats.total')}</CardTitle></CardHeader>
             <CardContent><p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(summary.totalAssets, currency)}</p></CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle>Liquid assets</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{t('assets.stats.liquid')}</CardTitle></CardHeader>
             <CardContent><p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(summary.liquidAssets, currency)}</p></CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle>Long-term assets</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{t('assets.stats.longTerm')}</CardTitle></CardHeader>
             <CardContent><p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(summary.longTermAssets, currency)}</p></CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle>Risk assets</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{t('assets.stats.risk')}</CardTitle></CardHeader>
             <CardContent><p className="text-2xl font-bold text-zx-gold">{formatMoney(summary.riskAssets, currency)}</p></CardContent>
           </Card>
         </section>
 
         <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-zx-line bg-zx-surface p-5">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="font-zx-head text-lg font-semibold text-zx-text">{editingId ? 'Edit asset account' : 'Add asset account'}</h2>
+            <h2 className="font-zx-head text-lg font-semibold text-zx-text">{editingId ? t('assets.form.editTitle') : t('assets.form.addTitle')}</h2>
             {editingId && (
               <button type="button" onClick={resetForm} className="text-sm text-zx-text-soft transition hover:text-zx-text">
-                Cancel edit
+                {t('common.cancelEdit')}
               </button>
             )}
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <label className="space-y-2 xl:col-span-2">
-              <span className="text-sm text-zx-text-soft">Account name</span>
+              <span className="text-sm text-zx-text-soft">{t('assets.form.nameLabel')}</span>
               <input value={form.name} onChange={(e) => updateField('name', e.target.value)} className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
             </label>
             <label className="space-y-2">
-              <span className="text-sm text-zx-text-soft">Type</span>
+              <span className="text-sm text-zx-text-soft">{t('assets.form.typeLabel')}</span>
               <select value={form.type} onChange={(e) => updateField('type', e.target.value)} className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
                 {accountTypes.map((item) => <option key={item} value={item}>{item}</option>)}
               </select>
             </label>
             <label className="space-y-2">
-              <span className="text-sm text-zx-text-soft">Purpose</span>
+              <span className="text-sm text-zx-text-soft">{t('assets.form.purposeLabel')}</span>
               <select value={form.purpose} onChange={(e) => updateField('purpose', e.target.value)} className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
                 {accountPurposes.map((item) => <option key={item} value={item}>{item}</option>)}
               </select>
             </label>
             <label className="space-y-2 md:col-span-2 xl:col-span-4">
-              <span className="text-sm text-zx-text-soft">Balance</span>
+              <span className="text-sm text-zx-text-soft">{t('assets.form.balanceLabel')}</span>
               <input type="number" min="0" step="any" value={form.balance} onChange={(e) => updateField('balance', e.target.value)} className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
             </label>
           </div>
           {error && <p className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
           <Button type="submit" disabled={saving} className="bg-emerald-600 text-zx-text hover:bg-emerald-700">
-            <Plus className="mr-2 h-4 w-4" /> {saving ? 'Saving...' : editingId ? 'Save Account' : 'Add Account'}
+            <Plus className="mr-2 h-4 w-4" /> {saving ? t('common.saving') : editingId ? t('assets.form.saveButton') : t('assets.form.addButton')}
           </Button>
         </form>
 
         <section className="overflow-hidden">
           <div className="border-b border-zx-line p-4">
-            <h2 className="font-semibold">Asset accounts</h2>
+            <h2 className="font-semibold">{t('assets.listTitle')}</h2>
           </div>
           {accounts.length === 0 ? (
-            <div className="p-6 text-center text-zx-text-soft">{loading ? 'Loading assets...' : 'No asset accounts yet.'}</div>
+            <div className="p-6 text-center text-zx-text-soft">{loading ? t('assets.loading') : t('assets.empty')}</div>
           ) : (
             <div className="divide-y divide-zx-line">
               {accounts.map((account) => (
@@ -206,10 +208,10 @@ export default function Assets() {
                   </div>
                   <div className="flex gap-2">
                     <Button type="button" onClick={() => handleEdit(account)} className="bg-zx-bg px-3 py-2 text-zx-accent hover:bg-zx-surface-2">
-                      <Pencil className="mr-2 h-4 w-4" /> Edit
+                      <Pencil className="mr-2 h-4 w-4" /> {t('common.edit')}
                     </Button>
                     <Button type="button" onClick={() => handleDelete(account.id)} className="bg-red-950 px-3 py-2 text-red-300 hover:bg-red-900">
-                      <Trash2 className="mr-2 h-4 w-4" /> Delete
+                      <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
                     </Button>
                   </div>
                 </article>
@@ -220,4 +222,3 @@ export default function Assets() {
       </main>
   );
 }
-
