@@ -29,6 +29,9 @@ const MonthlyLetter = lazy(() => import('./pages/MonthlyLetter'));
 const GoalTracking = lazy(() => import('./pages/GoalTracking'));
 const Settings = lazy(() => import('./pages/Settings'));
 const AdminAccessControl = lazy(() => import('./pages/AdminAccessControl'));
+const BudgetTemplates = lazy(() => import('./pages/BudgetTemplates'));
+const ImportTransactions = lazy(() => import('./pages/ImportTransactions'));
+const HealthScore = lazy(() => import('./pages/HealthScore'));
 
 function PageFallback() {
   const { t } = useI18n();
@@ -118,6 +121,9 @@ export default function App() {
         <Route path="/profile" element={routeElement(<PrivateRoute featureKey="profile"><Profile /></PrivateRoute>)} />
         <Route path="/settings" element={routeElement(<PrivateRoute featureKey="settings"><Settings /></PrivateRoute>)} />
         <Route path="/admin/access" element={routeElement(<PrivateRoute adminOnly><AdminAccessControl /></PrivateRoute>)} />
+        <Route path="/budget-templates" element={routeElement(<PrivateRoute featureKey="budget_templates"><BudgetTemplates /></PrivateRoute>)} />
+        <Route path="/import" element={routeElement(<PrivateRoute featureKey="import_transactions"><ImportTransactions /></PrivateRoute>)} />
+        <Route path="/health-score" element={routeElement(<PrivateRoute featureKey="health_score"><HealthScore /></PrivateRoute>)} />
       </Routes>
     </BrowserRouter>
   );

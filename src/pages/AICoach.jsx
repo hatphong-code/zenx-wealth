@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   BrainCircuit,
   CheckCircle2,
   CircleAlert,
+  Loader2,
   ShieldAlert,
   Sparkles,
   TriangleAlert,
@@ -11,7 +13,11 @@ import {
 import { useAuth } from '../auth/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useAICoachData } from '../hooks/useAICoachData';
+import { useReportsData } from '../hooks/useReportsData';
+import { useWealthRoadmapData } from '../hooks/useWealthRoadmapData';
 import { useI18n } from '../i18n/useI18n';
+import { generateLLMInsights } from '../services/llmCoachService';
+import { getUserProfile } from '../services/userService';
 
 function toneClasses(tone) {
   if (tone === 'danger') return 'border-red-900 bg-red-950/35 text-red-200';
@@ -31,6 +37,27 @@ export default function AICoach() {
   const { user } = useAuth();
   const { t } = useI18n();
   const { data, loading, refreshing, error } = useAICoachData(user?.uid);
+  const { data: reports } = useReportsData(user?.uid);
+  const { data: roadmap } = useWealthRoadmapData(user?.uid);
+
+  const [llmText, setLlmText] = useState('');
+  const [llmLoading, setLlmLoading] = useState(false);
+  const [llmError, setLlmError] = useState('');
+
+  const handleGenerateLLM = async () => {
+    if (!user) return;
+    setLlmLoading(true);
+    setLlmError('');
+    try {
+      const profile = await getUserProfile(user.uid);
+      const result = await generateLLMInsights({ reports, roadmap, profile });
+      setLlmText(result.text || '');
+    } catch (err) {
+      setLlmError(err.message || 'Không thể tạo phân tích AI.');
+    } finally {
+      setLlmLoading(false);
+    }
+  };
 
   return (
       <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
@@ -73,6 +100,38 @@ export default function AICoach() {
             {refreshing && <p className="text-zx-accent">{t('coach.refreshing')}</p>}
             {error && <p className="text-red-300">{error}</p>}
           </div>
+        </section>
+
+        {/* LLM Insights section */}
+        <section className="rounded-zx border border-zx-line bg-zx-surface p-5">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-zx-gold" />
+              <h2 className="font-semibold text-zx-text">Phân tích AI cá nhân hóa</h2>
+            </div>
+            <button
+              type="button"
+              onClick={handleGenerateLLM}
+              disabled={llmLoading}
+              className="inline-flex items-center gap-2 rounded-zx-sm border border-zx-line bg-zx-bg px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text disabled:opacity-50"
+            >
+              {llmLoading ? (
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tạo...</>
+              ) : (
+                <><BrainCircuit className="h-3.5 w-3.5" /> {llmText ? 'Tạo lại' : 'Tạo phân tích'}</>
+              )}
+            </button>
+          </div>
+          {llmError && <p className="text-sm text-red-300 mb-3">{llmError}</p>}
+          {llmText ? (
+            <div className="rounded-zx-sm border border-zx-line bg-zx-bg p-4">
+              <p className="text-sm leading-7 text-zx-text whitespace-pre-wrap">{llmText}</p>
+            </div>
+          ) : (
+            <p className="text-sm text-zx-text-soft">
+              Nhấn "Tạo phân tích" để AI đọc dữ liệu tài chính và đưa ra nhận xét cá nhân hóa.
+            </p>
+          )}
         </section>
 
         <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
@@ -160,4 +219,3 @@ export default function AICoach() {
       </main>
   );
 }
-

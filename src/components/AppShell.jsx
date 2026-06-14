@@ -23,10 +23,10 @@ const NAV_GROUPS = [
   { id: 'profile', icon: UserCircle,     mobileTo: '/settings', label: 'Profile' },
 ];
 
-const isTrack  = p => ['/track','/transactions','/transactions/new','/latte'].includes(p) || /^\/transactions\/[^/]+\/edit$/.test(p);
-const isPlan   = p => ['/plan','/roadmap','/assets','/pay-yourself-first','/emergency','/debts','/income','/trading-risk'].includes(p);
-const isReview = p => ['/review','/weekly-review','/reports','/ai-coach'].includes(p);
-const isProfile= p => ['/settings','/profile','/admin/access'].includes(p);
+const isTrack  = p => ['/track','/transactions','/transactions/new','/latte','/import'].includes(p) || /^\/transactions\/[^/]+\/edit$/.test(p);
+const isPlan   = p => ['/plan','/roadmap','/assets','/pay-yourself-first','/emergency','/debts','/income','/trading-risk','/budget-templates'].includes(p);
+const isReview = p => ['/review','/weekly-review','/reports','/ai-coach','/health-score'].includes(p);
+const isProfile= p => ['/settings','/profile','/admin/access','/monthly-letter','/goal-tracking'].includes(p);
 
 const SUB_ITEMS = {
   home:    [{ to: '/', featureKey: 'dashboard', matches: p => p === '/' }],
@@ -34,7 +34,8 @@ const SUB_ITEMS = {
     { to: '/track',            featureKey: 'transactions',    matches: p => p === '/track' },
     { to: '/transactions',     featureKey: 'transactions',    matches: p => p === '/transactions' || /^\/transactions\/[^/]+\/edit$/.test(p) },
     { to: '/transactions/new', featureKey: 'add_transaction', matches: p => p === '/transactions/new' },
-    { to: '/latte',            featureKey: 'latte_factor',    matches: p => p === '/latte' },
+    { to: '/latte',            featureKey: 'latte_factor',       matches: p => p === '/latte' },
+    { to: '/import',           featureKey: 'import_transactions', matches: p => p === '/import' },
   ],
   plan: [
     { to: '/plan',               featureKey: 'roadmap',            matches: p => p === '/plan' },
@@ -45,12 +46,14 @@ const SUB_ITEMS = {
     { to: '/income',             featureKey: 'income_builder',     matches: p => p === '/income' },
     { to: '/assets',             featureKey: 'assets',             matches: p => p === '/assets' },
     { to: '/trading-risk',       featureKey: 'trading_risk',       matches: p => p === '/trading-risk' },
+    { to: '/budget-templates',   featureKey: 'budget_templates',   matches: p => p === '/budget-templates' },
   ],
   review: [
     { to: '/review',        featureKey: 'weekly_review', matches: p => p === '/review' },
     { to: '/weekly-review', featureKey: 'weekly_review', matches: p => p === '/weekly-review' },
     { to: '/reports',       featureKey: 'reports',       matches: p => p === '/reports' },
     { to: '/ai-coach',      featureKey: 'ai_coach',      matches: p => p === '/ai-coach' },
+    { to: '/health-score',  featureKey: 'health_score',  matches: p => p === '/health-score' },
   ],
   profile: [
     { to: '/settings',     featureKey: 'settings',      matches: p => p === '/settings' },

@@ -468,6 +468,8 @@ function snapshotTrigger(path, label) {
   });
 }
 
+export { generateAIInsights } from './llmInsights.js';
+
 export const onUserProfileWrite = snapshotTrigger('users/{userId}', 'user profile write');
 export const onTransactionWrite = snapshotTrigger('users/{userId}/transactions/{transactionId}', 'transaction write');
 export const onEmergencyFundWrite = snapshotTrigger('users/{userId}/emergencyFund/{recordId}', 'emergency fund write');
