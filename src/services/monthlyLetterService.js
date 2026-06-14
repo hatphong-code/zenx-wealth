@@ -18,10 +18,11 @@ function generateMonthlyLetter(profile, reports, roadmap, locale = 'vi') {
   const month = new Date();
   const monthName = month.toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-US', { month: 'long', year: 'numeric' });
   const cashFlow = reports.monthly.netCashFlow;
-  const savingsRate = reports.monthly.savingsRate;
+  const savingsRate = reports.weekly.savingsRate || reports.monthlyClose.averageSavingsRate || 0;
   const latteFactor = reports.monthly.latteFactor;
   const currentPhase = roadmap.phases.find(p => p.id === roadmap.currentPhaseId);
-  const emergencyFundMonths = reports.emergencyFund.months || 0;
+  const emergencyFundMonths = reports.monthly.emergencyMonths || 0;
+  const nextMilestone = currentPhase?.checklist?.find(item => !item.completed)?.label || '';
 
   let letter = '';
 
@@ -63,7 +64,7 @@ function generateMonthlyLetter(profile, reports, roadmap, locale = 'vi') {
 
     // Roadmap phase
     letter += `\nBạn đang ở **${currentPhase?.title || 'giai đoạn'} (${currentPhase?.description || ''})**.\n`;
-    letter += `Tiếp theo: ${currentPhase?.nextMilestone || 'hoàn thành mục tiêu của giai đoạn hiện tại'}.\n`;
+    letter += `Tiếp theo: ${nextMilestone || 'hoàn thành mục tiêu của giai đoạn hiện tại'}.\n`;
 
     letter += `\n**Lời khuyên cho tháng tới:** `;
     if (cashFlow < 0) {

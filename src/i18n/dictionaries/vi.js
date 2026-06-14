@@ -287,6 +287,7 @@ export default {
     addButton: 'Thêm giao dịch',
     empty: 'Chưa có giao dịch nào.',
     addFirst: 'Thêm giao dịch đầu tiên',
+    searchPlaceholder: 'Tìm theo danh mục hoặc ghi chú...',
     confirmDelete: 'Xóa giao dịch này?',
     table: {
       date: 'Ngày',

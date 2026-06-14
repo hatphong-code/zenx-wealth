@@ -15,7 +15,7 @@ function calculateGoalProgress(profile, reports) {
   }
 
   const netWorth = reports.balanceSheet.netWorth || 0;
-  const currentMonthSavingsRate = reports.monthly.savingsRate || 0;
+  const currentMonthSavingsRate = reports.weekly.savingsRate || reports.monthlyClose.averageSavingsRate || 0;
   const averageSavingsRate = reports.monthlyClose.averageSavingsRate || 0;
 
   // Simple extraction: if goal mentions a number, try to parse it
@@ -50,7 +50,7 @@ function calculateGoalProgress(profile, reports) {
   const weeklyTargetSavings = totalNeeded / weeksRemaining;
 
   // Current weekly savings (estimate from monthly rate)
-  const estimatedMonthlyIncome = reports.monthly.income || 0;
+  const estimatedMonthlyIncome = reports.growth.currentMonthlyIncome || 0;
   const estimatedWeeklySavings = (estimatedMonthlyIncome * currentMonthSavingsRate) / 4.33;
 
   // On-track assessment
