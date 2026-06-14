@@ -32,6 +32,7 @@ const AdminAccessControl = lazy(() => import('./pages/AdminAccessControl'));
 const BudgetTemplates = lazy(() => import('./pages/BudgetTemplates'));
 const ImportTransactions = lazy(() => import('./pages/ImportTransactions'));
 const HealthScore = lazy(() => import('./pages/HealthScore'));
+const Upgrade = lazy(() => import('./pages/Upgrade'));
 
 function PageFallback() {
   const { t } = useI18n();
@@ -55,7 +56,10 @@ function LockedFeature({ featureKey, subscriptionTier, isAdmin }) {
         </h1>
         <p className="mt-3 text-sm leading-6 text-zx-text-soft">{t('locked.body')}</p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <a href="/" className="rounded-zx-sm bg-zx-accent px-4 py-2 text-sm font-medium text-zx-on-accent">
+          <a href="/upgrade" className="rounded-zx-sm bg-zx-gold px-4 py-2 text-sm font-medium text-black">
+            {t('locked.upgradeButton')}
+          </a>
+          <a href="/" className="rounded-zx-sm border border-zx-line px-4 py-2 text-sm text-zx-text-soft">
             {t('locked.backDashboard')}
           </a>
           {isAdmin && (
@@ -124,6 +128,7 @@ export default function App() {
         <Route path="/budget-templates" element={routeElement(<PrivateRoute featureKey="budget_templates"><BudgetTemplates /></PrivateRoute>)} />
         <Route path="/import" element={routeElement(<PrivateRoute featureKey="import_transactions"><ImportTransactions /></PrivateRoute>)} />
         <Route path="/health-score" element={routeElement(<PrivateRoute featureKey="health_score"><HealthScore /></PrivateRoute>)} />
+        <Route path="/upgrade" element={routeElement(<PrivateRoute featureKey="dashboard"><Upgrade /></PrivateRoute>)} />
       </Routes>
     </BrowserRouter>
   );

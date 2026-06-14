@@ -469,6 +469,7 @@ function snapshotTrigger(path, label) {
 }
 
 export { generateAIInsights } from './llmInsights.js';
+export { createMomoPayment, momoIPN } from './momo.js';
 
 export const onUserProfileWrite = snapshotTrigger('users/{userId}', 'user profile write');
 export const onTransactionWrite = snapshotTrigger('users/{userId}/transactions/{transactionId}', 'transaction write');

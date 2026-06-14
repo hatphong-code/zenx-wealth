@@ -26,7 +26,7 @@ const NAV_GROUPS = [
 const isTrack  = p => ['/track','/transactions','/transactions/new','/latte','/import'].includes(p) || /^\/transactions\/[^/]+\/edit$/.test(p);
 const isPlan   = p => ['/plan','/roadmap','/assets','/pay-yourself-first','/emergency','/debts','/income','/trading-risk','/budget-templates'].includes(p);
 const isReview = p => ['/review','/weekly-review','/reports','/ai-coach','/health-score'].includes(p);
-const isProfile= p => ['/settings','/profile','/admin/access','/monthly-letter','/goal-tracking'].includes(p);
+const isProfile= p => ['/settings','/profile','/admin/access','/monthly-letter','/goal-tracking','/upgrade'].includes(p);
 
 const SUB_ITEMS = {
   home:    [{ to: '/', featureKey: 'dashboard', matches: p => p === '/' }],
@@ -58,6 +58,7 @@ const SUB_ITEMS = {
   profile: [
     { to: '/settings',     featureKey: 'settings',      matches: p => p === '/settings' },
     { to: '/profile',      featureKey: 'profile',       matches: p => p === '/profile' },
+    { to: '/upgrade',      featureKey: 'dashboard',     matches: p => p === '/upgrade' },
     { to: '/admin/access', featureKey: 'admin_access',  adminOnly: true, matches: p => p === '/admin/access' },
   ],
 };

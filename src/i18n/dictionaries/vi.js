@@ -123,9 +123,10 @@ export default {
   locked: {
     badge: '{tier} access',
     title: '{feature} hiện đang bị khóa',
-    body: 'Tính năng này chưa được bật cho gói của tài khoản đang đăng nhập. Code vẫn có trong hệ thống, nhưng route bị khóa theo ma trận Miễn phí/Premium.',
+    body: 'Tính năng này yêu cầu gói Premium. Nâng cấp để mở toàn bộ hệ thống phân tích, báo cáo và coaching.',
     backDashboard: 'Về Tổng quan',
     openAdmin: 'Mở Quản trị truy cập',
+    upgradeButton: 'Nâng cấp Premium',
   },
   adminAccess: {
     badge: 'Quản trị truy cập',
@@ -444,6 +445,25 @@ export default {
     pts: 'điểm',
     maxPts: '/ {max}',
     improvement: 'Cần cải thiện',
+  },
+  upgrade: {
+    badge: 'Nâng cấp Premium',
+    title: 'Mở toàn bộ hệ thống tài chính',
+    subtitle: 'Truy cập tất cả module phân tích, báo cáo và coaching — không giới hạn.',
+    currentPlan: 'Đang dùng Premium',
+    premiumActive: 'Tài khoản của bạn đang ở gói Premium.',
+    expiresOn: 'Hết hạn {date}',
+    renewHint: 'Gia hạn trước khi hết hạn để không bị gián đoạn.',
+    featuresTitle: 'Tính năng Premium bao gồm',
+    payButton: 'Thanh toán qua MoMo',
+    renewButton: 'Gia hạn qua MoMo',
+    redirecting: 'Đang chuyển hướng...',
+    successTitle: 'Thanh toán thành công!',
+    successBody: 'Tài khoản đã được nâng cấp lên Premium.',
+    momoNote: 'Thanh toán an toàn qua ví MoMo. Kích hoạt tức thì sau khi xác nhận.',
+    errors: {
+      paymentFailed: 'Không thể khởi tạo thanh toán. Vui lòng thử lại.',
+    },
   },
   latte: {
     title: 'Chi tiêu rò rỉ',

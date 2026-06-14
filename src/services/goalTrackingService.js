@@ -8,34 +8,32 @@ function getGoalCacheKey(userId) {
   return `goal-tracking:${userId}`;
 }
 
+function parseGoalAmount(text) {
+  if (!text?.trim()) return 0;
+  const lower = text.toLowerCase();
+
+  // Match patterns like: 1.5 tỷ / 500tr / 200 triệu / 50k / 1,000,000
+  const match = lower.match(/(\d+(?:[.,]\d+)?)\s*(tỷ|ty|triệu|trieu|tr|million|m|k)?/);
+  if (!match) return 0;
+
+  const num = parseFloat(match[1].replace(',', '.'));
+  const unit = match[2] || '';
+
+  if (unit === 'tỷ' || unit === 'ty') return num * 1_000_000_000;
+  if (unit === 'triệu' || unit === 'trieu' || unit === 'tr' || unit === 'm' || unit === 'million') return num * 1_000_000;
+  if (unit === 'k') return num * 1_000;
+  return num;
+}
+
 function calculateGoalProgress(profile, reports) {
   const goal12MonthText = profile.goal12Month || '';
-  if (!goal12MonthText.trim()) {
-    return null;
-  }
+  if (!goal12MonthText.trim()) return null;
+
+  const goalAmount = parseGoalAmount(goal12MonthText);
+  if (goalAmount <= 0) return null;
 
   const netWorth = reports.balanceSheet.netWorth || 0;
   const currentMonthSavingsRate = reports.weekly.savingsRate || reports.monthlyClose.averageSavingsRate || 0;
-  const averageSavingsRate = reports.monthlyClose.averageSavingsRate || 0;
-
-  // Simple extraction: if goal mentions a number, try to parse it
-  // E.g., "Tiết kiệm 100 triệu" → try to find "100 triệu"
-  const numberMatch = goal12MonthText.match(/(\d+(?:[.,]\d+)?)\s*(?:triệu|tr|million|m)?/i);
-  let goalAmount = 0;
-
-  if (numberMatch) {
-    const numStr = numberMatch[1].replace(',', '.');
-    const baseAmount = parseFloat(numStr);
-    if (goal12MonthText.toLowerCase().includes('triệu') || goal12MonthText.toLowerCase().includes('tr')) {
-      goalAmount = baseAmount * 1000000;
-    } else {
-      goalAmount = baseAmount;
-    }
-  }
-
-  if (goalAmount <= 0) {
-    return null;
-  }
 
   // Calculate weeks until end of year
   const now = new Date();
