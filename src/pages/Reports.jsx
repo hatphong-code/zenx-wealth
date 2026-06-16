@@ -28,6 +28,9 @@ function ChartShell({ title, subtitle, children }) {
   );
 }
 
+const TRADING_STATUS_VI = { Stop: 'Dừng giao dịch', Caution: 'Cẩn thận', Healthy: 'An toàn', Safe: 'An toàn' };
+function tradingStatusLabel(s) { return TRADING_STATUS_VI[s] || s; }
+
 export default function Reports() {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -198,8 +201,8 @@ export default function Reports() {
             </CardHeader>
             <CardContent className="space-y-4">
               {[
-                [t('reports.risk.dailyTrading'), data.risk.dailyStatus, data.risk.todayPnl],
-                [t('reports.risk.monthlyTrading'), data.risk.monthlyStatus, data.risk.monthPnl],
+                [t('reports.risk.dailyTrading'), tradingStatusLabel(data.risk.dailyStatus), data.risk.todayPnl],
+                [t('reports.risk.monthlyTrading'), tradingStatusLabel(data.risk.monthlyStatus), data.risk.monthPnl],
                 [t('reports.risk.emergencyCoverage'), `${formatNumber(data.monthly.emergencyMonths, { maximumFractionDigits: 1 })} ${t('reports.risk.months')}`, null],
                 [t('reports.risk.debtPressure'), formatPercent(data.monthly.debtPressure), null],
               ].map(([label, status, value]) => (

@@ -168,7 +168,7 @@ export default function ReviewHub() {
       <section className="pt-2">
         {[
           {
-            icon: ClipboardCheck, label: 'Weekly Review',
+            icon: ClipboardCheck, label: 'Review tuần',
             sub: hasReviewed ? 'Đã hoàn thành ✓' : 'Chưa làm tuần này',
             to: '/weekly-review', featureKey: 'weekly_review', active: !hasReviewed,
           },
@@ -178,7 +178,7 @@ export default function ReviewHub() {
             to: '/reports', featureKey: 'reports', active: false,
           },
           {
-            icon: Bot, label: 'AI Coach',
+            icon: Bot, label: 'Trợ lý AI',
             sub: 'Hỏi trợ lý tài chính',
             to: '/ai-coach', featureKey: 'ai_coach', active: false,
           },

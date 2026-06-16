@@ -26,6 +26,9 @@ function statusTone(status) {
   return 'text-zx-text-soft bg-zx-bg border-zx-line';
 }
 
+const TRADING_STATUS_VI = { Stop: 'Dừng giao dịch', Caution: 'Cẩn thận', Healthy: 'An toàn', Safe: 'An toàn' };
+function statusLabel(status) { return TRADING_STATUS_VI[status] || status; }
+
 export default function TradingRisk() {
   const { user } = useAuth();
   const { data, setData, loading, refreshing, error, setError } = useTradingRiskData(user?.uid);
@@ -222,7 +225,7 @@ export default function TradingRisk() {
                       </p>
                     </div>
                     <div className={`rounded-lg border px-3 py-2 text-sm font-medium ${statusTone(item.value.status)}`}>
-                      {item.value.status}
+                      {statusLabel(item.value.status)}
                     </div>
                   </div>
                   <div className="mt-4 space-y-2">
