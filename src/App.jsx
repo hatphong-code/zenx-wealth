@@ -1,10 +1,11 @@
-import { Suspense, lazy } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { Suspense, lazy, useEffect, useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/useAuth';
 import { featureCatalogByKey } from './data/accessControl';
 import { useFeatureAccess } from './hooks/useFeatureAccess';
 import { useI18n } from './i18n/useI18n';
 import AppShell from './components/AppShell';
+import { getCachedUserProfile, getUserProfile } from './services/userService';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const TrackHub = lazy(() => import('./pages/TrackHub'));
@@ -29,6 +30,7 @@ const MonthlyLetter = lazy(() => import('./pages/MonthlyLetter'));
 const GoalTracking = lazy(() => import('./pages/GoalTracking'));
 const Settings = lazy(() => import('./pages/Settings'));
 const AdminAccessControl = lazy(() => import('./pages/AdminAccessControl'));
+const OnboardingFlow = lazy(() => import('./pages/OnboardingFlow'));
 const BudgetTemplates = lazy(() => import('./pages/BudgetTemplates'));
 const ImportTransactions = lazy(() => import('./pages/ImportTransactions'));
 const HealthScore = lazy(() => import('./pages/HealthScore'));
@@ -75,16 +77,34 @@ function LockedFeature({ featureKey, subscriptionTier, isAdmin }) {
 
 function PrivateRoute({ children, featureKey, adminOnly = false }) {
   const { user, loading } = useAuth();
-  const {
-    canAccess,
-    isAdmin,
-    loading: accessLoading,
-    subscriptionTier,
-  } = useFeatureAccess(user);
+  const location = useLocation();
+  const { canAccess, isAdmin, loading: accessLoading, subscriptionTier } = useFeatureAccess(user);
+  const [onboardingDone, setOnboardingDone] = useState(null); // null=checking, true/false=known
+
+  useEffect(() => {
+    if (!user) return;
+    // Check cached profile first for instant response
+    const cached = getCachedUserProfile(user.uid);
+    if (cached) {
+      setOnboardingDone(Boolean(cached.onboardingCompleted));
+      return;
+    }
+    // Fetch from Firestore if not cached
+    getUserProfile(user.uid).then(profile => {
+      setOnboardingDone(Boolean(profile.onboardingCompleted));
+    }).catch(() => setOnboardingDone(true)); // fail-safe: don't block app
+  }, [user]);
 
   if (loading) return <PageFallback />;
   if (!user) return <Navigate to="/login" />;
   if (accessLoading) return <PageFallback />;
+
+  // Redirect to onboarding if not completed (skip check on /onboarding itself)
+  if (onboardingDone === null) return <PageFallback />; // still checking
+  if (!onboardingDone && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
+
   if (adminOnly && !isAdmin) return <Navigate to="/" />;
   if (featureKey && !adminOnly && !canAccess(featureKey)) {
     return <AppShell><LockedFeature featureKey={featureKey} subscriptionTier={subscriptionTier} isAdmin={isAdmin} /></AppShell>;
@@ -102,6 +122,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={routeElement(<Login />)} />
+        <Route path="/onboarding" element={routeElement(<OnboardingFlow />)} />
         <Route path="/" element={routeElement(<PrivateRoute featureKey="dashboard"><Dashboard /></PrivateRoute>)} />
         <Route path="/track" element={routeElement(<PrivateRoute featureKey="transactions"><TrackHub /></PrivateRoute>)} />
         <Route path="/plan" element={routeElement(<PrivateRoute featureKey="roadmap"><PlanHub /></PrivateRoute>)} />
