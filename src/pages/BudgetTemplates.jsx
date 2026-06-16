@@ -13,17 +13,16 @@ import { invalidateReportsCache } from '../services/reportsService';
 import { invalidateWealthRoadmapCache } from '../services/wealthRoadmapService';
 import { invalidateAICoachCache } from '../services/aiCoachService';
 
-const ALLOCATION_FIELDS = [
-  { key: 'living', label: 'Sinh hoạt' },
-  { key: 'emergencyFund', label: 'Quỹ dự phòng' },
-  { key: 'longTermAsset', label: 'Tài sản dài hạn' },
-  { key: 'businessLearning', label: 'Kinh doanh / học tập' },
-  { key: 'highRiskTrading', label: 'Rủi ro cao' },
-];
+const ALLOCATION_KEYS = ['living', 'emergencyFund', 'longTermAsset', 'businessLearning', 'highRiskTrading'];
 
-function AllocationBar({ allocation }) {
+function AllocationBar({ allocation, t }) {
   const colors = ['bg-zx-accent', 'bg-zx-positive', 'bg-blue-500', 'bg-purple-500', 'bg-red-500'];
-  const entries = ALLOCATION_FIELDS.map((f, i) => ({ ...f, value: allocation[f.key] || 0, color: colors[i] }));
+  const entries = ALLOCATION_KEYS.map((key, i) => ({
+    key,
+    label: t(`settings.fields.${key}`),
+    value: allocation[key] || 0,
+    color: colors[i],
+  }));
   return (
     <div className="space-y-2">
       <div className="flex h-3 rounded-full overflow-hidden gap-px">
@@ -45,7 +44,7 @@ function AllocationBar({ allocation }) {
 
 export default function BudgetTemplates() {
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [applying, setApplying] = useState(null);
   const [applied, setApplied] = useState(null);
   const [error, setError] = useState('');
@@ -119,7 +118,7 @@ export default function BudgetTemplates() {
               <CardContent className="space-y-5">
                 <div className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-zx-text-soft">{t('budgetTemplates.allocation')}</p>
-                  <AllocationBar allocation={template.allocation} />
+                  <AllocationBar allocation={template.allocation} t={t} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
@@ -136,9 +135,14 @@ export default function BudgetTemplates() {
                 <div className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-zx-text-soft">{t('budgetTemplates.categories')}</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {[...template.categories.income, ...template.categories.expense].slice(0, 10).map((cat) => (
-                      <span key={cat} className="rounded-full bg-zx-surface-2 px-2.5 py-1 text-xs text-zx-text-soft">{cat}</span>
-                    ))}
+                    {(() => {
+                      const cats = locale === 'en' && template.categoriesEN
+                        ? [...template.categoriesEN.income, ...template.categoriesEN.expense]
+                        : [...template.categories.income, ...template.categories.expense];
+                      return cats.slice(0, 10).map((cat) => (
+                        <span key={cat} className="rounded-full bg-zx-surface-2 px-2.5 py-1 text-xs text-zx-text-soft">{cat}</span>
+                      ));
+                    })()}
                   </div>
                 </div>
 
