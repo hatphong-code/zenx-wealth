@@ -142,6 +142,30 @@ function ThemeToggle({ compact = false }) {
   );
 }
 
+function LocaleToggle({ compact = false }) {
+  const { locale, setLocale } = useI18n();
+  const next = locale === 'vi' ? 'en' : 'vi';
+  if (compact) {
+    return (
+      <button onClick={() => setLocale(next)}
+        title={locale === 'vi' ? 'Switch to English' : 'Chuyển sang tiếng Việt'}
+        className="flex items-center gap-1 px-2.5 py-1.5 rounded-zx-sm border border-zx-line text-xs font-semibold text-zx-text-soft hover:text-zx-text hover:border-zx-accent transition uppercase tracking-wide">
+        {locale === 'vi' ? 'VI' : 'EN'}
+      </button>
+    );
+  }
+  return (
+    <div className="p-1 rounded-zx-sm bg-zx-surface-2 flex gap-1">
+      {[{ v: 'vi', l: 'Tiếng Việt' }, { v: 'en', l: 'English' }].map(o => (
+        <button key={o.v} onClick={() => setLocale(o.v)}
+          className={`flex-1 text-xs font-medium py-1.5 rounded transition ${
+            locale === o.v ? 'bg-zx-accent text-zx-on-accent' : 'text-zx-text-soft hover:text-zx-text'
+          }`}>{o.l}</button>
+      ))}
+    </div>
+  );
+}
+
 /* ─────────────── sidebar stats ─────────────── */
 
 function SidebarStats({ userId }) {
@@ -256,11 +280,15 @@ function Sidebar({ visibleGroups, activeGroup, expandedGroups, onGroupClick, onI
       {/* Mini stats */}
       <SidebarStats userId={userId} />
 
-      {/* Bottom: theme + sign out */}
+      {/* Bottom: theme + locale + sign out */}
       <div className="p-3 space-y-1.5 flex-shrink-0">
         <div className="px-1">
           <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-1.5 px-2">{t('appShell.themeLabel')}</p>
           <ThemeToggle />
+        </div>
+        <div className="px-1">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-1.5 px-2">Language</p>
+          <LocaleToggle />
         </div>
         <button onClick={handleSignOut}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-zx-sm text-sm text-zx-text-soft hover:text-zx-text hover:bg-zx-surface-2 transition">
@@ -312,6 +340,7 @@ function MobileTopBar({ activeGroup, activeItem }) {
     <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-zx-line flex-shrink-0 zx-transition">
       <span className="font-zx-head font-semibold text-zx-text truncate">{label}</span>
       <div className="flex items-center gap-2 flex-shrink-0">
+        <LocaleToggle compact />
         <ThemeToggle compact />
         <Avatar size={30} />
       </div>

@@ -9,7 +9,7 @@ import './index.css';
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ThemeProvider>
-      <I18nProvider locale="vi">
+      <I18nProvider>
         <AuthProvider>
           <App />
         </AuthProvider>
