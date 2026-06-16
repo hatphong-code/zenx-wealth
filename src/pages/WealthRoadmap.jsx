@@ -80,7 +80,7 @@ export default function WealthRoadmap() {
         <section className="grid gap-4 md:grid-cols-3">
           <div className="py-4">
             <p className="text-sm text-zx-text-soft">{t('roadmap.stats.currentPhase')}</p>
-            <p className="mt-2 text-lg font-semibold">{currentPhase?.title || t('roadmap.stats.notAvailable')}</p>
+            <p className="mt-2 text-lg font-semibold">{currentPhase ? t(`roadmap.phases.${currentPhase.id}`, {}, currentPhase.title) : t('roadmap.stats.notAvailable')}</p>
           </div>
           <div className="py-4">
             <p className="text-sm text-zx-text-soft">{t('roadmap.stats.completed')}</p>
@@ -89,7 +89,7 @@ export default function WealthRoadmap() {
           <div className="py-4">
             <p className="text-sm text-zx-text-soft">{t('roadmap.stats.nextMilestone')}</p>
             <p className="mt-2 text-sm font-medium text-zx-text-soft">
-              {currentPhase?.checklist.find((item) => !item.completed)?.label || t('roadmap.stats.allDone')}
+              {(() => { const next = currentPhase?.checklist.find(i => !i.completed); return next ? t(`roadmap.checklist.${next.key}`, {}, next.label) : t('roadmap.stats.allDone'); })()}
             </p>
           </div>
         </section>
@@ -110,7 +110,7 @@ export default function WealthRoadmap() {
                 }`}
               >
                 <p className="text-xs uppercase tracking-wide text-zx-text-soft">{t('roadmap.phaseLabel', { index: index + 1 })}</p>
-                <p className="mt-1 font-medium">{phase.title}</p>
+                <p className="mt-1 font-medium">{t(`roadmap.phases.${phase.id}`, {}, phase.title)}</p>
               </div>
             ))}
           </div>
@@ -122,10 +122,10 @@ export default function WealthRoadmap() {
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <h2 className="font-zx-head text-lg font-semibold text-zx-text">{phase.title}</h2>
+                    <h2 className="font-zx-head text-lg font-semibold text-zx-text">{t(`roadmap.phases.${phase.id}`, {}, phase.title)}</h2>
                     {phase.completed && <CheckCircle2 className="h-5 w-5 text-zx-positive" />}
                   </div>
-                  <p className="text-sm text-zx-text-soft">{phase.description}</p>
+                  <p className="text-sm text-zx-text-soft">{t(`roadmap.phaseDesc.${phase.id}`, {}, phase.description)}</p>
                 </div>
                 {savingPhaseId === phase.id && (
                   <div className="inline-flex items-center gap-2 rounded bg-zx-bg px-3 py-2 text-xs text-zx-accent">
@@ -144,7 +144,7 @@ export default function WealthRoadmap() {
                       className="mt-1 h-4 w-4"
                     />
                     <span className="space-y-1">
-                      <span className="block text-sm text-zx-text-soft">{item.label}</span>
+                      <span className="block text-sm text-zx-text-soft">{t(`roadmap.checklist.${item.key}`, {}, item.label)}</span>
                       <span className="block text-xs text-zx-text-soft">
                         {item.autoValue ? t('roadmap.autoSignal') : t('roadmap.manualNeeded')}
                       </span>

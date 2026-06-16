@@ -34,14 +34,14 @@ const isProfile= p => ['/settings','/profile','/admin/access','/monthly-letter',
 const SUB_ITEMS = {
   home:    [{ to: '/', featureKey: 'dashboard', matches: p => p === '/' }],
   track:   [
-    { to: '/track',            featureKey: 'transactions',    matches: p => p === '/track' },
+    { to: '/track',            featureKey: 'transactions',    navKey: 'track_hub',    matches: p => p === '/track' },
     { to: '/transactions',     featureKey: 'transactions',    matches: p => p === '/transactions' || /^\/transactions\/[^/]+\/edit$/.test(p) },
     { to: '/transactions/new', featureKey: 'add_transaction', matches: p => p === '/transactions/new' },
     { to: '/latte',            featureKey: 'latte_factor',       matches: p => p === '/latte' },
     { to: '/import',           featureKey: 'import_transactions', matches: p => p === '/import' },
   ],
   plan: [
-    { to: '/plan',               featureKey: 'roadmap',            matches: p => p === '/plan' },
+    { to: '/plan',               featureKey: 'roadmap',            navKey: 'plan_hub',   matches: p => p === '/plan' },
     { to: '/roadmap',            featureKey: 'roadmap',            matches: p => p === '/roadmap' },
     { to: '/emergency',          featureKey: 'emergency_fund',     matches: p => p === '/emergency' },
     { to: '/pay-yourself-first', featureKey: 'pay_yourself_first', matches: p => p === '/pay-yourself-first' },
@@ -52,7 +52,7 @@ const SUB_ITEMS = {
     { to: '/budget-templates',   featureKey: 'budget_templates',   matches: p => p === '/budget-templates' },
   ],
   review: [
-    { to: '/review',        featureKey: 'weekly_review', matches: p => p === '/review' },
+    { to: '/review',        featureKey: 'weekly_review', navKey: 'review_hub', matches: p => p === '/review' },
     { to: '/weekly-review', featureKey: 'weekly_review', matches: p => p === '/weekly-review' },
     { to: '/reports',       featureKey: 'reports',       matches: p => p === '/reports' },
     { to: '/ai-coach',      featureKey: 'ai_coach',      matches: p => p === '/ai-coach' },
@@ -284,7 +284,7 @@ function Sidebar({ visibleGroups, activeGroup, expandedGroups, onGroupClick, onI
                         className={`w-full text-left px-3 py-2 rounded-zx-sm text-sm transition ${
                           isItemActive ? 'text-zx-accent font-medium' : 'text-zx-text-soft hover:text-zx-text'
                         }`}>
-                        {t(`nav.items.${item.featureKey}`, {}, item.featureKey)}
+                        {t(`nav.items.${item.navKey || item.featureKey}`, {}, item.navKey || item.featureKey)}
                       </button>
                     );
                   })}
@@ -325,7 +325,7 @@ function TopBar({ activeGroup, activeItem }) {
   const { t } = useI18n();
   const firstName = user?.displayName?.split(' ').pop() || user?.email?.split('@')[0] || 'bạn';
   const pageLabel = activeItem
-    ? t(`nav.items.${activeItem.featureKey}`, {}, activeItem.featureKey)
+    ? t(`nav.items.${activeItem.navKey || activeItem.featureKey}`, {}, activeItem.navKey || activeItem.featureKey)
     : activeGroup ? t(`nav.groups.${activeGroup.id}`, {}, activeGroup.label) : '';
 
   return (
@@ -351,7 +351,7 @@ function TopBar({ activeGroup, activeItem }) {
 function MobileTopBar({ activeGroup, activeItem }) {
   const { t } = useI18n();
   const label = activeItem
-    ? t(`nav.items.${activeItem.featureKey}`, {}, activeItem.featureKey)
+    ? t(`nav.items.${activeItem.navKey || activeItem.featureKey}`, {}, activeItem.navKey || activeItem.featureKey)
     : activeGroup ? t(`nav.groups.${activeGroup.id}`, {}, activeGroup.label) : '';
 
   return (
@@ -428,7 +428,7 @@ function BottomSheet({ group, activeItem, onClose, onItemClick, t }) {
                 <button onClick={() => onItemClick(item.to)}
                   className="w-full flex items-center justify-between py-4 text-sm text-left transition hover:text-zx-accent">
                   <span className={isActive ? 'text-zx-accent font-semibold' : 'text-zx-text'}>
-                    {t(`nav.items.${item.featureKey}`, {}, item.featureKey)}
+                    {t(`nav.items.${item.navKey || item.featureKey}`, {}, item.navKey || item.featureKey)}
                   </span>
                   {isActive && <span className="text-zx-accent text-xs font-semibold">✦</span>}
                 </button>
