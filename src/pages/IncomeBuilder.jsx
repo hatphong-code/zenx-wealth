@@ -20,10 +20,10 @@ import { useI18n } from '../i18n/useI18n';
 
 const initialForm = {
   sourceName: '',
-  sourceType: incomeTypes[0],
+  sourceType: incomeTypes[0].value,
   currentMonthlyIncome: '',
   targetMonthlyIncome: '',
-  stage: incomeStages[0],
+  stage: incomeStages[0].value,
   nextAction: '',
   note: '',
 };
@@ -50,10 +50,10 @@ export default function IncomeBuilder() {
     setError('');
     setForm({
       sourceName: source.sourceName || '',
-      sourceType: source.sourceType || incomeTypes[0],
+      sourceType: source.sourceType || incomeTypes[0].value,
       currentMonthlyIncome: String(source.currentMonthlyIncome || ''),
       targetMonthlyIncome: String(source.targetMonthlyIncome || ''),
-      stage: source.stage || incomeStages[0],
+      stage: source.stage || incomeStages[0].value,
       nextAction: source.nextAction || '',
       note: source.note || '',
     });
@@ -172,13 +172,13 @@ export default function IncomeBuilder() {
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.typeLabel')}</span>
               <select value={form.sourceType} onChange={(e) => updateField('sourceType', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                {incomeTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+                {incomeTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
               </select>
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.stageLabel')}</span>
               <select value={form.stage} onChange={(e) => updateField('stage', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                {incomeStages.map((stage) => <option key={stage} value={stage}>{stage}</option>)}
+                {incomeStages.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </label>
             <label className="space-y-2">

@@ -6,23 +6,23 @@ import { getUserProfile } from './userService';
 const INCOME_CACHE_TTL_MS = 60 * 1000;
 
 export const incomeTypes = [
-  'Main Job',
-  'Consulting',
-  'Freelance',
-  'Trading',
-  'Business',
-  'Digital Product',
-  'Investment Income',
-  'Other',
+  { value: 'Main Job',          label: 'Lương chính' },
+  { value: 'Consulting',        label: 'Tư vấn' },
+  { value: 'Freelance',         label: 'Freelance' },
+  { value: 'Trading',           label: 'Giao dịch / Trading' },
+  { value: 'Business',          label: 'Kinh doanh' },
+  { value: 'Digital Product',   label: 'Sản phẩm số' },
+  { value: 'Investment Income', label: 'Thu nhập đầu tư' },
+  { value: 'Other',             label: 'Khác' },
 ];
 
 export const incomeStages = [
-  'Idea',
-  'Validation',
-  'First Client',
-  'Repeatable',
-  'Systemized',
-  'Scaled',
+  { value: 'Idea',         label: 'Ý tưởng' },
+  { value: 'Validation',   label: 'Đang kiểm chứng' },
+  { value: 'First Client', label: 'Có khách đầu tiên' },
+  { value: 'Repeatable',   label: 'Lặp lại được' },
+  { value: 'Systemized',   label: 'Đã hệ thống hóa' },
+  { value: 'Scaled',       label: 'Đang mở rộng' },
 ];
 
 function getIncomeCacheKey(userId) {

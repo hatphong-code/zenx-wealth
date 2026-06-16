@@ -6,18 +6,24 @@ import { getUserProfile } from './userService';
 const ASSETS_CACHE_TTL_MS = 60 * 1000;
 
 export const accountTypes = [
-  'Cash',
-  'Savings',
-  'Brokerage',
-  'Retirement',
-  'Crypto',
-  'Business',
-  'Real Estate',
-  'Gold',
-  'Other',
+  { value: 'Cash',        label: 'Tiền mặt' },
+  { value: 'Savings',     label: 'Tiết kiệm' },
+  { value: 'Brokerage',   label: 'Chứng khoán (Brokerage)' },
+  { value: 'Retirement',  label: 'Hưu trí / Quỹ dài hạn' },
+  { value: 'Crypto',      label: 'Crypto' },
+  { value: 'Business',    label: 'Vốn kinh doanh' },
+  { value: 'Real Estate', label: 'Bất động sản' },
+  { value: 'Gold',        label: 'Vàng' },
+  { value: 'Other',       label: 'Khác' },
 ];
 
-export const accountPurposes = ['Daily', 'Emergency', 'Long-term', 'Risk', 'Business'];
+export const accountPurposes = [
+  { value: 'Daily',     label: 'Sinh hoạt ngày' },
+  { value: 'Emergency', label: 'Dự phòng' },
+  { value: 'Long-term', label: 'Dài hạn' },
+  { value: 'Risk',      label: 'Rủi ro / Trading' },
+  { value: 'Business',  label: 'Kinh doanh' },
+];
 
 function getAssetsCacheKey(userId) {
   return `assets:${userId}`;

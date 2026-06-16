@@ -6,16 +6,20 @@ import { getUserProfile } from './userService';
 const DEBT_CACHE_TTL_MS = 60 * 1000;
 
 export const debtTypes = [
-  'Credit Card',
-  'Consumer Loan',
-  'Personal Loan',
-  'Business Loan',
-  'Mortgage',
-  'Asset Loan',
-  'Other',
+  { value: 'Credit Card',    label: 'Thẻ tín dụng' },
+  { value: 'Consumer Loan',  label: 'Vay tiêu dùng' },
+  { value: 'Personal Loan',  label: 'Vay cá nhân' },
+  { value: 'Business Loan',  label: 'Vay kinh doanh' },
+  { value: 'Mortgage',       label: 'Vay mua nhà (Mortgage)' },
+  { value: 'Asset Loan',     label: 'Vay mua tài sản' },
+  { value: 'Other',          label: 'Khác' },
 ];
 
-export const debtPriorities = ['High', 'Medium', 'Low'];
+export const debtPriorities = [
+  { value: 'High',   label: 'Cao' },
+  { value: 'Medium', label: 'Trung bình' },
+  { value: 'Low',    label: 'Thấp' },
+];
 
 function getDebtCacheKey(userId) {
   return `debts:${userId}`;

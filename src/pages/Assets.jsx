@@ -21,8 +21,8 @@ import { useI18n } from '../i18n/useI18n';
 
 const initialForm = {
   name: '',
-  type: accountTypes[0],
-  purpose: accountPurposes[0],
+  type: accountTypes[0].value,
+  purpose: accountPurposes[0].value,
   balance: '',
 };
 
@@ -48,8 +48,8 @@ export default function Assets() {
     setError('');
     setForm({
       name: account.name || '',
-      type: account.type || accountTypes[0],
-      purpose: account.purpose || accountPurposes[0],
+      type: account.type || accountTypes[0].value,
+      purpose: account.purpose || accountPurposes[0].value,
       balance: String(account.balance || ''),
     });
   };
@@ -168,13 +168,13 @@ export default function Assets() {
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('assets.form.typeLabel')}</span>
               <select value={form.type} onChange={(e) => updateField('type', e.target.value)} className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                {accountTypes.map((item) => <option key={item} value={item}>{item}</option>)}
+                {accountTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
               </select>
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('assets.form.purposeLabel')}</span>
               <select value={form.purpose} onChange={(e) => updateField('purpose', e.target.value)} className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                {accountPurposes.map((item) => <option key={item} value={item}>{item}</option>)}
+                {accountPurposes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
               </select>
             </label>
             <label className="space-y-2 md:col-span-2 xl:col-span-4">

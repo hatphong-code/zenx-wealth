@@ -26,8 +26,8 @@ const initialForm = {
   interestRate: '',
   minimumPayment: '',
   dueDate: today,
-  debtType: debtTypes[0],
-  priority: debtPriorities[0],
+  debtType: debtTypes[0].value,
+  priority: debtPriorities[0].value,
   note: '',
 };
 
@@ -58,8 +58,8 @@ export default function DebtControl() {
       interestRate: String(debt.interestRate || ''),
       minimumPayment: String(debt.minimumPayment || ''),
       dueDate: debt.dueDate || today,
-      debtType: debt.debtType || debtTypes[0],
-      priority: debt.priority || debtPriorities[0],
+      debtType: debt.debtType || debtTypes[0].value,
+      priority: debt.priority || debtPriorities[0].value,
       note: debt.note || '',
     });
   };
@@ -210,13 +210,13 @@ export default function DebtControl() {
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.typeLabel')}</span>
               <select value={form.debtType} onChange={(e) => updateField('debtType', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                {debtTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+                {debtTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
               </select>
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.priorityLabel')}</span>
               <select value={form.priority} onChange={(e) => updateField('priority', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                {debtPriorities.map((priority) => <option key={priority} value={priority}>{priority}</option>)}
+                {debtPriorities.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
               </select>
             </label>
             <label className="space-y-2 md:col-span-2 xl:col-span-1">
