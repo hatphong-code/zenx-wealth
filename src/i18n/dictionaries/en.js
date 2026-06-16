@@ -213,6 +213,10 @@ export default {
     addNotePlaceholder: 'Add a note...',
     saveTransaction: 'Save transaction',
     saveChanges: 'Save changes',
+    errors: {
+      notFound: 'Transaction not found.',
+      amountRequired: 'Amount must be greater than 0.',
+    },
     expenseCategories: ['Coffee & drinks', 'Eating out', 'Shopping', 'Transport', 'Housing', 'Health', 'Subscription', 'Education', 'Family', 'Other'],
     incomeCategories: ['Salary', 'Freelance', 'Business', 'Investment', 'Bonus', 'Other'],
   },

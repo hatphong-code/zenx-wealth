@@ -217,6 +217,10 @@ export default {
     addNotePlaceholder: 'Thêm ghi chú...',
     saveTransaction: 'Lưu giao dịch',
     saveChanges: 'Lưu thay đổi',
+    errors: {
+      notFound: 'Không tìm thấy giao dịch.',
+      amountRequired: 'Số tiền phải lớn hơn 0.',
+    },
     expenseCategories: ['Cà phê & trà sữa', 'Ăn ngoài', 'Mua sắm', 'Đi lại', 'Nhà ở', 'Sức khoẻ', 'Subscription', 'Học tập', 'Gia đình', 'Khác'],
     incomeCategories: ['Lương', 'Freelance', 'Kinh doanh', 'Đầu tư', 'Thưởng', 'Khác'],
   },

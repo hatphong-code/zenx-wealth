@@ -65,7 +65,7 @@ export default function AddTransaction() {
         setCustomCategories(profile.settings?.customCategories || { income: [], expense: [] });
         if (!isEditing) return;
         const snap = await getDoc(doc(db, 'users', user.uid, 'transactions', transactionId));
-        if (!snap.exists()) { setError('Không tìm thấy giao dịch.'); return; }
+        if (!snap.exists()) { setError(t('addTransaction.errors.notFound')); return; }
         const data = snap.data();
         setCurrency(data.currency || profile.settings?.currency || 'VND');
         setForm({
@@ -98,7 +98,7 @@ export default function AddTransaction() {
     event.preventDefault();
     if (!user) return;
     const amount = Number(form.amount);
-    if (!Number.isFinite(amount) || amount <= 0) { setError('Số tiền phải lớn hơn 0.'); return; }
+    if (!Number.isFinite(amount) || amount <= 0) { setError(t('addTransaction.errors.amountRequired')); return; }
     setSaving(true); setError('');
     try {
       const payload = {
