@@ -11,7 +11,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import { useWealthRoadmapData } from '../hooks/useWealthRoadmapData';
 import { auth } from '../services/firebaseAuth';
-import { fmtShort } from '../utils/formatters';
+import { useNumberFormat } from '../hooks/useNumberFormat';
 
 /* ─────────────── nav data ─────────────── */
 
@@ -172,6 +172,7 @@ function SidebarStats({ userId }) {
   const { stats } = useDashboardStats(userId);
   const { data: roadmap } = useWealthRoadmapData(userId);
   const { t } = useI18n();
+  const { fmt } = useNumberFormat();
   const currentPhase = roadmap.phases.find(p => p.id === roadmap.currentPhaseId) || roadmap.phases[0];
   const emgPct = stats.targetMonths > 0 ? (stats.emergencyMonths / stats.targetMonths) * 100 : 0;
   const isPositive = stats.netCashFlow >= 0;
@@ -182,7 +183,7 @@ function SidebarStats({ userId }) {
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">Tháng này</span>
         <span className={`font-zx-display text-sm font-bold ${isPositive ? 'text-zx-positive' : 'text-zx-accent'}`}>
-          {isPositive ? '+' : ''}{fmtShort(stats.netCashFlow)} ₫
+          {isPositive ? '+' : ''}{fmt(stats.netCashFlow)}
         </span>
       </div>
 

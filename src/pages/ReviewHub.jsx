@@ -7,7 +7,8 @@ import { useI18n } from '../i18n/useI18n';
 import { useWeeklyReviewData } from '../hooks/useWeeklyReviewData';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { db } from '../services/firebaseDb';
-import { fmtShort, formatDate, formatNumber, formatPercent } from '../utils/formatters';
+import { formatDate, formatNumber, formatPercent } from '../utils/formatters';
+import { useNumberFormat } from '../hooks/useNumberFormat';
 
 function HL() { return <div className="h-px bg-zx-line" />; }
 
@@ -44,6 +45,7 @@ export default function ReviewHub() {
   const { canAccess } = useFeatureAccess(user);
   const { data, loading } = useWeeklyReviewData(user?.uid);
   const { weekMeta, review, form } = data;
+  const { fmt } = useNumberFormat();
 
   const [history, setHistory] = useState([]);
 
@@ -115,10 +117,10 @@ export default function ReviewHub() {
         <section className="py-6">
           <div className="grid grid-cols-2 gap-0 divide-x divide-zx-line">
             {[
-              { label: t('common.income'), value: fmtShort(review.income), color: 'text-zx-positive' },
-              { label: t('common.expense'), value: fmtShort(review.expense), color: 'text-zx-text' },
+              { label: t('common.income'), value: fmt(review.income, 'VND'), color: 'text-zx-positive' },
+              { label: t('common.expense'), value: fmt(review.expense, 'VND'), color: 'text-zx-text' },
               { label: t('common.savings'), value: `${savingsRatePct}%`, color: savingsRatePct >= 30 ? 'text-zx-positive' : 'text-zx-gold' },
-              { label: t('common.latteFactor'), value: fmtShort(review.latteFactorTotal), color: 'text-zx-accent' },
+              { label: t('common.latteFactor'), value: fmt(review.latteFactorTotal, 'VND'), color: 'text-zx-accent' },
             ].map((s, i) => (
               <div key={s.label} className={`px-4 py-4 ${i >= 2 ? 'border-t border-zx-line' : ''} ${i % 2 === 0 ? 'pl-0' : ''}`}>
                 <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{s.label}</p>

@@ -4,6 +4,7 @@ import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
 import { Button } from '../components/ui/button';
 import { useTheme } from '../hooks/useTheme';
+import { useNumberFormat } from '../hooks/useNumberFormat';
 import { defaultExpenseCategories, defaultIncomeCategories } from '../data/categories';
 import { db } from '../services/firebaseDb';
 import { getUserProfile, setUserProfileCache } from '../services/userService';
@@ -52,6 +53,7 @@ export default function Settings() {
   const { user } = useAuth();
   const { t } = useI18n();
   const { theme, setTheme } = useTheme();
+  const { unit, setUnit } = useNumberFormat();
 
   const themeOptions = [
     {
@@ -193,6 +195,27 @@ export default function Settings() {
                 </button>
               );
             })}
+          </div>
+        </section>
+
+        {/* ── Number display unit ── */}
+        <section className="rounded-zx border border-zx-line bg-zx-surface p-5 shadow-zx zx-transition">
+          <div className="mb-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zx-text-soft">{t('settings.numberUnitTitle')}</p>
+            <p className="mt-1 text-sm text-zx-text-soft">{t('settings.numberUnitHint')}</p>
+          </div>
+          <div className="mt-4 p-1 rounded-zx-sm bg-zx-surface-2 flex gap-1">
+            {[
+              { v: 'full', l: t('settings.numberUnitFull') },
+              { v: 'compact', l: t('settings.numberUnitCompact') },
+            ].map(o => (
+              <button key={o.v} type="button" onClick={() => setUnit(o.v)}
+                className={`flex-1 text-xs font-medium py-2 px-3 rounded transition text-left ${
+                  unit === o.v ? 'bg-zx-accent text-zx-on-accent' : 'text-zx-text-soft hover:text-zx-text'
+                }`}>
+                {o.l}
+              </button>
+            ))}
           </div>
         </section>
 

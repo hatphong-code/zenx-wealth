@@ -12,12 +12,14 @@ import { db } from '../services/firebaseDb';
 import { invalidateDashboardStatsCache } from '../services/dashboardService';
 import { setEmergencyFundCache } from '../services/emergencyFundService';
 import { fmtShort, formatDate, formatMoney } from '../utils/formatters';
+import { useNumberFormat } from '../hooks/useNumberFormat';
 
 function HL() { return <div className="h-px bg-zx-line" />; }
 
 /* ── Latte → Convert bottom sheet ── */
 function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, onSuccess }) {
   const { t } = useI18n();
+  const { fmt, fmtNum } = useNumberFormat();
   const { settings, records } = emergencyData;
   const [amount, setAmount] = useState(Math.round(latteTotal * 0.5));
   const [saving, setSaving] = useState(false);
@@ -98,7 +100,7 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
                   className={`flex-1 text-xs py-1.5 rounded-full border transition ${
                     amount === p ? 'border-zx-accent bg-zx-accent-soft text-zx-accent font-semibold' : 'border-zx-line text-zx-text-soft'
                   }`}>
-                  {fmtShort(p)}
+                  {fmt(p, currency)}
                 </button>
               ))}
             </div>
@@ -108,11 +110,11 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
           <div className="rounded-zx-sm bg-zx-surface-2 p-3 space-y-1.5">
             <div className="flex justify-between text-sm">
               <span className="text-zx-text-soft">{t('trackHub.convert.currentFund')}</span>
-              <span className="font-medium text-zx-text">{fmtShort(currentBalance)} ₫</span>
+              <span className="font-medium text-zx-text">{fmt(currentBalance, currency)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zx-text-soft">{t('trackHub.convert.afterDeposit')}</span>
-              <span className="font-semibold text-zx-positive">{fmtShort(newBalance)} ₫</span>
+              <span className="font-semibold text-zx-positive">{fmt(newBalance, currency)}</span>
             </div>
             <HL />
             <div className="flex justify-between text-sm">
@@ -127,7 +129,7 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
 
           <button onClick={handleConfirm} disabled={saving || !amount}
             className="w-full flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent py-3.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition disabled:opacity-50">
-            {saving ? t('common.saving') : t('trackHub.convert.confirmButton', { amount: fmtShort(amount) })}
+            {saving ? t('common.saving') : t('trackHub.convert.confirmButton', { amount: fmtNum(amount) })}
           </button>
         </div>
       </div>
@@ -138,6 +140,7 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
 /* ── Success state ── */
 function ConvertSuccess({ amount, newMonths, onClose }) {
   const { t } = useI18n();
+  const { fmtNum } = useNumberFormat();
   return (
     <div className="fixed inset-0 z-50 flex items-end md:hidden">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
@@ -146,7 +149,7 @@ function ConvertSuccess({ amount, newMonths, onClose }) {
         <div className="text-3xl mb-2">✦</div>
         <p className="font-zx-head text-lg font-semibold text-zx-positive">{t('trackHub.success.title')}</p>
         <p className="text-sm text-zx-text-soft mt-1">
-          {t('trackHub.success.body', { amount: fmtShort(amount) })}
+          {t('trackHub.success.body', { amount: fmtNum(amount) })}
         </p>
         <p className="text-sm text-zx-text-soft mt-1">
           {t('trackHub.success.fundNow', { months: newMonths.toFixed(1) })}
@@ -168,6 +171,7 @@ export default function TrackHub() {
   const { stats, loading } = useDashboardStats(user?.uid);
   const { data: txData } = useTransactionsData(user?.uid);
   const { data: emergencyData } = useEmergencyFundData(user?.uid);
+  const { fmt, fmtNum } = useNumberFormat();
   const currency = stats.currency || 'VND';
 
   const [showConvert, setShowConvert] = useState(false);
@@ -195,8 +199,7 @@ export default function TrackHub() {
                 : <TrendingDown className="h-5 w-5 text-red-400 mb-1.5 flex-shrink-0" />}
               <p className="font-zx-display font-bold leading-none"
                 style={{ fontSize: 'clamp(2rem,8vw,3rem)', color: isPositive ? 'var(--zx-positive)' : 'var(--zx-accent)' }}>
-                {isPositive ? '+' : ''}{fmtShort(stats.netCashFlow)}
-                <span className="text-lg ml-1.5 font-normal text-zx-text-soft">₫</span>
+                {isPositive ? '+' : ''}{fmt(stats.netCashFlow, currency)}
               </p>
             </div>
             <div className="flex gap-2 mt-3 flex-wrap">
@@ -229,7 +232,7 @@ export default function TrackHub() {
 
         <div className="flex items-baseline gap-2 mb-2">
           <p className="font-zx-display text-3xl font-bold text-zx-accent">
-            {fmtShort(stats.latteFactor)}
+            {fmt(stats.latteFactor, currency)}
           </p>
           <p className="text-sm text-zx-text-soft">{t('trackHub.leaking')}</p>
         </div>
@@ -258,7 +261,7 @@ export default function TrackHub() {
 
         {stats.latteFactor > 0 && canAccess('emergency_fund') && (
           <p className="text-xs text-zx-gold mt-2">
-            {t('trackHub.convertLatteHint', { amount: fmtShort(stats.latteFactor) })}
+            {t('trackHub.convertLatteHint', { amount: fmtNum(stats.latteFactor) })}
           </p>
         )}
 
@@ -301,7 +304,7 @@ export default function TrackHub() {
                 <>
                   <div className="flex items-baseline gap-2 mb-4">
                     <p className="font-zx-display text-2xl font-bold text-zx-gold">
-                      {fmtShort(monthlyRecurringTotal)}
+                      {fmt(monthlyRecurringTotal, currency)}
                     </p>
                     <p className="text-sm text-zx-text-soft">{t('trackHub.monthlyFixed')}</p>
                   </div>
@@ -309,7 +312,7 @@ export default function TrackHub() {
                     {Object.entries(recurringByCategory).map(([cat, amounts]) => (
                       <div key={cat} className="flex items-center justify-between text-sm">
                         <p className="text-zx-text-soft">↻ {cat}</p>
-                        <p className="text-zx-text font-medium">{fmtShort(Math.min(...amounts))}</p>
+                        <p className="text-zx-text font-medium">{fmt(Math.min(...amounts), currency)}</p>
                       </div>
                     ))}
                   </div>
@@ -359,7 +362,7 @@ export default function TrackHub() {
                     <p className={`text-sm font-bold font-zx-display ${
                       tx.type === 'income' ? 'text-zx-positive' : 'text-zx-text'
                     }`}>
-                      {tx.type === 'income' ? '+' : '-'}{fmtShort(tx.amount)}
+                      {tx.type === 'income' ? '+' : '-'}{fmt(tx.amount, currency)}
                     </p>
                     {tx.isLatteFactor && (
                       <span className="text-[10px] text-zx-accent font-medium">Latte ✦</span>

@@ -3,7 +3,7 @@ import { TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { useI18n } from '../i18n/useI18n';
 import { getGoalTracking } from '../services/goalTrackingService';
-import { fmtShort } from '../utils/formatters';
+import { useNumberFormat } from '../hooks/useNumberFormat';
 
 function ProgressBar({ value, isOnTrack }) {
   const color = isOnTrack ? 'bg-zx-positive' : value >= 80 ? 'bg-zx-accent' : value >= 50 ? 'bg-zx-gold' : 'bg-red-500';
@@ -75,6 +75,7 @@ export default function GoalTracking() {
     );
   }
 
+  const { fmt } = useNumberFormat();
   const { progress } = data;
   const { goalAmount, currentNetWorth, progressPercent, weeksLeft, weeklyTargetSavings, estimatedWeeklySavings, isOnTrack, goalText } = progress;
 
@@ -99,7 +100,7 @@ export default function GoalTracking() {
           <div className="text-right">
             <p className="text-xs uppercase tracking-wide text-zx-text-soft mb-1">{t('goalTracking.remaining')}</p>
             <p className="font-zx-display text-2xl font-bold text-zx-accent">
-              {fmtShort(Math.max(0, goalAmount - currentNetWorth))}
+              {fmt(Math.max(0, goalAmount - currentNetWorth), 'VND')}
             </p>
           </div>
         </div>
@@ -109,11 +110,11 @@ export default function GoalTracking() {
         <div className="grid grid-cols-3 gap-3 mt-6 text-center">
           <div>
             <p className="text-xs text-zx-text-soft">{t('goalTracking.current')}</p>
-            <p className="font-mono text-sm font-semibold text-zx-text">{fmtShort(currentNetWorth)}</p>
+            <p className="font-mono text-sm font-semibold text-zx-text">{fmt(currentNetWorth, 'VND')}</p>
           </div>
           <div>
             <p className="text-xs text-zx-text-soft">{t('goalTracking.goal')}</p>
-            <p className="font-mono text-sm font-semibold text-zx-text">{fmtShort(goalAmount)}</p>
+            <p className="font-mono text-sm font-semibold text-zx-text">{fmt(goalAmount, 'VND')}</p>
           </div>
           <div>
             <p className="text-xs text-zx-text-soft">{t('goalTracking.weeksLeft')}</p>
@@ -139,7 +140,7 @@ export default function GoalTracking() {
           <div>
             <p className="text-sm text-zx-text-soft mb-2">{t('goalTracking.weeklyNeeded')}</p>
             <p className="font-zx-display text-2xl font-bold text-zx-text">
-              {fmtShort(weeklyTargetSavings)}{t('goalTracking.perWeek')}
+              {fmt(weeklyTargetSavings, 'VND')}{t('goalTracking.perWeek')}
             </p>
           </div>
 
@@ -151,7 +152,7 @@ export default function GoalTracking() {
               <p className="font-zx-display text-2xl font-bold" style={{
                 color: estimatedWeeklySavings >= weeklyTargetSavings * 0.9 ? 'var(--zx-positive)' : 'var(--zx-accent)'
               }}>
-                {fmtShort(estimatedWeeklySavings)}
+                {fmt(estimatedWeeklySavings, 'VND')}
               </p>
               <p className="text-sm text-zx-text-soft">{t('goalTracking.perWeek')}</p>
             </div>
@@ -166,7 +167,7 @@ export default function GoalTracking() {
               <p>
                 {t('goalTracking.needMore')}{' '}
                 <span className="font-semibold text-zx-accent">
-                  {fmtShort(weeklyTargetSavings - estimatedWeeklySavings)}{t('goalTracking.perWeek')}
+                  {fmt(weeklyTargetSavings - estimatedWeeklySavings, 'VND')}{t('goalTracking.perWeek')}
                 </span>
                 {' '}để theo đúng kế hoạch.
               </p>

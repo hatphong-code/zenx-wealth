@@ -9,6 +9,7 @@ import { useEmergencyFundData } from '../hooks/useEmergencyFundData';
 import { usePayYourselfFirstData } from '../hooks/usePayYourselfFirstData';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { fmtShort, formatNumber } from '../utils/formatters';
+import { useNumberFormat } from '../hooks/useNumberFormat';
 
 function HL() { return <div className="h-px bg-zx-line" />; }
 
@@ -58,7 +59,7 @@ function getPriority(stats, debtSummary, latteMonthly, t) {
       message: t('planHub.noEmergencyFund'),
       action: t('planHub.fundEmergency'),
       to: '/emergency',
-      tip: latteMonthly > 0 ? `Cắt 50% Latte Factor = +${fmtShort(latteMonthly * 0.5)} ₫/tháng` : null,
+      tip: latteMonthly > 0 ? t('planHub.latteTip', { amount: fmt(latteMonthly * 0.5) }) : null,
     };
   }
   if (stats.emergencyMonths < 3) {
@@ -68,7 +69,7 @@ function getPriority(stats, debtSummary, latteMonthly, t) {
       message: t('planHub.emergencyFundBelow3', { months: formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 }) }),
       action: t('planHub.fundMoreEmergency'),
       to: '/emergency',
-      tip: latteMonthly > 0 ? t('trackHub.convertLatteHint', { amount: fmtShort(latteMonthly) }) : null,
+      tip: latteMonthly > 0 ? t('trackHub.convertLatteHint', { amount: fmtNum(latteMonthly) }) : null,
     };
   }
   if (stats.emergencyMonths < stats.targetMonths) {
@@ -95,7 +96,7 @@ function getPriority(stats, debtSummary, latteMonthly, t) {
     return {
       level: 'active',
       label: 'Cần xử lý',
-      message: t('planHub.debtRemaining', { amount: fmtShort(debtSummary.totalDebt) }),
+      message: t('planHub.debtRemaining', { amount: fmtNum(debtSummary.totalDebt) }),
       action: t('planHub.action.debts'),
       to: '/debts',
       tip: null,
@@ -143,6 +144,7 @@ function PlanItem({ label, value, sub, to, status, canAccess: access }) {
 export default function PlanHub() {
   const { user } = useAuth();
   const { t } = useI18n();
+  const { fmt, fmtNum } = useNumberFormat();
   const { canAccess } = useFeatureAccess(user);
   const { stats, loading: statsLoading } = useDashboardStats(user?.uid);
   const { data: roadmap, loading: roadmapLoading } = useWealthRoadmapData(user?.uid);
@@ -178,15 +180,15 @@ export default function PlanHub() {
     {
       key: 'pyf', label: t('planHub.items.payYourself'),
       value: `${formatNumber(stats.payYourselfProgress)}%`,
-      sub: stats.payYourselfProgress >= 100 ? t('planHub.completedThisMonth') : `${t('planHub.remaining')} ${fmtShort(Math.max(0, stats.payYourselfTarget - stats.payYourselfSaved))}`,
+      sub: stats.payYourselfProgress >= 100 ? t('planHub.completedThisMonth') : `${t('planHub.remaining')} ${fmt(Math.max(0, stats.payYourselfTarget - stats.payYourselfSaved))}`,
       to: '/pay-yourself-first',
       status: stats.payYourselfProgress >= 100 ? 'done' : 'active',
       featureKey: 'pay_yourself_first',
     },
     {
       key: 'debt', label: t('planHub.items.debts'),
-      value: debtData.summary.totalDebt > 0 ? fmtShort(debtData.summary.totalDebt) : null,
-      sub: debtData.summary.totalDebt > 0 ? `${debtData.debts.length} khoản nợ` : 'Không có nợ ✓',
+      value: debtData.summary.totalDebt > 0 ? fmt(debtData.summary.totalDebt) : null,
+      sub: debtData.summary.totalDebt > 0 ? t('planHub.debtCount', { count: debtData.debts.length }) : t('planHub.noDebt'),
       to: '/debts',
       status: debtData.summary.totalDebt === 0 ? 'done' : (stats.emergencyMonths >= 3 ? 'active' : 'upcoming'),
       featureKey: 'debt_control',

@@ -7,6 +7,7 @@ import { useDashboardStats } from '../hooks/useDashboardStats';
 import { useAssetsData } from '../hooks/useAssetsData';
 import { useDebtData } from '../hooks/useDebtData';
 import { fmtShort, formatNumber } from '../utils/formatters';
+import { useNumberFormat } from '../hooks/useNumberFormat';
 
 function StatTile({ icon: Icon, iconColor, label, value, valueColor, sub, subPositive, bar, barPct, to }) {
   const inner = (
@@ -47,6 +48,8 @@ export default function Dashboard() {
   const { stats, loading, error } = useDashboardStats(user?.uid);
   const { data: assetsData } = useAssetsData(user?.uid);
   const { data: debtData } = useDebtData(user?.uid);
+  const { fmt, fmtNum } = useNumberFormat();
+  const currency = stats.currency || 'VND';
 
   const emgPct = stats.targetMonths > 0 ? (stats.emergencyMonths / stats.targetMonths) * 100 : 0;
   const netSign = stats.netCashFlow >= 0 ? '+' : '';
@@ -82,8 +85,7 @@ export default function Dashboard() {
                   fontSize: 'clamp(2.5rem,6vw,3.75rem)',
                   color: stats.netCashFlow >= 0 ? 'var(--zx-positive)' : 'var(--zx-accent)',
                 }}>
-                {netSign}{fmtShort(stats.netCashFlow)}
-                <span className="text-xl ml-2 font-normal text-zx-text-soft">₫</span>
+                {netSign}{fmt(stats.netCashFlow, currency)}
               </p>
               <div className="flex gap-2 mt-3 flex-wrap">
                 <span className="inline-flex items-center rounded-full bg-zx-positive-soft text-zx-positive text-xs font-semibold px-3 py-1.5">
@@ -102,8 +104,7 @@ export default function Dashboard() {
                   {t('dashboard.netWorth')}
                 </p>
                 <p className={`font-zx-display text-2xl font-bold ${netWorth >= 0 ? 'text-zx-gold' : 'text-zx-accent'}`}>
-                  {netWorth >= 0 ? '' : '-'}{fmtShort(Math.abs(netWorth))}
-                  <span className="text-sm ml-1 font-normal text-zx-text-soft">₫</span>
+                  {netWorth >= 0 ? '' : '-'}{fmt(Math.abs(netWorth), currency)}
                 </p>
                 {canAccess('assets') && (
                   <Link to="/assets" className="text-xs text-zx-text-soft hover:text-zx-accent transition">
@@ -124,7 +125,7 @@ export default function Dashboard() {
           {
             icon: Coffee, iconColor: 'var(--zx-accent)',
             label: t('dashboard.cards.latteFactor'),
-            value: fmtShort(stats.latteFactor),
+            value: fmt(stats.latteFactor, currency),
             valueColor: 'text-zx-accent',
             sub: `${Math.abs(stats.latteFactorPercent).toFixed(0)}% ${t('dashboard.cards.vsLastMonth')}`,
             subPositive: stats.latteFactorPercent <= 0,
@@ -143,7 +144,7 @@ export default function Dashboard() {
             label: t('dashboard.cards.payYourselfFirst'),
             value: `${formatNumber(stats.payYourselfProgress)}%`,
             valueColor: stats.payYourselfProgress >= 100 ? 'text-zx-positive' : 'text-zx-gold',
-            sub: `${fmtShort(stats.payYourselfSaved)} đã trích`,
+            sub: `${fmt(stats.payYourselfSaved, currency)} đã trích`,
             subPositive: stats.payYourselfProgress >= 100,
             to: canAccess('pay_yourself_first') ? '/pay-yourself-first' : null,
           },
@@ -188,8 +189,8 @@ export default function Dashboard() {
             )}
           </div>
           {[
-            t('dashboard.weeklyFocus.item1', { amount: fmtShort(500000) }),
-            t('dashboard.weeklyFocus.item2', { amount: fmtShort(2000000) }),
+            t('dashboard.weeklyFocus.item1', { amount: fmtNum(500000) }),
+            t('dashboard.weeklyFocus.item2', { amount: fmtNum(2000000) }),
           ].map((text, i) => (
             <div key={i}>
               {i > 0 && <HL />}

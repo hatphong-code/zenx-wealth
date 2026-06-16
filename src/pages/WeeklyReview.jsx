@@ -4,7 +4,8 @@ import { useAuth } from '../auth/useAuth';
 import { useI18n } from '../i18n/useI18n';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { db } from '../services/firebaseDb';
-import { formatDate, formatMoney, formatNumber, formatPercent, fmtShort } from '../utils/formatters';
+import { formatDate, formatMoney, formatNumber, formatPercent } from '../utils/formatters';
+import { useNumberFormat } from '../hooks/useNumberFormat';
 import { setWeeklyReviewCache } from '../services/weeklyReviewService';
 import { useWeeklyReviewData } from '../hooks/useWeeklyReviewData';
 import { invalidateReportsCache } from '../services/reportsService';
@@ -46,6 +47,7 @@ export default function WeeklyReview() {
   const { t } = useI18n();
   const { data, setData, loading, refreshing, error, setError } = useWeeklyReviewData(user?.uid);
   const { weekMeta, review } = data;
+  const { fmt } = useNumberFormat();
   const [form, setForm] = useState(data.form);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -176,12 +178,12 @@ export default function WeeklyReview() {
           </p>
           <div className="grid grid-cols-2 divide-x divide-zx-line">
             {[
-              { label: t('weeklyReview.income'), value: fmtShort(review.income), color: 'text-zx-positive' },
-              { label: t('common.expense'), value: fmtShort(review.expense), color: 'text-zx-text' },
+              { label: t('weeklyReview.income'), value: fmt(review.income, 'VND'), color: 'text-zx-positive' },
+              { label: t('common.expense'), value: fmt(review.expense, 'VND'), color: 'text-zx-text' },
             ].map((s, i) => (
               <div key={s.label} className={`py-4 ${i === 0 ? 'pr-4' : 'pl-4'}`}>
                 <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{s.label}</p>
-                <p className={`font-zx-display text-2xl font-bold ${s.color}`}>{s.value} <span className="text-sm font-normal text-zx-text-soft">₫</span></p>
+                <p className={`font-zx-display text-2xl font-bold ${s.color}`}>{s.value}</p>
               </div>
             ))}
           </div>
@@ -190,7 +192,7 @@ export default function WeeklyReview() {
             {[
               {
                 label: t('weeklyReview.latteFactorLabel'),
-                value: fmtShort(review.latteFactorTotal),
+                value: fmt(review.latteFactorTotal, 'VND'),
                 sub: review.topLatteCategory || '',
                 color: 'text-zx-accent',
               },
