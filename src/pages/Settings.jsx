@@ -46,29 +46,29 @@ function sanitizeCategories(items) {
   return [...new Set(items.map((item) => item.trim()).filter(Boolean))];
 }
 
-const themeOptions = [
-  {
-    key: 'young',
-    name: 'Trẻ',
-    style: 'Phong cách Ấm',
-    desc: 'Màu ấm, bo tròn, từ ngữ đơn giản — thân thiện, khích lệ.',
-    swatches: ['#C8643C', '#5E7E5A', '#FBF4EA'],
-  },
-  {
-    key: 'mid',
-    name: 'Trung niên',
-    style: 'Phong cách Tư gia',
-    desc: 'Nền trầm, vàng đồng, thuật ngữ tài chính chuẩn — sang trọng, điềm đạm.',
-    swatches: ['#0C1420', '#C9A24B', '#ECE5D6'],
-  },
-];
-
 const inputCls = 'w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent';
 
 export default function Settings() {
   const { user } = useAuth();
   const { t } = useI18n();
   const { theme, setTheme } = useTheme();
+
+  const themeOptions = [
+    {
+      key: 'young',
+      name: t('settings.themeYoungName'),
+      style: t('settings.themeYoungStyle'),
+      desc: t('settings.themeYoungDesc'),
+      swatches: ['#C8643C', '#5E7E5A', '#FBF4EA'],
+    },
+    {
+      key: 'mid',
+      name: t('settings.themeMidName'),
+      style: t('settings.themeMidStyle'),
+      desc: t('settings.themeMidDesc'),
+      swatches: ['#0C1420', '#C9A24B', '#ECE5D6'],
+    },
+  ];
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -151,10 +151,10 @@ export default function Settings() {
         {/* ── Theme selector ── */}
         <section className="rounded-zx border border-zx-line bg-zx-surface p-5 shadow-zx zx-transition">
           <div className="mb-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zx-text-soft">Cá nhân hoá</p>
-            <h2 className="font-zx-head mt-1 text-lg font-semibold">Phong cách hiển thị</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zx-text-soft">{t('settings.themePersonalize')}</p>
+            <h2 className="font-zx-head mt-1 text-lg font-semibold">{t('settings.themeDisplayStyle')}</h2>
             <p className="mt-1 text-sm text-zx-text-soft">
-              Chọn theo độ tuổi và sở thích. Đổi bất cứ lúc nào — toàn bộ màu sắc, font và từ ngữ sẽ thay đổi.
+              {t('settings.themeHint')}
             </p>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">

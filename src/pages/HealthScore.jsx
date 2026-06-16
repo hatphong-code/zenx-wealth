@@ -117,7 +117,7 @@ export default function HealthScore() {
 
         <Card>
           <CardHeader>
-            <CardTitle>5 trụ cột</CardTitle>
+            <CardTitle>{t('healthScore.fivePillars')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             {scoreData.pillars.map((pillar) => (
@@ -135,7 +135,7 @@ export default function HealthScore() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Tổng điểm: {scoreData.total} / 100</CardTitle>
+          <CardTitle>{t('healthScore.totalScoreLabel', { score: scoreData.total })}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">

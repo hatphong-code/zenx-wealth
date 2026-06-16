@@ -53,7 +53,7 @@ export default function AICoach() {
       const result = await generateLLMInsights({ reports, roadmap, profile });
       setLlmText(result.text || '');
     } catch (err) {
-      setLlmError(err.message || 'Không thể tạo phân tích AI.');
+      setLlmError(err.message || t('coach.llmError'));
     } finally {
       setLlmLoading(false);
     }
@@ -107,7 +107,7 @@ export default function AICoach() {
           <div className="flex items-center justify-between gap-4 mb-4">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-zx-gold" />
-              <h2 className="font-semibold text-zx-text">Phân tích AI cá nhân hóa</h2>
+              <h2 className="font-semibold text-zx-text">{t('coach.personalizedAnalysis')}</h2>
             </div>
             <button
               type="button"
@@ -116,9 +116,9 @@ export default function AICoach() {
               className="inline-flex items-center gap-2 rounded-zx-sm border border-zx-line bg-zx-bg px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text disabled:opacity-50"
             >
               {llmLoading ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tạo...</>
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('coach.creating')}</>
               ) : (
-                <><BrainCircuit className="h-3.5 w-3.5" /> {llmText ? 'Tạo lại' : 'Tạo phân tích'}</>
+                <><BrainCircuit className="h-3.5 w-3.5" /> {llmText ? t('coach.regenerate') : t('coach.createAnalysis')}</>
               )}
             </button>
           </div>
@@ -129,7 +129,7 @@ export default function AICoach() {
             </div>
           ) : (
             <p className="text-sm text-zx-text-soft">
-              Nhấn "Tạo phân tích" để AI đọc dữ liệu tài chính và đưa ra nhận xét cá nhân hóa.
+              {t('coach.analyzeHint')}
             </p>
           )}
         </section>

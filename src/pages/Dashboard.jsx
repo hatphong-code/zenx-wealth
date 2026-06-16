@@ -99,7 +99,7 @@ export default function Dashboard() {
             {hasNetWorth && (
               <div className="text-right">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zx-text-soft mb-1">
-                  Tài sản ròng
+                  {t('dashboard.netWorth')}
                 </p>
                 <p className={`font-zx-display text-2xl font-bold ${netWorth >= 0 ? 'text-zx-gold' : 'text-zx-accent'}`}>
                   {netWorth >= 0 ? '' : '-'}{fmtShort(Math.abs(netWorth))}
@@ -107,7 +107,7 @@ export default function Dashboard() {
                 </p>
                 {canAccess('assets') && (
                   <Link to="/assets" className="text-xs text-zx-text-soft hover:text-zx-accent transition">
-                    Xem tài sản →
+                    {t('dashboard.viewAssets')}
                   </Link>
                 )}
               </div>
@@ -134,7 +134,7 @@ export default function Dashboard() {
             icon: Shield, iconColor: 'var(--zx-positive)',
             label: t('dashboard.cards.emergencyFund'),
             value: `${formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 })}/${stats.targetMonths}`,
-            sub: `${Math.round(emgPct)}% mục tiêu`,
+            sub: t('dashboard.targetPct', { pct: Math.round(emgPct) }),
             bar: true, barPct: emgPct,
             to: canAccess('emergency_fund') ? '/emergency' : null,
           },
@@ -149,10 +149,10 @@ export default function Dashboard() {
           },
           {
             icon: Wallet, iconColor: 'var(--zx-positive)',
-            label: 'Tỷ lệ tiết kiệm',
+            label: t('dashboard.savingsRate'),
             value: `${formatNumber(savingsRate)}%`,
             valueColor: savingsRate >= 30 ? 'text-zx-positive' : savingsRate >= 15 ? 'text-zx-gold' : 'text-zx-text-soft',
-            sub: savingsRate >= 30 ? 'Vượt mục tiêu ✓' : 'Mục tiêu 30%',
+            sub: savingsRate >= 30 ? t('dashboard.exceededTarget') : t('dashboard.target30pct'),
             subPositive: savingsRate >= 30,
           },
         ].map((s, i) => (
@@ -206,7 +206,7 @@ export default function Dashboard() {
         {/* ── Quick access ── */}
         <section className="pt-5 pb-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zx-text-soft mb-3">
-            Truy cập nhanh
+            {t('dashboard.quickAccess')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             {[

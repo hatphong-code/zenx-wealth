@@ -4,6 +4,7 @@ import { addDoc, collection, doc, getDoc, serverTimestamp, Timestamp, updateDoc 
 import { useAuth } from '../auth/useAuth';
 import { db } from '../services/firebaseDb';
 import { formatMoney, fmtShort } from '../utils/formatters';
+import { useI18n } from '../i18n/useI18n';
 import { invalidateDashboardStatsCache } from '../services/dashboardService';
 import { invalidateLatteFactorCache } from '../services/latteFactorService';
 import { invalidatePayYourselfFirstCache } from '../services/payYourselfFirstService';
@@ -41,6 +42,7 @@ const DEFAULT_INCOME_CATEGORIES = [
 
 export default function AddTransaction() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { transactionId } = useParams();
   const isEditing = Boolean(transactionId);
@@ -136,7 +138,7 @@ export default function AddTransaction() {
     finally { setSaving(false); }
   };
 
-  if (loading) return <div className="p-10 text-center text-zx-text-soft">Đang tải...</div>;
+  if (loading) return <div className="p-10 text-center text-zx-text-soft">{t('common.loading')}</div>;
 
   // Categories: custom first, then defaults
   const allCategories = form.type === 'expense'
@@ -148,7 +150,7 @@ export default function AddTransaction() {
   return (
     <div className="max-w-lg mx-auto px-4 py-6 pb-24 md:pb-8">
       <h1 className="font-zx-head text-xl font-bold text-zx-text mb-6">
-        {isEditing ? 'Sửa giao dịch' : 'Thêm giao dịch'}
+        {isEditing ? t('addTransaction.editTitle') : t('addTransaction.addTitle')}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -156,8 +158,8 @@ export default function AddTransaction() {
         {/* Type toggle */}
         <div className="flex gap-2">
           {[
-            { value: 'expense', label: 'Chi tiêu' },
-            { value: 'income', label: 'Thu nhập' },
+            { value: 'expense', label: t('addTransaction.expenseType') },
+            { value: 'income', label: t('addTransaction.incomeType') },
           ].map(opt => (
             <button key={opt.value} type="button" onClick={() => updateField('type', opt.value)}
               className={`flex-1 py-2.5 rounded-zx-sm text-sm font-semibold transition ${
@@ -173,7 +175,7 @@ export default function AddTransaction() {
         {/* Amount */}
         <div>
           <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
-            Số tiền (₫)
+            {t('addTransaction.amountLabel')}
           </label>
           <input
             type="number" min="1" step="any" value={form.amount}
@@ -192,14 +194,14 @@ export default function AddTransaction() {
         {/* Category */}
         <div>
           <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
-            Danh mục
+            {t('addTransaction.categoryLabel')}
           </label>
           <input
             type="text"
             list={`cats-${form.type}`}
             value={form.category}
             onChange={e => updateField('category', e.target.value)}
-            placeholder={form.type === 'expense' ? 'Cà phê, ăn ngoài...' : 'Lương, freelance...'}
+            placeholder={form.type === 'expense' ? t('addTransaction.expensePlaceholder') : t('addTransaction.incomePlaceholder')}
             className={inputCls}
             required
           />
@@ -224,7 +226,7 @@ export default function AddTransaction() {
         {/* Date */}
         <div>
           <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
-            Ngày
+            {t('common.date')}
           </label>
           <input type="date" value={form.date} onChange={e => updateField('date', e.target.value)}
             className={inputCls} required />
@@ -243,7 +245,7 @@ export default function AddTransaction() {
                 <span className="text-base">☕</span>
                 <span className="font-medium">Latte Factor</span>
                 {isLikelyLatte(form.category) && !form.isLatteFactor && (
-                  <span className="text-[10px] bg-zx-accent-soft text-zx-accent px-2 py-0.5 rounded-full">Gợi ý</span>
+                  <span className="text-[10px] bg-zx-accent-soft text-zx-accent px-2 py-0.5 rounded-full">{t('common.suggestion')}</span>
                 )}
               </span>
               <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
@@ -261,7 +263,7 @@ export default function AddTransaction() {
               }`}>
               <span className="flex items-center gap-2">
                 <span className="text-base">🔁</span>
-                <span className="font-medium">Định kỳ</span>
+                <span className="font-medium">{t('addTransaction.recurringLabel')}</span>
               </span>
               <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                 form.isRecurring ? 'bg-zx-accent border-zx-accent' : 'border-zx-line'
@@ -275,10 +277,10 @@ export default function AddTransaction() {
         {/* Note */}
         <div>
           <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
-            Ghi chú (tuỳ chọn)
+            {t('common.noteOptional')}
           </label>
           <textarea value={form.note} onChange={e => updateField('note', e.target.value)}
-            rows={2} placeholder="Thêm ghi chú..." className={inputCls} />
+            rows={2} placeholder={t('addTransaction.addNotePlaceholder')} className={inputCls} />
         </div>
 
         {error && <p className="rounded-zx-sm bg-red-950/40 border border-red-900 p-3 text-sm text-red-300">{error}</p>}
@@ -288,11 +290,11 @@ export default function AddTransaction() {
             className={`flex-1 py-3.5 rounded-zx-sm text-sm font-semibold text-zx-on-accent transition hover:opacity-90 disabled:opacity-50 ${
               form.type === 'expense' ? 'bg-zx-accent' : 'bg-zx-positive'
             }`}>
-            {saving ? 'Đang lưu...' : isEditing ? 'Lưu thay đổi' : 'Lưu giao dịch'}
+            {saving ? t('common.saving') : isEditing ? t('addTransaction.saveChanges') : t('addTransaction.saveTransaction')}
           </button>
           <button type="button" onClick={() => navigate(-1)}
             className="flex-1 sm:flex-none sm:px-6 py-3.5 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">
-            Huỷ
+            {t('common.cancel')}
           </button>
         </div>
       </form>

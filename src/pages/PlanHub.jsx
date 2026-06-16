@@ -41,22 +41,22 @@ function calcETA(stats, pyfData) {
   return { nextMilestone, monthsLeft };
 }
 
-/* Milestone celebration state */
+/* Milestone celebration state — returns key instead of hardcoded label */
 function getMilestone(months) {
-  if (months >= 12) return { stars: 4, label: '12 tháng đạt được!', color: 'text-zx-gold' };
-  if (months >= 6)  return { stars: 3, label: '6 tháng đạt được!', color: 'text-zx-gold' };
-  if (months >= 3)  return { stars: 2, label: '3 tháng đạt được!', color: 'text-zx-positive' };
-  if (months >= 1)  return { stars: 1, label: '1 tháng đạt được!', color: 'text-zx-positive' };
+  if (months >= 12) return { stars: 4, labelKey: 'planHub.milestone12m', color: 'text-zx-gold' };
+  if (months >= 6)  return { stars: 3, labelKey: 'planHub.milestone6m', color: 'text-zx-gold' };
+  if (months >= 3)  return { stars: 2, labelKey: 'planHub.milestone3m', color: 'text-zx-positive' };
+  if (months >= 1)  return { stars: 1, labelKey: 'planHub.milestone1m', color: 'text-zx-positive' };
   return null;
 }
 
-function getPriority(stats, debtSummary, latteMonthly) {
+function getPriority(stats, debtSummary, latteMonthly, t) {
   if (stats.emergencyMonths < 1) {
     return {
       level: 'urgent',
-      label: 'Ưu tiên ngay',
-      message: 'Chưa có quỹ dự phòng. Bắt đầu ngay với mục tiêu 1 tháng chi phí.',
-      action: 'Nạp quỹ dự phòng',
+      label: t('planHub.priorityUrgent'),
+      message: t('planHub.noEmergencyFund'),
+      action: t('planHub.fundEmergency'),
       to: '/emergency',
       tip: latteMonthly > 0 ? `Cắt 50% Latte Factor = +${fmtShort(latteMonthly * 0.5)} ₫/tháng` : null,
     };
@@ -64,19 +64,19 @@ function getPriority(stats, debtSummary, latteMonthly) {
   if (stats.emergencyMonths < 3) {
     return {
       level: 'urgent',
-      label: 'Ưu tiên ngay',
-      message: `Quỹ dự phòng ${formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 })} tháng — cần đạt ít nhất 3 tháng trước.`,
-      action: 'Nạp thêm vào quỹ',
+      label: t('planHub.priorityUrgent'),
+      message: t('planHub.emergencyFundBelow3', { months: formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 }) }),
+      action: t('planHub.fundMoreEmergency'),
       to: '/emergency',
-      tip: latteMonthly > 0 ? `Chuyển Latte Factor sang quỹ = +${fmtShort(latteMonthly)} ₫/tháng` : null,
+      tip: latteMonthly > 0 ? t('trackHub.convertLatteHint', { amount: fmtShort(latteMonthly) }) : null,
     };
   }
   if (stats.emergencyMonths < stats.targetMonths) {
     return {
       level: 'active',
-      label: 'Đang thực hiện',
-      message: `Quỹ ${formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 })}/${stats.targetMonths} tháng. Tiếp tục giữ nhịp.`,
-      action: 'Theo dõi quỹ dự phòng',
+      label: t('planHub.building'),
+      message: t('planHub.continueFunding', { months: formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 }), target: stats.targetMonths }),
+      action: t('planHub.action.emergencyFund'),
       to: '/emergency',
       tip: null,
     };
@@ -85,8 +85,8 @@ function getPriority(stats, debtSummary, latteMonthly) {
     return {
       level: 'active',
       label: 'Bước tiếp theo',
-      message: `Quỹ dự phòng đạt ${stats.targetMonths} tháng ✓ — giờ tập trung tự trích trước.`,
-      action: 'Thiết lập Pay Yourself First',
+      message: t('planHub.focusPYF', { target: stats.targetMonths }),
+      action: t('planHub.action.payYourself'),
       to: '/pay-yourself-first',
       tip: null,
     };
@@ -95,17 +95,17 @@ function getPriority(stats, debtSummary, latteMonthly) {
     return {
       level: 'active',
       label: 'Cần xử lý',
-      message: `Còn ${fmtShort(debtSummary.totalDebt)} ₫ nợ — trả nợ để tăng tốc tích luỹ.`,
-      action: 'Kiểm soát nợ',
+      message: t('planHub.debtRemaining', { amount: fmtShort(debtSummary.totalDebt) }),
+      action: t('planHub.action.debts'),
       to: '/debts',
       tip: null,
     };
   }
   return {
     level: 'done',
-    label: 'Đang xây dựng',
+    label: t('planHub.building'),
     message: 'Nền tảng vững. Tập trung xây dựng tài sản và dòng thu nhập mới.',
-    action: 'Xem lộ trình',
+    action: t('planHub.action.roadmap'),
     to: '/roadmap',
     tip: null,
   };
@@ -156,19 +156,19 @@ export default function PlanHub() {
   const milestone = getMilestone(stats.emergencyMonths);
   const eta = calcETA(stats, pyfData);
   const latteMonthly = stats.latteFactor || 0;
-  const priority = getPriority(stats, debtData.summary, latteMonthly);
+  const priority = getPriority(stats, debtData.summary, latteMonthly, t);
 
   const planItems = [
     {
-      key: 'roadmap', label: 'Lộ trình tài chính',
-      value: currentPhase ? `GĐ ${roadmap.completedPhases + 1}` : null,
-      sub: currentPhase?.title || 'Chưa thiết lập',
+      key: 'roadmap', label: t('planHub.items.roadmap'),
+      value: currentPhase ? t('planHub.phaseShort', { num: roadmap.completedPhases + 1 }) : null,
+      sub: currentPhase?.title || t('planHub.notSetup'),
       to: '/roadmap',
       status: roadmap.phases.length > 0 ? 'active' : 'upcoming',
       featureKey: 'roadmap',
     },
     {
-      key: 'emergency', label: 'Quỹ dự phòng',
+      key: 'emergency', label: t('planHub.items.emergencyFund'),
       value: `${formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 })}/${stats.targetMonths} tháng`,
       sub: stats.emergencyMonths >= stats.targetMonths ? 'Đạt mục tiêu ✓' : `${Math.round(emgPct)}% mục tiêu`,
       to: '/emergency',
@@ -176,15 +176,15 @@ export default function PlanHub() {
       featureKey: 'emergency_fund',
     },
     {
-      key: 'pyf', label: 'Trả mình trước',
+      key: 'pyf', label: t('planHub.items.payYourself'),
       value: `${formatNumber(stats.payYourselfProgress)}%`,
-      sub: stats.payYourselfProgress >= 100 ? 'Hoàn thành tháng này ✓' : `Còn ${fmtShort(Math.max(0, stats.payYourselfTarget - stats.payYourselfSaved))}`,
+      sub: stats.payYourselfProgress >= 100 ? t('planHub.completedThisMonth') : `${t('planHub.remaining')} ${fmtShort(Math.max(0, stats.payYourselfTarget - stats.payYourselfSaved))}`,
       to: '/pay-yourself-first',
       status: stats.payYourselfProgress >= 100 ? 'done' : 'active',
       featureKey: 'pay_yourself_first',
     },
     {
-      key: 'debt', label: 'Kiểm soát nợ',
+      key: 'debt', label: t('planHub.items.debts'),
       value: debtData.summary.totalDebt > 0 ? fmtShort(debtData.summary.totalDebt) : null,
       sub: debtData.summary.totalDebt > 0 ? `${debtData.debts.length} khoản nợ` : 'Không có nợ ✓',
       to: '/debts',
@@ -192,17 +192,17 @@ export default function PlanHub() {
       featureKey: 'debt_control',
     },
     {
-      key: 'income', label: 'Xây dựng thu nhập',
+      key: 'income', label: t('planHub.items.income'),
       value: null,
-      sub: stats.emergencyMonths >= stats.targetMonths ? 'Sẵn sàng bắt đầu' : 'Hoàn thành quỹ trước',
+      sub: stats.emergencyMonths >= stats.targetMonths ? t('planHub.readyToStart') : t('planHub.completeEmergencyFirst'),
       to: '/income',
       status: stats.emergencyMonths >= stats.targetMonths ? 'upcoming' : 'locked',
       featureKey: 'income_builder',
     },
     {
-      key: 'assets', label: 'Tài sản',
+      key: 'assets', label: t('planHub.items.assets'),
       value: null,
-      sub: stats.payYourselfProgress >= 80 ? 'Sẵn sàng theo dõi' : 'Ổn định PYF trước',
+      sub: stats.payYourselfProgress >= 80 ? t('planHub.readyToTrack') : t('planHub.stabilizePYFFirst'),
       to: '/assets',
       status: stats.payYourselfProgress >= 80 ? 'upcoming' : 'locked',
       featureKey: 'assets',
@@ -210,7 +210,7 @@ export default function PlanHub() {
     {
       key: 'trading', label: 'Rủi ro đầu tư',
       value: null,
-      sub: 'Sau khi có quỹ dự phòng đủ',
+      sub: t('planHub.afterEmergencyFund'),
       to: '/trading-risk',
       status: stats.emergencyMonths >= stats.targetMonths ? 'upcoming' : 'locked',
       featureKey: 'trading_risk',
@@ -223,17 +223,17 @@ export default function PlanHub() {
       {/* ── Phase + milestone ── */}
       <section className="pb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
-          Giai đoạn hiện tại
+          {t('planHub.currentPhase')}
         </p>
         {loading ? (
-          <p className="text-sm text-zx-text-soft">Đang tải...</p>
+          <p className="text-sm text-zx-text-soft">{t('common.loading')}</p>
         ) : (
           <>
             {/* Milestone celebration */}
             {milestone && (
               <div className="mb-3 flex items-center gap-2">
                 <span className="text-lg">{'✦'.repeat(milestone.stars)}</span>
-                <span className={`text-sm font-semibold ${milestone.color}`}>{milestone.label}</span>
+                <span className={`text-sm font-semibold ${milestone.color}`}>{t(milestone.labelKey)}</span>
               </div>
             )}
 
@@ -254,12 +254,12 @@ export default function PlanHub() {
               {eta && (
                 <div className="text-right">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-zx-text-soft">
-                    Đến mốc {eta.nextMilestone} tháng
+                    {t('planHub.toMilestone', { months: eta.nextMilestone })}
                   </p>
                   <p className="font-zx-display text-xl font-bold text-zx-accent mt-0.5">
                     ~{eta.monthsLeft} tháng
                   </p>
-                  <p className="text-[11px] text-zx-text-soft">với tốc độ hiện tại</p>
+                  <p className="text-[11px] text-zx-text-soft">{t('planHub.atCurrentRate')}</p>
                 </div>
               )}
             </div>
@@ -271,7 +271,7 @@ export default function PlanHub() {
                     style={{ width: `${roadmap.phases.length ? (roadmap.completedPhases / roadmap.phases.length) * 100 : 0}%` }} />
                 </div>
                 <p className="text-xs text-zx-text-soft mt-1.5">
-                  {roadmap.completedPhases} / {roadmap.phases.length} giai đoạn hoàn thành
+                  {t('planHub.phasesCompleted', { completed: roadmap.completedPhases, total: roadmap.phases.length })}
                 </p>
               </div>
             )}

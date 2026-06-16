@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { doc, serverTimestamp, setDoc, Timestamp } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
+import { useI18n } from '../i18n/useI18n';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { db } from '../services/firebaseDb';
 import { formatDate, formatMoney, formatNumber, formatPercent, fmtShort } from '../utils/formatters';
@@ -12,38 +13,37 @@ import { invalidateAICoachCache } from '../services/aiCoachService';
 function HL() { return <div className="h-px bg-zx-line" />; }
 
 /* Generate contextual AI insight from review data */
-function buildInsight(review, form) {
+function buildInsight(review, form, t) {
   const lines = [];
   const savingsPct = Math.round((review.savingsRate || 0) * 100);
-  const latteVsIncome = review.income > 0 ? (review.latteFactorTotal / review.income) * 100 : 0;
 
   if (review.latteFactorTotal > 0 && review.latteFactorTotal / review.expense > 0.2) {
-    lines.push(`Latte Factor chiếm ${Math.round((review.latteFactorTotal / review.expense) * 100)}% chi tiêu tuần này${review.topLatteCategory ? ` — chủ yếu từ "${review.topLatteCategory}"` : ''}.`);
+    const pct = Math.round((review.latteFactorTotal / review.expense) * 100);
+    const category = review.topLatteCategory
+      ? t('weeklyReview.insights.fromCategory', { cat: review.topLatteCategory })
+      : '';
+    lines.push(t('weeklyReview.insights.latteFactorInsight', { pct, category }));
   }
   if (savingsPct >= 30) {
-    lines.push(`Tỷ lệ tiết kiệm ${savingsPct}% — vượt mục tiêu 30%. Xuất sắc!`);
+    lines.push(t('weeklyReview.insights.exceededTarget', { pct: savingsPct }));
   } else if (savingsPct > 0) {
-    lines.push(`Tỷ lệ tiết kiệm ${savingsPct}% — mục tiêu 30%. Còn ${30 - savingsPct}% để đạt ngưỡng lý tưởng.`);
+    lines.push(t('weeklyReview.insights.savingsProgress', { pct: savingsPct, gap: 30 - savingsPct }));
   }
   if (review.wealthDisciplineScore >= 80) {
-    lines.push('Điểm kỷ luật tài chính cao — hệ thống đang vận hành tốt.');
+    lines.push(t('weeklyReview.insights.highDisciplineScore'));
   } else if (review.wealthDisciplineScore > 0 && review.wealthDisciplineScore < 50) {
-    lines.push('Điểm kỷ luật thấp tuần này. Chọn 1 thói quen nhỏ để cải thiện trước.');
+    lines.push(t('weeklyReview.insights.lowDisciplineScore'));
   }
   if (form.oneLesson) {
-    lines.push(`Bài học bạn ghi: "${form.oneLesson.slice(0, 80)}${form.oneLesson.length > 80 ? '…' : ''}"`);
+    const lesson = `${form.oneLesson.slice(0, 80)}${form.oneLesson.length > 80 ? '…' : ''}`;
+    lines.push(t('weeklyReview.insights.yourLesson', { lesson }));
   }
-  return lines.length > 0 ? lines : ['Tuần này thiếu dữ liệu giao dịch để phân tích sâu. Ghi đủ thu chi sẽ cho insight tốt hơn.'];
+  return lines.length > 0 ? lines : [t('weeklyReview.insights.insufficientData')];
 }
-
-const STEPS = [
-  { id: 'numbers', label: 'Số liệu' },
-  { id: 'reflect', label: 'Nhìn lại' },
-  { id: 'commit',  label: 'Cam kết' },
-];
 
 export default function WeeklyReview() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { data, setData, loading, refreshing, error, setError } = useWeeklyReviewData(user?.uid);
   const { weekMeta, review } = data;
   const [form, setForm] = useState(data.form);
@@ -51,6 +51,12 @@ export default function WeeklyReview() {
   const [done, setDone] = useState(false);
   const [step, setStep] = useState(0); // 0=numbers, 1=reflect, 2=commit
   const [dirty, setDirty] = useState(false);
+
+  const STEPS = [
+    { id: 'numbers', label: t('weeklyReview.steps.numbers') },
+    { id: 'reflect', label: t('weeklyReview.steps.reflect') },
+    { id: 'commit',  label: t('weeklyReview.steps.commit') },
+  ];
 
   useEffect(() => {
     if (!dirty) setForm(data.form);
@@ -102,28 +108,28 @@ export default function WeeklyReview() {
 
   const score = review.wealthDisciplineScore || 0;
   const scoreColor = score >= 80 ? 'text-zx-positive' : score >= 50 ? 'text-zx-gold' : score > 0 ? 'text-zx-accent' : 'text-zx-text-soft';
-  const insight = buildInsight(review, form);
+  const insight = buildInsight(review, form, t);
 
   // Done/success screen
   if (done) {
     return (
       <div className="max-w-lg mx-auto px-4 py-12 pb-24 text-center">
         <div className="text-4xl mb-4">✦</div>
-        <h1 className="font-zx-head text-2xl font-bold text-zx-positive mb-2">Review tuần xong!</h1>
+        <h1 className="font-zx-head text-2xl font-bold text-zx-positive mb-2">{t('weeklyReview.complete')}</h1>
         <p className="text-sm text-zx-text-soft mb-6">
-          Tuần {weekMeta ? formatDate(weekMeta.weekStart) : ''} — đã ghi nhận.
+          {t('weeklyReview.weekRecorded', { week: weekMeta ? formatDate(weekMeta.weekStart) : '' })}
         </p>
         {form.oneActionNextWeek && (
           <div className="rounded-zx-sm bg-zx-accent-soft border border-zx-accent/20 p-4 text-left mb-6">
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-1">
-              Cam kết tuần tới
+              {t('weeklyReview.commitmentLabel')}
             </p>
             <p className="text-sm font-medium text-zx-text">"{form.oneActionNextWeek}"</p>
           </div>
         )}
         <button onClick={() => setDone(false)}
           className="text-sm text-zx-text-soft hover:text-zx-accent transition">
-          Chỉnh sửa →
+          {t('weeklyReview.editButton')}
         </button>
       </div>
     );
@@ -135,10 +141,10 @@ export default function WeeklyReview() {
       {/* Header */}
       <div className="mb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-1">
-          {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : 'Tuần này'}
+          {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : t('reviewHub.thisWeek')}
         </p>
         <h1 className="font-zx-head text-xl font-bold text-zx-text">Weekly Review</h1>
-        {loading && <p className="text-xs text-zx-text-soft mt-1">Đang tải...</p>}
+        {loading && <p className="text-xs text-zx-text-soft mt-1">{t('common.loading')}</p>}
       </div>
 
       {/* Step progress */}
@@ -166,12 +172,12 @@ export default function WeeklyReview() {
       {step === 0 && (
         <div>
           <p className="text-sm text-zx-text-soft mb-4">
-            Dữ liệu từ giao dịch tuần này. Xem lại và ghi nhớ.
+            {t('weeklyReview.numbersHint')}
           </p>
           <div className="grid grid-cols-2 divide-x divide-zx-line">
             {[
-              { label: 'Thu nhập', value: fmtShort(review.income), color: 'text-zx-positive' },
-              { label: 'Chi tiêu', value: fmtShort(review.expense), color: 'text-zx-text' },
+              { label: t('weeklyReview.income'), value: fmtShort(review.income), color: 'text-zx-positive' },
+              { label: t('common.expense'), value: fmtShort(review.expense), color: 'text-zx-text' },
             ].map((s, i) => (
               <div key={s.label} className={`py-4 ${i === 0 ? 'pr-4' : 'pl-4'}`}>
                 <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{s.label}</p>
@@ -183,13 +189,13 @@ export default function WeeklyReview() {
           <div className="grid grid-cols-2 divide-x divide-zx-line">
             {[
               {
-                label: 'Latte Factor',
+                label: t('weeklyReview.latteFactorLabel'),
                 value: fmtShort(review.latteFactorTotal),
                 sub: review.topLatteCategory || '',
                 color: 'text-zx-accent',
               },
               {
-                label: 'Tiết kiệm',
+                label: t('weeklyReview.savings'),
                 value: formatPercent(review.savingsRate),
                 sub: review.savingsRate >= 0.3 ? '≥ 30% ✓' : '< 30%',
                 color: review.savingsRate >= 0.3 ? 'text-zx-positive' : 'text-zx-gold',
@@ -215,7 +221,7 @@ export default function WeeklyReview() {
 
           <button onClick={() => setStep(1)}
             className="mt-4 w-full flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent py-3.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
-            Tiếp theo — Nhìn lại <ArrowRight className="h-4 w-4" />
+            {t('weeklyReview.nextReflect')} <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       )}
@@ -224,13 +230,13 @@ export default function WeeklyReview() {
       {step === 1 && (
         <div className="space-y-5">
           <p className="text-sm text-zx-text-soft">
-            Một bài học từ tuần này về thói quen tài chính của bạn là gì?
+            {t('weeklyReview.reflectQuestion')}
           </p>
 
           {/* AI insight */}
           {insight.length > 0 && (
             <div className="rounded-zx-sm bg-zx-surface-2 border border-zx-line p-4 space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zx-text-soft">✦ Nhận xét từ dữ liệu</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zx-text-soft">{t('weeklyReview.insightFromData')}</p>
               {insight.map((line, i) => (
                 <p key={i} className="text-sm text-zx-text leading-relaxed">{line}</p>
               ))}
@@ -239,23 +245,23 @@ export default function WeeklyReview() {
 
           <div>
             <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
-              Bài học tuần này
+              {t('weeklyReview.lessonLabel')}
             </label>
             <textarea
               value={form.oneLesson}
               onChange={e => updateField('oneLesson', e.target.value)}
               rows={4}
-              placeholder="Tuần này tôi học được rằng..."
+              placeholder={t('weeklyReview.lessonPlaceholder')}
               className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent transition resize-none"
               autoFocus
             />
           </div>
 
           <div className="flex gap-2">
-            <button onClick={() => setStep(0)} className="px-4 py-3 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">← Lại</button>
+            <button onClick={() => setStep(0)} className="px-4 py-3 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">← {t('common.back')}</button>
             <button onClick={() => setStep(2)}
               className="flex-1 flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent py-3 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
-              Tiếp — Cam kết <ArrowRight className="h-4 w-4" />
+              {t('weeklyReview.nextCommit')} <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -265,18 +271,18 @@ export default function WeeklyReview() {
       {step === 2 && (
         <div className="space-y-5">
           <p className="text-sm text-zx-text-soft">
-            Tuần tới, bạn sẽ làm <strong className="text-zx-text">1 việc quan trọng nhất</strong> nào để cải thiện tài chính?
+            {t('weeklyReview.commitQuestion')}
           </p>
 
           <div>
             <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
-              Cam kết tuần tới
+              {t('weeklyReview.commitmentLabel')}
             </label>
             <textarea
               value={form.oneActionNextWeek}
               onChange={e => updateField('oneActionNextWeek', e.target.value)}
               rows={3}
-              placeholder="Tuần tới tôi sẽ..."
+              placeholder={t('weeklyReview.commitmentPlaceholder')}
               className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent transition resize-none"
               autoFocus
             />
@@ -285,7 +291,7 @@ export default function WeeklyReview() {
           {/* Previous lesson as reminder */}
           {form.oneLesson && (
             <div className="rounded-zx-sm bg-zx-surface-2 px-4 py-3">
-              <p className="text-[10px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">Bài học bạn ghi</p>
+              <p className="text-[10px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{t('weeklyReview.yourRecordedLesson')}</p>
               <p className="text-sm text-zx-text italic">"{form.oneLesson}"</p>
             </div>
           )}
@@ -293,10 +299,10 @@ export default function WeeklyReview() {
           {error && <p className="text-sm text-red-400">{error}</p>}
 
           <div className="flex gap-2">
-            <button onClick={() => setStep(1)} className="px-4 py-3 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">← Lại</button>
+            <button onClick={() => setStep(1)} className="px-4 py-3 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">← {t('common.back')}</button>
             <button onClick={handleSave} disabled={saving}
               className="flex-1 flex items-center justify-center gap-2 rounded-zx-sm bg-zx-positive py-3.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 disabled:opacity-50 transition">
-              {saving ? 'Đang lưu...' : '✦ Hoàn thành review'}
+              {saving ? t('common.saving') : t('weeklyReview.completeReview')}
             </button>
           </div>
         </div>

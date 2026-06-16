@@ -132,7 +132,7 @@ export default function Transactions() {
               {['all','income','expense'].map(v => (
                 <button key={v} onClick={() => setFilterType(v)}
                   className={`px-3 py-2 transition ${filterType === v ? 'bg-zx-accent text-zx-on-accent' : 'bg-zx-surface-2 text-zx-text-soft hover:text-zx-text'}`}>
-                  {v === 'all' ? 'Tất cả' : v === 'income' ? 'Thu' : 'Chi'}
+                  {v === 'all' ? t('transactions.all') : v === 'income' ? t('transactions.incomeShort') : t('transactions.expenseShort')}
                 </button>
               ))}
             </div>
@@ -142,13 +142,13 @@ export default function Transactions() {
                 onChange={e => setFilterMonth(e.target.value)}
                 className="rounded-zx-sm border border-zx-line bg-zx-surface-2 px-2 py-2 text-sm text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
               >
-                <option value="">Tất cả tháng</option>
+                <option value="">{t('transactions.allMonths')}</option>
                 {monthOptions.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             )}
             {hasFilter && (
               <button onClick={clearFilters} className="flex items-center gap-1 px-2 py-2 text-xs text-zx-text-soft hover:text-zx-text transition">
-                <X className="h-3.5 w-3.5" /> Xóa lọc
+                <X className="h-3.5 w-3.5" /> {t('transactions.clearFilter')}
               </button>
             )}
           </div>
@@ -166,7 +166,7 @@ export default function Transactions() {
         <section className="overflow-hidden">
           {filtered.length === 0 ? (
             <div className="space-y-4 p-6 text-center">
-              <p className="text-zx-text-soft">{loading ? t('transactions.loading') : hasFilter ? 'Không có kết quả phù hợp.' : t('transactions.empty')}</p>
+              <p className="text-zx-text-soft">{loading ? t('transactions.loading') : hasFilter ? t('transactions.noResults') : t('transactions.empty')}</p>
               {!loading && !hasFilter && (
                 <Link to="/transactions/new" className="text-sm font-medium text-zx-accent hover:text-zx-accent">
                   {t('transactions.addFirst')}
@@ -202,7 +202,7 @@ export default function Transactions() {
                         <span className="rounded-full bg-red-950 px-2.5 py-1 text-red-300">☕ Latte</span>
                       )}
                       {transaction.isRecurring && (
-                        <span className="rounded-full bg-zx-surface-2 px-2.5 py-1 text-zx-text-soft">↻ Monthly</span>
+                        <span className="rounded-full bg-zx-surface-2 px-2.5 py-1 text-zx-text-soft">{t('transactions.monthlyBadge')}</span>
                       )}
                     </div>
 
@@ -264,7 +264,7 @@ export default function Transactions() {
                           <span className="rounded text-[10px] bg-red-950 text-red-300 px-2 py-0.5">Latte</span>
                         )}
                         {transaction.isRecurring && (
-                          <span className="rounded text-[10px] bg-zx-surface-2 text-zx-text-soft px-2 py-0.5">Monthly</span>
+                          <span className="rounded text-[10px] bg-zx-surface-2 text-zx-text-soft px-2 py-0.5">{t('transactions.monthlyBadge')}</span>
                         )}
                         {!transaction.isLatteFactor && !transaction.isRecurring && (
                           <span className="text-zx-text-soft">-</span>

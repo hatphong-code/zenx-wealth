@@ -74,11 +74,11 @@ export default function ReviewHub() {
       {/* ── Tuần này ── */}
       <section className="pb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
-          {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : 'Tuần này'}
+          {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : t('reviewHub.thisWeek')}
         </p>
 
         {loading ? (
-          <p className="text-sm text-zx-text-soft">Đang tải...</p>
+          <p className="text-sm text-zx-text-soft">{t('common.loading')}</p>
         ) : hasReviewed ? (
           <div className="flex items-end justify-between gap-4">
             <div>
@@ -89,7 +89,7 @@ export default function ReviewHub() {
                 <p className="text-base text-zx-text-soft">/ 100</p>
               </div>
               <p className="text-sm text-zx-text-soft">
-                {score >= 80 ? 'Tuần xuất sắc ✦' : score >= 60 ? 'Tuần tốt.' : score >= 40 ? 'Tuần ổn — cải thiện được.' : 'Tuần khó — đừng bỏ cuộc.'}
+                {score >= 80 ? t('reviewHub.scoreExcellent') : score >= 60 ? t('reviewHub.scoreGood') : score >= 40 ? t('reviewHub.scoreOk') : t('reviewHub.scoreHard')}
               </p>
             </div>
             {/* Score history bars */}
@@ -102,8 +102,8 @@ export default function ReviewHub() {
           </div>
         ) : (
           <div>
-            <p className="font-zx-head text-xl font-semibold text-zx-text mb-1">Chưa review tuần này</p>
-            <p className="text-sm text-zx-text-soft">Dành 3 phút nhìn lại tuần vừa qua.</p>
+            <p className="font-zx-head text-xl font-semibold text-zx-text mb-1">{t('reviewHub.notReviewedYet')}</p>
+            <p className="text-sm text-zx-text-soft">{t('reviewHub.reviewHint')}</p>
           </div>
         )}
       </section>
@@ -115,10 +115,10 @@ export default function ReviewHub() {
         <section className="py-6">
           <div className="grid grid-cols-2 gap-0 divide-x divide-zx-line">
             {[
-              { label: 'Thu nhập', value: fmtShort(review.income), color: 'text-zx-positive' },
-              { label: 'Chi tiêu', value: fmtShort(review.expense), color: 'text-zx-text' },
-              { label: 'Tiết kiệm', value: `${savingsRatePct}%`, color: savingsRatePct >= 30 ? 'text-zx-positive' : 'text-zx-gold' },
-              { label: 'Latte Factor', value: fmtShort(review.latteFactorTotal), color: 'text-zx-accent' },
+              { label: t('common.income'), value: fmtShort(review.income), color: 'text-zx-positive' },
+              { label: t('common.expense'), value: fmtShort(review.expense), color: 'text-zx-text' },
+              { label: t('common.savings'), value: `${savingsRatePct}%`, color: savingsRatePct >= 30 ? 'text-zx-positive' : 'text-zx-gold' },
+              { label: t('common.latteFactor'), value: fmtShort(review.latteFactorTotal), color: 'text-zx-accent' },
             ].map((s, i) => (
               <div key={s.label} className={`px-4 py-4 ${i >= 2 ? 'border-t border-zx-line' : ''} ${i % 2 === 0 ? 'pl-0' : ''}`}>
                 <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{s.label}</p>
@@ -131,7 +131,7 @@ export default function ReviewHub() {
             <>
               <HL />
               <div className="py-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2">Bài học</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2">{t('reviewHub.lesson')}</p>
                 <p className="text-sm text-zx-text italic">"{form.oneLesson}"</p>
               </div>
             </>
@@ -141,7 +141,7 @@ export default function ReviewHub() {
             <>
               <HL />
               <div className="py-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2">Cam kết tuần tới</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2">{t('reviewHub.commitment')}</p>
                 <p className="text-sm font-medium text-zx-text">"{form.oneActionNextWeek}"</p>
               </div>
             </>
@@ -150,13 +150,13 @@ export default function ReviewHub() {
       ) : (
         <section className="py-6">
           <p className="text-sm text-zx-text-soft leading-relaxed mb-4">
-            Review giúp bạn nhìn rõ số liệu, ghi 1 bài học và cam kết 1 hành động cho tuần tới. Chỉ 3 phút.
+            {t('reviewHub.hint')}
           </p>
           {canAccess('weekly_review') && (
             <Link to="/weekly-review"
               className="flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent px-4 py-3 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
               <ClipboardCheck className="h-4 w-4" />
-              Bắt đầu review tuần này
+              {t('reviewHub.startReview')}
             </Link>
           )}
         </section>
@@ -168,18 +168,18 @@ export default function ReviewHub() {
       <section className="pt-2">
         {[
           {
-            icon: ClipboardCheck, label: 'Review tuần',
-            sub: hasReviewed ? 'Đã hoàn thành ✓' : 'Chưa làm tuần này',
+            icon: ClipboardCheck, label: t('reviewHub.weeklyReviewLabel'),
+            sub: hasReviewed ? t('reviewHub.completed') : t('reviewHub.notDone'),
             to: '/weekly-review', featureKey: 'weekly_review', active: !hasReviewed,
           },
           {
-            icon: BarChart3, label: 'Báo cáo',
-            sub: 'Xu hướng và phân tích tháng',
+            icon: BarChart3, label: t('reviewHub.reportsLabel'),
+            sub: t('reviewHub.monthlyTrends'),
             to: '/reports', featureKey: 'reports', active: false,
           },
           {
-            icon: Bot, label: 'Trợ lý AI',
-            sub: 'Hỏi trợ lý tài chính',
+            icon: Bot, label: t('reviewHub.aiCoachLabel'),
+            sub: t('reviewHub.askAssistant'),
             to: '/ai-coach', featureKey: 'ai_coach', active: false,
           },
         ].filter(item => canAccess(item.featureKey)).map((item, i) => (

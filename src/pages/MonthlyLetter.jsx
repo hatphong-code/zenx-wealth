@@ -56,10 +56,10 @@ export default function MonthlyLetter() {
     <main className="mx-auto max-w-2xl px-4 md:px-8 py-6 pb-24 md:pb-8">
       <div className="space-y-2 mb-6">
         <h1 className="font-zx-head text-2xl font-bold text-zx-text">
-          {letter?.month ? `Bản tin tháng ${letter.month}` : t('monthlyLetter.title')}
+          {letter?.month ? t('monthlyLetter.monthTitle', { month: letter.month }) : t('monthlyLetter.title')}
         </h1>
         <p className="text-sm text-zx-text-soft">
-          Tóm tắt tài chính cá nhân được tạo tự động cuối tháng.
+          {t('monthlyLetter.subtitle')}
         </p>
       </div>
 
@@ -70,7 +70,7 @@ export default function MonthlyLetter() {
       )}
 
       {loading ? (
-        <div className="p-10 text-center text-zx-text-soft">Đang tải...</div>
+        <div className="p-10 text-center text-zx-text-soft">{t('common.loading')}</div>
       ) : letter ? (
         <>
           <article className="prose prose-invert max-w-none mb-6 rounded-zx border border-zx-line bg-zx-surface p-6">

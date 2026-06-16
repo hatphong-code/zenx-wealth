@@ -147,6 +147,7 @@ function ThemeToggle({ compact = false }) {
 function SidebarStats({ userId }) {
   const { stats } = useDashboardStats(userId);
   const { data: roadmap } = useWealthRoadmapData(userId);
+  const { t } = useI18n();
   const currentPhase = roadmap.phases.find(p => p.id === roadmap.currentPhaseId) || roadmap.phases[0];
   const emgPct = stats.targetMonths > 0 ? (stats.emergencyMonths / stats.targetMonths) * 100 : 0;
   const isPositive = stats.netCashFlow >= 0;
@@ -178,7 +179,7 @@ function SidebarStats({ userId }) {
       {/* Current phase */}
       {currentPhase && (
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft shrink-0">GĐ {roadmap.completedPhases + 1}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft shrink-0">{t('appShell.phaseLabel', { num: roadmap.completedPhases + 1 })}</span>
           <span className="text-[10px] text-zx-text-soft truncate">{currentPhase.title}</span>
         </div>
       )}
@@ -258,7 +259,7 @@ function Sidebar({ visibleGroups, activeGroup, expandedGroups, onGroupClick, onI
       {/* Bottom: theme + sign out */}
       <div className="p-3 space-y-1.5 flex-shrink-0">
         <div className="px-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-1.5 px-2">Giao diện</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-1.5 px-2">{t('appShell.themeLabel')}</p>
           <ThemeToggle />
         </div>
         <button onClick={handleSignOut}
@@ -473,7 +474,7 @@ export default function AppShell({ children }) {
       <Link
         to="/transactions/new"
         className="md:hidden fixed bottom-[76px] right-4 z-40 w-14 h-14 rounded-full bg-zx-accent text-zx-on-accent shadow-zx flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
-        title="Thêm giao dịch nhanh"
+        title={t('appShell.quickAdd')}
       >
         <Plus className="h-6 w-6" strokeWidth={2.5} />
       </Link>

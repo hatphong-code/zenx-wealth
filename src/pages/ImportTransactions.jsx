@@ -50,7 +50,7 @@ function parseCsvLine(line) {
   return result;
 }
 
-function parseRows(csvText) {
+function parseRows(csvText, t) {
   const lines = csvText.trim().split('\n').filter(l => l.trim());
   if (lines.length === 0) return [];
 
@@ -62,7 +62,7 @@ function parseRows(csvText) {
 
   return lines.slice(startIdx).map((line, i) => {
     const cols = parseCsvLine(line);
-    if (cols.length < 2) return { idx: i, valid: false, raw: line, error: 'Không đủ cột' };
+    if (cols.length < 2) return { idx: i, valid: false, raw: line, error: t('importTransactions.errors.insufficientColumns') };
 
     // Detect format:
     // 4-col: date, note, type, amount
@@ -95,10 +95,10 @@ function parseRows(csvText) {
     }
 
     if (!date || isNaN(date.getTime())) {
-      return { idx: i, valid: false, raw: line, error: 'Ngày không hợp lệ' };
+      return { idx: i, valid: false, raw: line, error: t('importTransactions.errors.invalidDate') };
     }
     if (isNaN(amount) || amount <= 0) {
-      return { idx: i, valid: false, raw: line, error: 'Số tiền không hợp lệ' };
+      return { idx: i, valid: false, raw: line, error: t('importTransactions.errors.invalidAmount') };
     }
 
     return {
@@ -129,7 +129,7 @@ export default function ImportTransactions() {
     setError('');
     setImportedCount(null);
     try {
-      const parsed = parseRows(csvText);
+      const parsed = parseRows(csvText, t);
       if (parsed.length === 0) {
         setError(t('importTransactions.errors.noRows', {}, 'Không có dữ liệu hợp lệ.'));
         return;
@@ -233,7 +233,7 @@ export default function ImportTransactions() {
               onClick={() => fileInputRef.current?.click()}
               className="inline-flex items-center gap-2 rounded-zx-sm border border-zx-line px-3 py-2 text-xs text-zx-text-soft hover:text-zx-text transition"
             >
-              <Upload className="h-3.5 w-3.5" /> Tải file CSV
+              <Upload className="h-3.5 w-3.5" /> {t('importTransactions.uploadCSV')}
             </button>
             <input ref={fileInputRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleFileUpload} />
           </div>

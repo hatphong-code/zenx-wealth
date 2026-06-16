@@ -17,6 +17,7 @@ function HL() { return <div className="h-px bg-zx-line" />; }
 
 /* ── Latte → Convert bottom sheet ── */
 function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, onSuccess }) {
+  const { t } = useI18n();
   const { settings, records } = emergencyData;
   const [amount, setAmount] = useState(Math.round(latteTotal * 0.5));
   const [saving, setSaving] = useState(false);
@@ -27,7 +28,7 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
   const newMonths = settings.monthlyEssentialExpense > 0 ? newBalance / settings.monthlyEssentialExpense : 0;
 
   const handleConfirm = async () => {
-    if (!amount || amount <= 0) { setError('Nhập số tiền hợp lệ.'); return; }
+    if (!amount || amount <= 0) { setError(t('trackHub.convert.enterValidAmount')); return; }
     setSaving(true);
     try {
       const today = new Date().toISOString().slice(0, 10);
@@ -35,7 +36,7 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
         amount: Number(amount),
         currency,
         date: Timestamp.fromDate(new Date(`${today}T00:00:00`)),
-        note: 'Chuyển từ Latte Factor',
+        note: t('trackHub.convert.transferNote'),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
@@ -69,10 +70,10 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
           <div>
             <div className="w-8 h-1 rounded-full bg-zx-line mx-auto mb-3" />
             <p className="font-zx-head font-semibold text-base text-zx-text">
-              Chuyển vào quỹ dự phòng
+              {t('trackHub.convert.title')}
             </p>
             <p className="text-xs text-zx-text-soft mt-0.5">
-              Từ Latte Factor tháng này
+              {t('trackHub.convert.subtitle')}
             </p>
           </div>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-zx-surface-2 transition text-zx-text-soft">
@@ -83,7 +84,7 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
         <div className="px-5 pb-5 space-y-4">
           {/* Amount input */}
           <div>
-            <p className="text-xs font-medium text-zx-text-soft mb-2">Số tiền (₫)</p>
+            <p className="text-xs font-medium text-zx-text-soft mb-2">{t('trackHub.convert.amountLabel')}</p>
             <input
               type="number"
               value={amount}
@@ -106,16 +107,16 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
           {/* Preview */}
           <div className="rounded-zx-sm bg-zx-surface-2 p-3 space-y-1.5">
             <div className="flex justify-between text-sm">
-              <span className="text-zx-text-soft">Quỹ hiện tại</span>
+              <span className="text-zx-text-soft">{t('trackHub.convert.currentFund')}</span>
               <span className="font-medium text-zx-text">{fmtShort(currentBalance)} ₫</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-zx-text-soft">Sau khi nạp</span>
+              <span className="text-zx-text-soft">{t('trackHub.convert.afterDeposit')}</span>
               <span className="font-semibold text-zx-positive">{fmtShort(newBalance)} ₫</span>
             </div>
             <HL />
             <div className="flex justify-between text-sm">
-              <span className="text-zx-text-soft">Số tháng được bảo vệ</span>
+              <span className="text-zx-text-soft">{t('trackHub.convert.monthsProtected')}</span>
               <span className="font-zx-display font-bold text-zx-positive">
                 {newMonths.toFixed(1)} tháng
               </span>
@@ -126,7 +127,7 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
 
           <button onClick={handleConfirm} disabled={saving || !amount}
             className="w-full flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent py-3.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition disabled:opacity-50">
-            {saving ? 'Đang lưu...' : `Chuyển ${fmtShort(amount)} ₫ →`}
+            {saving ? t('common.saving') : t('trackHub.convert.confirmButton', { amount: fmtShort(amount) })}
           </button>
         </div>
       </div>
@@ -136,22 +137,23 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
 
 /* ── Success state ── */
 function ConvertSuccess({ amount, newMonths, onClose }) {
+  const { t } = useI18n();
   return (
     <div className="fixed inset-0 z-50 flex items-end md:hidden">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
       <div className="relative w-full bg-zx-surface rounded-t-zx border-t border-zx-line p-6 text-center"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}>
         <div className="text-3xl mb-2">✦</div>
-        <p className="font-zx-head text-lg font-semibold text-zx-positive">Đã chuyển thành công!</p>
+        <p className="font-zx-head text-lg font-semibold text-zx-positive">{t('trackHub.success.title')}</p>
         <p className="text-sm text-zx-text-soft mt-1">
-          <span className="font-semibold text-zx-text">{fmtShort(amount)} ₫</span> từ Latte Factor → Quỹ dự phòng
+          {t('trackHub.success.body', { amount: fmtShort(amount) })}
         </p>
         <p className="text-sm text-zx-text-soft mt-1">
-          Quỹ của bạn giờ có <span className="font-semibold text-zx-positive">{newMonths.toFixed(1)} tháng</span> bảo vệ.
+          {t('trackHub.success.fundNow', { months: newMonths.toFixed(1) })}
         </p>
         <button onClick={onClose}
           className="mt-4 w-full rounded-zx-sm bg-zx-surface-2 py-3 text-sm font-medium text-zx-text-soft hover:text-zx-text transition">
-          Đóng
+          {t('common.close')}
         </button>
       </div>
     </div>
@@ -181,10 +183,10 @@ export default function TrackHub() {
       {/* ── Dòng tiền tháng này ── */}
       <section className="pb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
-          Tháng này
+          {t('trackHub.thisMonth')}
         </p>
         {loading ? (
-          <p className="text-zx-text-soft text-sm">Đang tải...</p>
+          <p className="text-zx-text-soft text-sm">{t('common.loading')}</p>
         ) : (
           <>
             <div className="flex items-end gap-3">
@@ -199,7 +201,7 @@ export default function TrackHub() {
             </div>
             <div className="flex gap-2 mt-3 flex-wrap">
               <span className="rounded-full bg-zx-positive-soft text-zx-positive text-xs font-medium px-3 py-1.5">
-                ↑ Dòng tiền ròng
+                {t('trackHub.netCashFlowBadge')}
               </span>
             </div>
           </>
@@ -216,12 +218,12 @@ export default function TrackHub() {
               style={{ color: 'var(--zx-accent)' }}>
               <Coffee className="h-3.5 w-3.5" />
             </div>
-            <p className="text-sm font-semibold text-zx-text">Latte Factor</p>
+            <p className="text-sm font-semibold text-zx-text">{t('trackHub.latteLabel')}</p>
           </div>
           <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${
             latteDown ? 'bg-zx-positive-soft text-zx-positive' : 'bg-zx-accent-soft text-zx-accent'
           }`}>
-            {latteDown ? '↓' : '↑'} {Math.abs(stats.latteFactorPercent).toFixed(0)}% vs tháng trước
+            {latteDown ? '↓' : '↑'} {Math.abs(stats.latteFactorPercent).toFixed(0)}{t('trackHub.vsLastMonth')}
           </span>
         </div>
 
@@ -229,7 +231,7 @@ export default function TrackHub() {
           <p className="font-zx-display text-3xl font-bold text-zx-accent">
             {fmtShort(stats.latteFactor)}
           </p>
-          <p className="text-sm text-zx-text-soft">₫ đang rò rỉ</p>
+          <p className="text-sm text-zx-text-soft">{t('trackHub.leaking')}</p>
         </div>
 
         {stats.latteFactor > 0 && (
@@ -239,7 +241,7 @@ export default function TrackHub() {
                 style={{ width: `${Math.max(5, 100 - Math.min(100, (stats.latteFactor / 10000000) * 100))}%` }} />
             </div>
             <p className="text-xs text-zx-text-soft mt-1.5">
-              {latteDown ? 'Đang giảm — tiếp tục giữ nhịp.' : 'Tháng này tăng — cần kiểm soát.'}
+              {latteDown ? t('trackHub.decreasing') : t('trackHub.increasing')}
             </p>
           </div>
         )}
@@ -249,15 +251,21 @@ export default function TrackHub() {
           <button
             onClick={() => setShowConvert(true)}
             className="mt-4 w-full flex items-center justify-between rounded-zx-sm bg-zx-accent-soft border border-zx-accent/30 px-4 py-3 text-sm font-medium text-zx-accent hover:opacity-80 transition">
-            <span>Chuyển vào quỹ dự phòng</span>
+            <span>{t('trackHub.transferToEmergency')}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
+        )}
+
+        {stats.latteFactor > 0 && canAccess('emergency_fund') && (
+          <p className="text-xs text-zx-gold mt-2">
+            {t('trackHub.convertLatteHint', { amount: fmtShort(stats.latteFactor) })}
+          </p>
         )}
 
         {canAccess('latte_factor') && (
           <Link to="/latte"
             className="mt-2 flex items-center justify-between py-2 text-sm text-zx-text-soft hover:text-zx-accent transition">
-            <span>Xem chi tiết theo nhóm</span>
+            <span>{t('trackHub.seeDetails')}</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
         )}
@@ -270,7 +278,7 @@ export default function TrackHub() {
         <>
           <section className="py-6">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
-              Giao dịch định kỳ
+              {t('trackHub.recurringTitle')}
             </p>
             {(() => {
               const recurringTxs = txData.transactions.filter(tx => tx.isRecurring && tx.type === 'expense');
@@ -288,14 +296,14 @@ export default function TrackHub() {
               );
 
               return recurringTxs.length === 0 ? (
-                <p className="text-sm text-zx-text-soft">Chưa có giao dịch định kỳ được phát hiện.</p>
+                <p className="text-sm text-zx-text-soft">{t('trackHub.noRecurring')}</p>
               ) : (
                 <>
                   <div className="flex items-baseline gap-2 mb-4">
                     <p className="font-zx-display text-2xl font-bold text-zx-gold">
                       {fmtShort(monthlyRecurringTotal)}
                     </p>
-                    <p className="text-sm text-zx-text-soft">₫/tháng (chi phí cố định)</p>
+                    <p className="text-sm text-zx-text-soft">{t('trackHub.monthlyFixed')}</p>
                   </div>
                   <div className="space-y-2">
                     {Object.entries(recurringByCategory).map(([cat, amounts]) => (
@@ -318,7 +326,7 @@ export default function TrackHub() {
       <section className="py-6">
         <div className="flex items-center justify-between mb-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">
-            Gần đây
+            {t('trackHub.recentTitle')}
           </p>
           {canAccess('transactions') && (
             <Link to="/transactions" className="text-xs text-zx-accent hover:opacity-80 transition">
@@ -329,11 +337,11 @@ export default function TrackHub() {
 
         {recent.length === 0 ? (
           <div className="text-center py-4">
-            <p className="text-sm text-zx-text-soft mb-3">Chưa có giao dịch nào.</p>
+            <p className="text-sm text-zx-text-soft mb-3">{t('trackHub.noTransactions')}</p>
             {canAccess('add_transaction') && (
               <Link to="/transactions/new"
                 className="inline-flex items-center gap-2 rounded-zx-sm bg-zx-accent px-4 py-2 text-sm font-medium text-zx-on-accent hover:opacity-90 transition">
-                <Plus className="h-4 w-4" /> Thêm giao dịch đầu tiên
+                <Plus className="h-4 w-4" /> {t('trackHub.addFirst')}
               </Link>
             )}
           </div>

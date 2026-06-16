@@ -44,7 +44,7 @@ export default function GoalTracking() {
   }, [user]);
 
   if (loading) {
-    return <main className="p-10 text-center text-zx-text-soft">Đang tải...</main>;
+    return <main className="p-10 text-center text-zx-text-soft">{t('common.loading')}</main>;
   }
 
   if (error) {
@@ -62,13 +62,13 @@ export default function GoalTracking() {
       <main className="mx-auto max-w-2xl px-4 md:px-8 py-6 pb-24 md:pb-8">
         <div className="space-y-2 mb-6">
           <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('goalTracking.title')}</h1>
-          <p className="text-sm text-zx-text-soft">Đặt mục tiêu tài chính trong Settings để theo dõi tiến độ.</p>
+          <p className="text-sm text-zx-text-soft">{t('goalTracking.subtitle')}</p>
         </div>
         <div className="rounded-zx border border-zx-line bg-zx-surface p-6 text-center">
           <TrendingUp className="h-12 w-12 mx-auto text-zx-accent mb-3" />
-          <p className="text-zx-text-soft">Chưa có mục tiêu được đặt.</p>
+          <p className="text-zx-text-soft">{t('goalTracking.noGoal')}</p>
           <a href="/settings" className="inline-block mt-3 text-sm text-zx-accent hover:opacity-80 transition">
-            Đi tới Settings →
+            {t('goalTracking.goToSettings')}
           </a>
         </div>
       </main>
@@ -91,13 +91,13 @@ export default function GoalTracking() {
       <section className="rounded-zx border border-zx-line bg-zx-surface p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs uppercase tracking-wide text-zx-text-soft mb-1">Tiến độ</p>
+            <p className="text-xs uppercase tracking-wide text-zx-text-soft mb-1">{t('common.progress')}</p>
             <p className="font-zx-display text-2xl font-bold text-zx-text">
               {progressPercent.toFixed(0)}%
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs uppercase tracking-wide text-zx-text-soft mb-1">Còn lại</p>
+            <p className="text-xs uppercase tracking-wide text-zx-text-soft mb-1">{t('goalTracking.remaining')}</p>
             <p className="font-zx-display text-2xl font-bold text-zx-accent">
               {fmtShort(Math.max(0, goalAmount - currentNetWorth))}
             </p>
@@ -108,11 +108,11 @@ export default function GoalTracking() {
 
         <div className="grid grid-cols-3 gap-3 mt-6 text-center">
           <div>
-            <p className="text-xs text-zx-text-soft">Hiện tại</p>
+            <p className="text-xs text-zx-text-soft">{t('goalTracking.current')}</p>
             <p className="font-mono text-sm font-semibold text-zx-text">{fmtShort(currentNetWorth)}</p>
           </div>
           <div>
-            <p className="text-xs text-zx-text-soft">Mục tiêu</p>
+            <p className="text-xs text-zx-text-soft">{t('goalTracking.goal')}</p>
             <p className="font-mono text-sm font-semibold text-zx-text">{fmtShort(goalAmount)}</p>
           </div>
           <div>
@@ -131,29 +131,29 @@ export default function GoalTracking() {
             <AlertCircle className="h-5 w-5 text-zx-accent" />
           )}
           <h2 className="font-zx-head font-semibold text-zx-text">
-            {isOnTrack ? 'Đang theo đúng kế hoạch' : 'Cần tăng tốc'}
+            {isOnTrack ? t('goalTracking.onTrack') : t('goalTracking.needsAcceleration')}
           </h2>
         </div>
 
         <div className="space-y-4">
           <div>
-            <p className="text-sm text-zx-text-soft mb-2">Tiền cần tiết kiệm mỗi tuần</p>
+            <p className="text-sm text-zx-text-soft mb-2">{t('goalTracking.weeklyNeeded')}</p>
             <p className="font-zx-display text-2xl font-bold text-zx-text">
-              {fmtShort(weeklyTargetSavings)}/tuần
+              {fmtShort(weeklyTargetSavings)}{t('goalTracking.perWeek')}
             </p>
           </div>
 
           <div className="h-px bg-zx-line" />
 
           <div>
-            <p className="text-sm text-zx-text-soft mb-2">Tiền bạn hiện tiết kiệm mỗi tuần</p>
+            <p className="text-sm text-zx-text-soft mb-2">{t('goalTracking.weeklySaving')}</p>
             <div className="flex items-baseline gap-2">
               <p className="font-zx-display text-2xl font-bold" style={{
                 color: estimatedWeeklySavings >= weeklyTargetSavings * 0.9 ? 'var(--zx-positive)' : 'var(--zx-accent)'
               }}>
                 {fmtShort(estimatedWeeklySavings)}
               </p>
-              <p className="text-sm text-zx-text-soft">/tuần</p>
+              <p className="text-sm text-zx-text-soft">{t('goalTracking.perWeek')}</p>
             </div>
           </div>
 
@@ -161,12 +161,12 @@ export default function GoalTracking() {
 
           <div className="text-sm text-zx-text-soft">
             {isOnTrack ? (
-              <p>✓ Bạn đang tiết kiệm đủ để đạt mục tiêu. Giữ nhịp!</p>
+              <p>{t('goalTracking.onTrackHint')}</p>
             ) : (
               <p>
-                Cần tăng tiết kiệm thêm{' '}
+                {t('goalTracking.needMore')}{' '}
                 <span className="font-semibold text-zx-accent">
-                  {fmtShort(weeklyTargetSavings - estimatedWeeklySavings)}/tuần
+                  {fmtShort(weeklyTargetSavings - estimatedWeeklySavings)}{t('goalTracking.perWeek')}
                 </span>
                 {' '}để theo đúng kế hoạch.
               </p>
@@ -176,7 +176,7 @@ export default function GoalTracking() {
       </section>
 
       <div className="mt-6 text-center text-xs text-zx-text-soft">
-        <p>Cập nhật lần cuối: {new Date(data.lastUpdated).toLocaleDateString('vi-VN')}</p>
+        <p>{t('goalTracking.lastUpdated', { date: new Date(data.lastUpdated).toLocaleDateString('vi-VN') })}</p>
       </div>
     </main>
   );
