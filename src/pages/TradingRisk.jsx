@@ -171,7 +171,7 @@ export default function TradingRisk() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Today P&amp;L</CardTitle>
+              <CardTitle>{t('trading.cards.todayPnl')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className={`text-2xl font-bold ${summary.todayPnl >= 0 ? 'text-zx-positive' : 'text-red-300'}`}>
@@ -182,7 +182,7 @@ export default function TradingRisk() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>This week</CardTitle>
+              <CardTitle>{t('trading.cards.thisWeek')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className={`text-2xl font-bold ${summary.weekPnl >= 0 ? 'text-zx-positive' : 'text-red-300'}`}>

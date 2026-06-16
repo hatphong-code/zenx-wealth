@@ -30,17 +30,17 @@ export default {
       dashboard: 'Tổng quan',
       transactions: 'Giao dịch',
       add_transaction: 'Thêm giao dịch',
-      latte_factor: 'Chi tiêu rò rỉ',
+      latte_factor: 'Latte Factor',
       roadmap: 'Lộ trình tài chính',
       assets: 'Tài sản',
-      pay_yourself_first: 'Trả mình trước',
+      pay_yourself_first: 'Trả mình trước (PYF)',
       emergency_fund: 'Quỹ dự phòng',
       debt_control: 'Kiểm soát nợ',
       income_builder: 'Tăng thu nhập',
       trading_risk: 'Rủi ro giao dịch',
       weekly_review: 'Review tuần',
       reports: 'Báo cáo',
-      ai_coach: 'Trợ lý tài chính',
+      ai_coach: 'Trợ lý AI',
       profile: 'Hồ sơ',
       settings: 'Thiết lập',
       admin_access: 'Quản trị truy cập',
@@ -169,8 +169,8 @@ export default {
       description: 'Nhập giao dịch mới thật nhanh.',
     },
     latte_factor: {
-      label: 'Chi tiêu rò rỉ',
-      description: 'Theo dõi các khoản chi nhỏ nhưng lặp lại.',
+      label: 'Chi tiêu rò rỉ / Latte Factor',
+      description: 'Theo dõi các khoản chi nhỏ nhưng lặp lại (Latte Factor).',
     },
     emergency_fund: {
       label: 'Quỹ dự phòng',
@@ -197,8 +197,8 @@ export default {
       description: 'Thông tin cá nhân và cấu hình tài chính cơ bản.',
     },
     pay_yourself_first: {
-      label: 'Trả mình trước',
-      description: 'Phân bổ tiền dư theo bucket tích lũy.',
+      label: 'Trả mình trước / Pay Yourself First',
+      description: 'Phân bổ tiền dư theo bucket tích lũy (Pay Yourself First).',
     },
     assets: {
       label: 'Tài sản',
@@ -206,7 +206,7 @@ export default {
     },
     trading_risk: {
       label: 'Rủi ro giao dịch',
-      description: 'Giới hạn lỗ và nhật ký P&L cho tài khoản giao dịch.',
+      description: 'Giới hạn lỗ và nhật ký lãi/lỗ (P&L) cho tài khoản giao dịch.',
     },
     reports: {
       label: 'Báo cáo',
@@ -637,6 +637,8 @@ export default {
     cards: {
       capital: 'Vốn giao dịch',
       capitalHint: 'Chỉ vốn rủi ro thuộc đây.',
+      todayPnl: 'Lãi/Lỗ hôm nay (P&L)',
+      thisWeek: 'Tuần này',
       dailyLimitHint: 'Giới hạn lỗ ngày {pct}',
       weeklyLimitHint: 'Giới hạn lỗ tuần {pct}',
       withdrawal: 'Rút gợi ý',
@@ -669,8 +671,8 @@ export default {
     savingEntry: 'Đang lưu...',
     entrySaved: 'Đã lưu giao dịch.',
     recentEntries: 'Giao dịch gần đây',
-    noEntries: 'Chưa có giao dịch. Thêm kết quả P&L để bắt đầu theo dõi rủi ro.',
-    errors: { invalidPnl: 'P&L phải là số hợp lệ.' },
+    noEntries: 'Chưa có giao dịch. Thêm kết quả lãi/lỗ (P&L) để bắt đầu theo dõi rủi ro.',
+    errors: { invalidPnl: 'Lãi/lỗ (P&L) phải là số hợp lệ.' },
   },
   roadmap: {
     title: 'Lộ trình tài chính',
