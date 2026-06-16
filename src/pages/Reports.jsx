@@ -28,13 +28,11 @@ function ChartShell({ title, subtitle, children }) {
   );
 }
 
-const TRADING_STATUS_VI = { Stop: 'Dừng giao dịch', Caution: 'Cẩn thận', Healthy: 'An toàn', Safe: 'An toàn' };
-function tradingStatusLabel(s) { return TRADING_STATUS_VI[s] || s; }
-
 export default function Reports() {
   const { user } = useAuth();
   const { t } = useI18n();
   const { data, loading, refreshing, error } = useReportsData(user?.uid);
+  const tradingStatusLabel = (s) => t(`trading.status.${s}`, {}, s);
   const currency = data.currency || 'VND';
 
   return (
@@ -159,7 +157,7 @@ export default function Reports() {
                   <YAxis hide />
                   <Tooltip
                     contentStyle={{ background: '#111827', border: '1px solid #1F2937', borderRadius: 12 }}
-                    formatter={(value) => `${formatNumber(value, { maximumFractionDigits: 1 })} months`}
+                    formatter={(value) => `${formatNumber(value, { maximumFractionDigits: 1 })} ${t('reports.risk.months')}`}
                   />
                   <Line type="monotone" dataKey="monthsCovered" stroke="#10B981" strokeWidth={3} dot={{ r: 3 }} />
                 </LineChart>
@@ -217,7 +215,26 @@ export default function Reports() {
         </section>
 
         <section className="grid gap-4 xl:grid-cols-3">
-          {data.insights.map((item) => (
+          {[
+            {
+              title: t('reports.insights.cashFlowTitle'),
+              body: data.monthly.netCashFlow >= 0
+                ? t('reports.insights.cashFlowPositive')
+                : t('reports.insights.cashFlowNegative'),
+            },
+            {
+              title: t('reports.insights.leakageTitle'),
+              body: data.monthly.latteFactor > 0
+                ? t('reports.insights.leakageWithCategory', { category: data.insights?.[1]?.topCategory || 'chi nhỏ lặp lại' })
+                : t('reports.insights.leakageQuiet'),
+            },
+            {
+              title: t('reports.insights.balanceTitle'),
+              body: data.balanceSheet.netWorth >= 0
+                ? t('reports.insights.balancePositive')
+                : t('reports.insights.balanceNegative'),
+            },
+          ].map((item) => (
             <Card key={item.title}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-zx-accent" /> {item.title}</CardTitle>
