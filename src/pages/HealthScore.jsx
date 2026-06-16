@@ -53,16 +53,16 @@ function ScoreRing({ total, grade }) {
   );
 }
 
-function PillarRow({ pillar, hints, pillarLabel, currency }) {
+function PillarRow({ pillar, hints, pillarLabel, currency, t }) {
   const pct = pillar.max > 0 ? (pillar.score / pillar.max) * 100 : 0;
   const barColor = PILLAR_BAR_COLOR(pillar.score, pillar.max);
 
   let valueLabel = '';
   if (pillar.key === 'cashFlow') valueLabel = formatMoney(pillar.value, currency);
   else if (pillar.key === 'savings') valueLabel = `${Math.round(pillar.value * 100)}%`;
-  else if (pillar.key === 'emergency') valueLabel = `${pillar.value.toFixed(1)} tháng`;
+  else if (pillar.key === 'emergency') valueLabel = `${pillar.value.toFixed(1)} ${t('common.months')}`;
   else if (pillar.key === 'debt') valueLabel = `${Math.round(pillar.value * 100)}%`;
-  else if (pillar.key === 'consistency') valueLabel = `${pillar.value}/6 tháng`;
+  else if (pillar.key === 'consistency') valueLabel = `${pillar.value}/6 ${t('common.months')}`;
 
   return (
     <div className="space-y-2">
@@ -127,6 +127,7 @@ export default function HealthScore() {
                 pillarLabel={t(`healthScore.pillars.${pillar.key}`, {}, pillar.key)}
                 hints={t(`healthScore.pillarHints.${pillar.key}`, {}, '')}
                 currency={data.currency}
+                t={t}
               />
             ))}
           </CardContent>

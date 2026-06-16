@@ -26,9 +26,6 @@ function statusTone(status) {
   return 'text-zx-text-soft bg-zx-bg border-zx-line';
 }
 
-const TRADING_STATUS_VI = { Stop: 'Dừng giao dịch', Caution: 'Cẩn thận', Healthy: 'An toàn', Safe: 'An toàn' };
-function statusLabel(status) { return TRADING_STATUS_VI[status] || status; }
-
 export default function TradingRisk() {
   const { user } = useAuth();
   const { data, setData, loading, refreshing, error, setError } = useTradingRiskData(user?.uid);
@@ -44,6 +41,7 @@ export default function TradingRisk() {
 
   const { currency, summary } = data;
   const { t } = useI18n();
+  const statusLabel = (s) => t(`trading.status.${s}`, {}, s);
 
   useEffect(() => {
     setConfigForm(data.config || defaultTradingRiskConfig);

@@ -1,6 +1,20 @@
 import { createContext, useCallback, useContext, useState } from 'react';
 import { formatMoney, fmtShort } from '../utils/formatters';
 
+function currencySymbol(currency) {
+  if (currency === 'USD') return '$';
+  return '₫';
+}
+
+function compactFmt(value, currency) {
+  if (currency === 'USD') {
+    const n = Number(value);
+    if (Math.abs(n) >= 1000) return `$${(n / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k`;
+    return `$${n.toLocaleString('en-US')}`;
+  }
+  return `${fmtShort(value)} ₫`;
+}
+
 const UNIT_KEY = 'zx-number-unit';
 const SUPPORTED = ['full', 'compact'];
 
@@ -29,16 +43,23 @@ export function NumberFormatProvider({ children }) {
     setUnitState(next);
   }, []);
 
-  // fmt: number WITH ₫ symbol — for standalone display in JSX
+  // fmt: number WITH currency symbol — for standalone display in JSX
   const fmt = useCallback((value, currency = 'VND') => {
-    if (unit === 'compact') return `${fmtShort(value)} ₫`;
+    if (unit === 'compact') return compactFmt(value, currency);
     return formatMoney(value, currency);
   }, [unit]);
 
-  // fmtNum: number WITHOUT ₫ — for use inside t() template params where string adds ₫ separately
-  const fmtNum = useCallback((value) => {
-    if (unit === 'compact') return fmtShort(value);
-    return Number(value).toLocaleString('vi-VN');
+  // fmtNum: number WITHOUT symbol — for use inside t() template params
+  const fmtNum = useCallback((value, currency = 'VND') => {
+    if (unit === 'compact') {
+      if (currency === 'USD') {
+        const n = Number(value);
+        if (Math.abs(n) >= 1000) return `${(n / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k`;
+        return n.toLocaleString('en-US');
+      }
+      return fmtShort(value);
+    }
+    return Number(value).toLocaleString(currency === 'USD' ? 'en-US' : 'vi-VN');
   }, [unit]);
 
   return (

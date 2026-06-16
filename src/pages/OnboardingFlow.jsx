@@ -100,8 +100,8 @@ export default function OnboardingFlow() {
               <p className="text-sm font-medium text-zx-text-soft text-center">{t('onboarding.chooseLanguage')}</p>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { v: 'vi', flag: '🇻🇳', l: t('onboarding.langVI') },
-                  { v: 'en', flag: '🇬🇧', l: t('onboarding.langEN') },
+                  { v: 'vi', badge: 'VI', l: t('onboarding.langVI') },
+                  { v: 'en', badge: 'EN', l: t('onboarding.langEN') },
                 ].map(o => (
                   <button key={o.v} onClick={() => setLocale(o.v)}
                     className={`flex flex-col items-center gap-2 rounded-zx border py-5 transition ${
@@ -109,7 +109,7 @@ export default function OnboardingFlow() {
                         ? 'border-zx-accent bg-zx-accent-soft ring-1 ring-zx-accent'
                         : 'border-zx-line bg-zx-surface hover:border-zx-accent'
                     }`}>
-                    <span className="text-3xl">{o.flag}</span>
+                    <span className="font-zx-display text-2xl font-bold text-zx-text tracking-wider">{o.badge}</span>
                     <span className="font-medium text-zx-text text-sm">{o.l}</span>
                     {locale === o.v && <span className="text-xs text-zx-accent font-semibold">✓</span>}
                   </button>

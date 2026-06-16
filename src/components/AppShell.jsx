@@ -12,6 +12,9 @@ import { useDashboardStats } from '../hooks/useDashboardStats';
 import { useWealthRoadmapData } from '../hooks/useWealthRoadmapData';
 import { auth } from '../services/firebaseAuth';
 import { useNumberFormat } from '../hooks/useNumberFormat';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore/lite';
+import { db } from '../services/firebaseDb';
+import { getCachedUserProfile, setUserProfileCache } from '../services/userService';
 
 /* ─────────────── nav data ─────────────── */
 
@@ -144,10 +147,24 @@ function ThemeToggle({ compact = false }) {
 
 function LocaleToggle({ compact = false }) {
   const { locale, setLocale } = useI18n();
+  const { user } = useAuth();
   const next = locale === 'vi' ? 'en' : 'vi';
+
+  const changeLocale = async (nextLocale) => {
+    setLocale(nextLocale);
+    // Sync to Firestore so services generate text in correct language
+    if (!user) return;
+    try {
+      const cached = getCachedUserProfile(user.uid);
+      const next = { ...(cached || {}), settings: { ...(cached?.settings || {}), locale: nextLocale }, updatedAt: serverTimestamp() };
+      setUserProfileCache(user.uid, next);
+      await setDoc(doc(db, 'users', user.uid), { settings: { locale: nextLocale }, updatedAt: serverTimestamp() }, { merge: true });
+    } catch {}
+  };
+
   if (compact) {
     return (
-      <button onClick={() => setLocale(next)}
+      <button onClick={() => changeLocale(next)}
         title={locale === 'vi' ? 'Switch to English' : 'Chuyển sang tiếng Việt'}
         className="flex items-center gap-1 px-2.5 py-1.5 rounded-zx-sm border border-zx-line text-xs font-semibold text-zx-text-soft hover:text-zx-text hover:border-zx-accent transition uppercase tracking-wide">
         {locale === 'vi' ? 'VI' : 'EN'}
@@ -157,7 +174,7 @@ function LocaleToggle({ compact = false }) {
   return (
     <div className="p-1 rounded-zx-sm bg-zx-surface-2 flex gap-1">
       {[{ v: 'vi', l: 'Tiếng Việt' }, { v: 'en', l: 'English' }].map(o => (
-        <button key={o.v} onClick={() => setLocale(o.v)}
+        <button key={o.v} onClick={() => changeLocale(o.v)}
           className={`flex-1 text-xs font-medium py-1.5 rounded transition ${
             locale === o.v ? 'bg-zx-accent text-zx-on-accent' : 'text-zx-text-soft hover:text-zx-text'
           }`}>{o.l}</button>

@@ -120,7 +120,7 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
             <div className="flex justify-between text-sm">
               <span className="text-zx-text-soft">{t('trackHub.convert.monthsProtected')}</span>
               <span className="font-zx-display font-bold text-zx-positive">
-                {newMonths.toFixed(1)} tháng
+                {newMonths.toFixed(1)} {t('common.months')}
               </span>
             </div>
           </div>

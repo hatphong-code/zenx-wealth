@@ -171,7 +171,7 @@ export default function PlanHub() {
     },
     {
       key: 'emergency', label: t('planHub.items.emergencyFund'),
-      value: `${formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 })}/${stats.targetMonths} tháng`,
+      value: `${formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 })}/${stats.targetMonths} ${t('common.months')}`,
       sub: stats.emergencyMonths >= stats.targetMonths ? 'Đạt mục tiêu ✓' : `${Math.round(emgPct)}% mục tiêu`,
       to: '/emergency',
       status: stats.emergencyMonths >= stats.targetMonths ? 'done' : 'active',
@@ -259,7 +259,7 @@ export default function PlanHub() {
                     {t('planHub.toMilestone', { months: eta.nextMilestone })}
                   </p>
                   <p className="font-zx-display text-xl font-bold text-zx-accent mt-0.5">
-                    ~{eta.monthsLeft} tháng
+                    ~{eta.monthsLeft} {t('common.months')}
                   </p>
                   <p className="text-[11px] text-zx-text-soft">{t('planHub.atCurrentRate')}</p>
                 </div>
