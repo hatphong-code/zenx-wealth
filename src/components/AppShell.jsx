@@ -198,7 +198,7 @@ function SidebarStats({ userId }) {
     <div className="border-t border-zx-line px-4 py-3 space-y-3 flex-shrink-0">
       {/* Net cash flow pulse */}
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">Tháng này</span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('dashboard.cards.thisMonth')}</span>
         <span className={`font-zx-display text-sm font-bold ${isPositive ? 'text-zx-positive' : 'text-zx-accent'}`}>
           {isPositive ? '+' : ''}{fmt(stats.netCashFlow)}
         </span>
@@ -207,7 +207,7 @@ function SidebarStats({ userId }) {
       {/* Emergency fund mini */}
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">Quỹ dự phòng</span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('dashboard.cards.emergencyFund')}</span>
           <span className="text-[10px] font-medium text-zx-text-soft">
             {stats.emergencyMonths.toFixed(1)}/{stats.targetMonths}
           </span>
@@ -222,7 +222,7 @@ function SidebarStats({ userId }) {
       {currentPhase && (
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft shrink-0">{t('appShell.phaseLabel', { num: roadmap.completedPhases + 1 })}</span>
-          <span className="text-[10px] text-zx-text-soft truncate">{currentPhase.title}</span>
+          <span className="text-[10px] text-zx-text-soft truncate">{t(`roadmap.phases.${currentPhase.id}`, {}, currentPhase.title)}</span>
         </div>
       )}
     </div>

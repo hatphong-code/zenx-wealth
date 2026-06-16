@@ -333,7 +333,7 @@ export default function TrackHub() {
           </p>
           {canAccess('transactions') && (
             <Link to="/transactions" className="text-xs text-zx-accent hover:opacity-80 transition">
-              Tất cả →
+              {t('transactions.all')} →
             </Link>
           )}
         </div>
@@ -383,13 +383,13 @@ export default function TrackHub() {
           {canAccess('add_transaction') && (
             <Link to="/transactions/new"
               className="flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent px-4 py-3 text-sm font-medium text-zx-on-accent hover:opacity-90 transition">
-              <Plus className="h-4 w-4" /> Thêm giao dịch
+              <Plus className="h-4 w-4" /> {t('transactions.addButton')}
             </Link>
           )}
           {canAccess('transactions') && (
             <Link to="/transactions"
               className="flex items-center justify-center gap-2 rounded-zx-sm border border-zx-line px-4 py-3 text-sm text-zx-text-soft hover:border-zx-accent hover:text-zx-text transition">
-              Xem tất cả <ArrowRight className="h-4 w-4" />
+              {t('transactions.title')} <ArrowRight className="h-4 w-4" />
             </Link>
           )}
         </div>
