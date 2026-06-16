@@ -157,7 +157,7 @@ export default function Transactions() {
         {hasFilter && (
           <p className="text-xs text-zx-text-soft mb-3">
             <Filter className="h-3 w-3 inline mr-1" />
-            {filtered.length} / {transactions.length} giao dịch
+            {filtered.length} / {transactions.length} {t('transactions.title').toLowerCase()}
           </p>
         )}
 
@@ -196,7 +196,7 @@ export default function Transactions() {
                             : 'bg-orange-950 text-orange-300'
                         }`}
                       >
-                        {transaction.type}
+                        {transaction.type === 'income' ? t('common.income') : t('common.expense')}
                       </span>
                       {transaction.isLatteFactor && (
                         <span className="rounded-full bg-red-950 px-2.5 py-1 text-red-300">☕ Latte</span>
@@ -253,7 +253,7 @@ export default function Transactions() {
                               : 'bg-orange-950 text-orange-300'
                           }`}
                         >
-                          {transaction.type}
+                          {transaction.type === 'income' ? t('common.income') : t('common.expense')}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right font-mono">
