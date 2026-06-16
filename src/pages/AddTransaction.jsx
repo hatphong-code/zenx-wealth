@@ -31,14 +31,6 @@ function isLikelyLatte(category) {
   return LATTE_KEYWORDS.some(k => lower.includes(k));
 }
 
-const DEFAULT_EXPENSE_CATEGORIES = [
-  'Cà phê & trà sữa', 'Ăn ngoài', 'Mua sắm', 'Đi lại', 'Nhà ở',
-  'Sức khoẻ', 'Subscription', 'Học tập', 'Gia đình', 'Khác',
-];
-
-const DEFAULT_INCOME_CATEGORIES = [
-  'Lương', 'Freelance', 'Kinh doanh', 'Đầu tư', 'Thưởng', 'Khác',
-];
 
 export default function AddTransaction() {
   const { user } = useAuth();
@@ -140,10 +132,12 @@ export default function AddTransaction() {
 
   if (loading) return <div className="p-10 text-center text-zx-text-soft">{t('common.loading')}</div>;
 
-  // Categories: custom first, then defaults
+  // Categories: custom first, then locale-aware defaults
+  const defaultExpenseCategories = t('addTransaction.expenseCategories');
+  const defaultIncomeCategories = t('addTransaction.incomeCategories');
   const allCategories = form.type === 'expense'
-    ? [...new Set([...customCategories.expense, ...DEFAULT_EXPENSE_CATEGORIES])]
-    : [...new Set([...customCategories.income, ...DEFAULT_INCOME_CATEGORIES])];
+    ? [...new Set([...customCategories.expense, ...defaultExpenseCategories])]
+    : [...new Set([...customCategories.income, ...defaultIncomeCategories])];
 
   const inputCls = 'w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent transition';
 

@@ -217,6 +217,8 @@ export default {
     addNotePlaceholder: 'Thêm ghi chú...',
     saveTransaction: 'Lưu giao dịch',
     saveChanges: 'Lưu thay đổi',
+    expenseCategories: ['Cà phê & trà sữa', 'Ăn ngoài', 'Mua sắm', 'Đi lại', 'Nhà ở', 'Sức khoẻ', 'Subscription', 'Học tập', 'Gia đình', 'Khác'],
+    incomeCategories: ['Lương', 'Freelance', 'Kinh doanh', 'Đầu tư', 'Thưởng', 'Khác'],
   },
   profile: {
     title: 'Hồ sơ người dùng',

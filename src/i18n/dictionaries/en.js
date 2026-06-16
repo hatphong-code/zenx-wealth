@@ -213,6 +213,8 @@ export default {
     addNotePlaceholder: 'Add a note...',
     saveTransaction: 'Save transaction',
     saveChanges: 'Save changes',
+    expenseCategories: ['Coffee & drinks', 'Eating out', 'Shopping', 'Transport', 'Housing', 'Health', 'Subscription', 'Education', 'Family', 'Other'],
+    incomeCategories: ['Salary', 'Freelance', 'Business', 'Investment', 'Bonus', 'Other'],
   },
   profile: {
     title: 'User Profile',
