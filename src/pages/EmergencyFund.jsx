@@ -122,7 +122,7 @@ export default function EmergencyFund() {
         <section className="grid gap-4 md:grid-cols-3">
           {[
             { label: t('emergency.stats.balance'), value: formatMoney(balance, settings.currency) },
-            { label: t('emergency.stats.covered'), value: `${formatNumber(coveredMonths, { maximumFractionDigits: 1 })} / ${settings.emergencyFundTargetMonths} months` },
+            { label: t('emergency.stats.covered'), value: t('emergency.stats.coveredFormat', { value: formatNumber(coveredMonths, { maximumFractionDigits: 1 }), target: settings.emergencyFundTargetMonths }) },
             { label: t('emergency.stats.target'), value: formatMoney(targetBalance, settings.currency) },
           ].map((stat) => (
             <div key={stat.label} className="rounded-zx-sm border border-zx-line bg-zx-surface p-4 shadow-zx zx-transition">
