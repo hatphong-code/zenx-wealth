@@ -74,10 +74,41 @@ async function persistRoadmapSnapshot(userId, roadmap) {
   }, { merge: true });
 }
 
+function rehydrateWithTemplate(storedData) {
+  const storedPhases = storedData.phases || [];
+  const phases = roadmapPhases.map((templatePhase) => {
+    const stored = storedPhases.find((p) => p.id === templatePhase.id);
+    if (!stored) {
+      return {
+        ...templatePhase,
+        completed: false,
+        notes: '',
+        checklist: templatePhase.checklist.map((item) => ({ ...item, completed: false, autoValue: false })),
+      };
+    }
+    return {
+      ...stored,
+      title: templatePhase.title,
+      description: templatePhase.description,
+      checklist: templatePhase.checklist.map((templateItem) => {
+        const storedItem = stored.checklist?.find((i) => i.key === templateItem.key);
+        return {
+          ...templateItem,
+          completed: storedItem?.completed ?? false,
+          autoValue: storedItem?.autoValue ?? false,
+          ...(typeof storedItem?.manualValue === 'boolean' ? { manualValue: storedItem.manualValue } : {}),
+        };
+      }),
+    };
+  });
+  return normalizeRoadmap({ ...storedData, phases });
+}
+
 async function fetchRoadmap(userId) {
   const snapshot = await getDoc(getRoadmapSnapshotRef(userId));
   if (snapshot.exists()) {
-    return normalizeRoadmap(snapshot.data());
+    // Always re-merge with current template so title/description/labels stay up-to-date
+    return rehydrateWithTemplate(snapshot.data());
   }
 
   const computedRoadmap = await computeRoadmap(userId);
