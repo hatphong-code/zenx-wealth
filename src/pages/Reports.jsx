@@ -225,7 +225,7 @@ export default function Reports() {
             {
               title: t('reports.insights.leakageTitle'),
               body: data.monthly.latteFactor > 0
-                ? t('reports.insights.leakageWithCategory', { category: data.insights?.[1]?.topCategory || 'chi nhỏ lặp lại' })
+                ? t('reports.insights.leakageWithCategory', { category: data.insights?.[1]?.topCategory || t('reports.insights.smallRecurring') })
                 : t('reports.insights.leakageQuiet'),
             },
             {

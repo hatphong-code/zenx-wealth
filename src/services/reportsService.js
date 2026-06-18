@@ -15,7 +15,7 @@ import { getIncomeSources } from './incomeBuilderService';
 import { getLatteFactor } from './latteFactorService';
 import { getEmergencyFund } from './emergencyFundService';
 import { getTradingRisk } from './tradingRiskService';
-import { getTransactions } from './transactionService';
+import { getTransactions, getTransactionsSince } from './transactionService';
 import { getUserProfile } from './userService';
 import { getCurrentWeekMeta, getWeeklyReview } from './weeklyReviewService';
 import { getWealthRoadmap } from './wealthRoadmapService';
@@ -146,7 +146,13 @@ export function normalizeReports(data = {}) {
 
 async function computeReports(userId) {
   const weekMeta = getCurrentWeekMeta();
-  const [profile, dashboard, latte, weekly, roadmap, debts, income, tradingRisk, assets, transactionsState, emergencyState] = await Promise.all([
+
+  // Limit transaction fetch to last 13 months — covers 6-month trends + 12-month recurring detection.
+  // Full history not needed here; snapshot path (Cloud Functions) handles aggregation for large datasets.
+  const thirteenMonthsAgo = new Date();
+  thirteenMonthsAgo.setMonth(thirteenMonthsAgo.getMonth() - 13);
+
+  const [profile, dashboard, latte, weekly, roadmap, debts, income, tradingRisk, assets, recentTransactions, emergencyState] = await Promise.all([
     getUserProfile(userId),
     getDashboardStats(userId),
     getLatteFactor(userId),
@@ -156,7 +162,7 @@ async function computeReports(userId) {
     getIncomeSources(userId),
     getTradingRisk(userId),
     getAssets(userId),
-    getTransactions(userId),
+    getTransactionsSince(userId, thirteenMonthsAgo),
     getEmergencyFund(userId),
   ]);
 
@@ -164,7 +170,7 @@ async function computeReports(userId) {
     ? debts.summary.monthlyPayment / Math.max(1, dashboard.netCashFlow)
     : 0;
   const cashFlowTrend = buildMonthlyCashFlowTrend({
-    transactions: transactionsState.transactions,
+    transactions: recentTransactions,
     currency: dashboard.currency || profile.settings?.currency || 'VND',
   });
   const emergencyTrend = buildEmergencyCoverageTrend({

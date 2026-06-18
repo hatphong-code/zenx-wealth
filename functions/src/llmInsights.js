@@ -1,8 +1,20 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions';
+import { getFirestore } from 'firebase-admin/firestore';
 import Anthropic from '@anthropic-ai/sdk';
 
-const client = new Anthropic();
+async function getAISettings() {
+  const db = getFirestore();
+  const snap = await db.doc('appConfig/api-settings').get();
+  return snap.data() || {};
+}
+
+async function getAnthropicClient() {
+  const settings = await getAISettings();
+  const apiKey = settings.claudeApiKey || process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new HttpsError('failed-precondition', 'Claude API key not configured. Add it in Admin Settings.');
+  return { client: new Anthropic({ apiKey }), model: settings.claudeModel || 'claude-haiku-4-5-20251001' };
+}
 
 function buildPrompt(reports, roadmap, profile, locale = 'vi') {
   const isVi = locale === 'vi';
@@ -59,7 +71,6 @@ Tone: direct, no fluff, like a real financial advisor sitting with the user.`;
 export const generateAIInsights = onCall(
   {
     region: 'asia-southeast1',
-    secrets: ['ANTHROPIC_API_KEY'],
     timeoutSeconds: 60,
     memory: '256MiB',
   },
@@ -72,9 +83,10 @@ export const generateAIInsights = onCall(
     const locale = profile?.settings?.locale || 'vi';
 
     try {
+      const { client, model } = await getAnthropicClient();
       const prompt = buildPrompt(reports, roadmap, profile, locale);
       const message = await client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
+        model,
         max_tokens: 500,
         messages: [{ role: 'user', content: prompt }],
       });

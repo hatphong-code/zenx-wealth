@@ -157,7 +157,7 @@ export const featureCatalog = [
   },
   {
     key: 'admin_access',
-    label: 'Admin Access',
+    label: 'Bảng điều hành',
     description: 'Bật/tắt tính năng theo Free/Premium và test tier.',
     group: 'admin',
     route: '/admin/access',

@@ -8,21 +8,68 @@ function getGoalCacheKey(userId) {
   return `goal-tracking:${userId}`;
 }
 
+// Parse a decimal/integer token that may use either "," or "." as decimal/thousand sep
+function parseViNum(str) {
+  const s = str.trim();
+  const dots = (s.match(/\./g) || []).length;
+  const commas = (s.match(/,/g) || []).length;
+  // Multiple separators → all are thousand separators → strip them
+  if (dots > 1 || commas > 1) return parseInt(s.replace(/[.,]/g, ''), 10);
+  // Single separator
+  if (dots === 1 || commas === 1) {
+    const parts = s.split(/[.,]/);
+    // "1.000" or "1,000" → thousand separator (3 digits after)
+    if (parts[1]?.length === 3) return parseInt(s.replace(/[.,]/g, ''), 10);
+    // "1.5" or "1,5" → decimal
+    return parseFloat(s.replace(',', '.'));
+  }
+  return parseFloat(s);
+}
+
 function parseGoalAmount(text) {
   if (!text?.trim()) return 0;
-  const lower = text.toLowerCase();
+  const s = text.toLowerCase();
 
-  // Match patterns like: 1.5 tỷ / 500tr / 200 triệu / 50k / 1,000,000
-  const match = lower.match(/(\d+(?:[.,]\d+)?)\s*(tỷ|ty|triệu|trieu|tr|million|m|k)?/);
-  if (!match) return 0;
+  // "X tỷ rưỡi" → X * 1B + 500M
+  const rưỡiMatch = s.match(/(\d[\d.,]*)\s*(?:tỷ|ty)\s+rưỡi/);
+  if (rưỡiMatch) return parseViNum(rưỡiMatch[1]) * 1_000_000_000 + 500_000_000;
+  // bare "tỷ rưỡi" → 1.5B
+  if (/\btỷ rưỡi\b|\bty rưỡi\b/.test(s)) return 1_500_000_000;
 
-  const num = parseFloat(match[1].replace(',', '.'));
-  const unit = match[2] || '';
+  // Priority order: largest unit first so "1.5 tỷ" beats "5 triệu" if both present
+  // Note: \b doesn't work after Vietnamese chars (non-ASCII), so use lookahead instead
+  const UNITS = [
+    { re: /(\d[\d.,]*)\s*(?:tỷ|ty|billion|b)(?=[^a-z]|$)/i, mult: 1_000_000_000 },
+    { re: /(\d[\d.,]*)\s*(?:triệu|trieu|tr|million)(?=[^a-z]|$)/i, mult: 1_000_000 },
+    { re: /(\d[\d.,]*)\s*(?:nghìn|nghin|k)(?=[^a-z\d]|$)/i, mult: 1_000 },
+  ];
+  for (const { re, mult } of UNITS) {
+    const m = s.match(re);
+    if (m) {
+      const n = parseViNum(m[1]);
+      if (n > 0) return n * mult;
+    }
+  }
 
-  if (unit === 'tỷ' || unit === 'ty') return num * 1_000_000_000;
-  if (unit === 'triệu' || unit === 'trieu' || unit === 'tr' || unit === 'm' || unit === 'million') return num * 1_000_000;
-  if (unit === 'k') return num * 1_000;
-  return num;
+  // Raw number with thousand separators: "500.000.000" or "500,000,000"
+  const rawMatch = s.match(/(\d{1,3}(?:[.,]\d{3}){2,})/);
+  if (rawMatch) {
+    const n = parseInt(rawMatch[1].replace(/[.,]/g, ''), 10);
+    if (n > 0) return n;
+  }
+
+  // Dollar / USD amount: "$50,000" or "50,000 usd"
+  const usdMatch = s.match(/\$\s*(\d[\d.,]*)|(\d[\d.,]*)\s*(?:usd|\$)/);
+  if (usdMatch) {
+    const n = parseViNum(usdMatch[1] || usdMatch[2]);
+    if (n > 0) return n; // keep as USD — caller interprets currency separately
+  }
+
+  // Last resort: bare large integer like "500000000"
+  const bareMatch = s.match(/(\d{6,})/);
+  if (bareMatch) return parseInt(bareMatch[1], 10);
+
+  return 0;
 }
 
 function calculateGoalProgress(profile, reports) {

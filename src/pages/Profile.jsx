@@ -175,7 +175,7 @@ export default function Profile() {
   };
 
   return (
-      <main className="max-w-4xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
         <div className="flex items-center gap-3">
           {user?.photoURL ? (
             <img src={user.photoURL} alt="" className="h-12 w-12 rounded-full" />

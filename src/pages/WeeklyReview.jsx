@@ -115,7 +115,7 @@ export default function WeeklyReview() {
   // Done/success screen
   if (done) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-12 pb-24 text-center">
+      <div className="max-w-5xl mx-auto px-4 py-12 pb-24 text-center">
         <div className="text-4xl mb-4">✦</div>
         <h1 className="font-zx-head text-2xl font-bold text-zx-positive mb-2">{t('weeklyReview.complete')}</h1>
         <p className="text-sm text-zx-text-soft mb-6">
@@ -137,178 +137,211 @@ export default function WeeklyReview() {
     );
   }
 
+  const summaryStats = [
+    { label: t('weeklyReview.income'), value: fmt(review.income, 'VND'), color: 'text-zx-positive' },
+    { label: t('common.expense'), value: fmt(review.expense, 'VND'), color: 'text-zx-text' },
+    { label: t('weeklyReview.latteFactorLabel'), value: fmt(review.latteFactorTotal, 'VND'), color: 'text-zx-accent' },
+    { label: t('weeklyReview.savings'), value: formatPercent(review.savingsRate), color: review.savingsRate >= 0.3 ? 'text-zx-positive' : 'text-zx-gold' },
+  ];
+
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 pb-24 md:pb-8">
+    <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-8">
 
       {/* Header */}
       <div className="mb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-1">
           {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : t('reviewHub.thisWeek')}
         </p>
-        <h1 className="font-zx-head text-xl font-bold text-zx-text">Weekly Review</h1>
+        <h1 className="font-zx-head text-xl font-bold text-zx-text">{t('weeklyReview.title')}</h1>
         {loading && <p className="text-xs text-zx-text-soft mt-1">{t('common.loading')}</p>}
       </div>
 
-      {/* Step progress */}
-      <div className="flex items-center gap-2 mb-8">
-        {STEPS.map((s, i) => (
-          <div key={s.id} className="flex items-center gap-2">
-            <button onClick={() => setStep(i)}
-              className={`flex items-center gap-1.5 text-xs font-medium transition ${
-                i === step ? 'text-zx-accent' : i < step ? 'text-zx-positive' : 'text-zx-text-soft'
-              }`}>
-              {i < step
-                ? <CheckCircle2 className="h-4 w-4" />
-                : <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-bold ${
-                    i === step ? 'border-zx-accent text-zx-accent' : 'border-zx-line text-zx-text-soft'
-                  }`}>{i + 1}</span>
-              }
-              <span className="hidden sm:inline">{s.label}</span>
-            </button>
-            {i < STEPS.length - 1 && <div className="h-px w-6 bg-zx-line" />}
-          </div>
-        ))}
-      </div>
+      <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-x-12 lg:items-start">
 
-      {/* ── Step 0: Numbers ── */}
-      {step === 0 && (
+        {/* ── LEFT: Wizard ── */}
         <div>
-          <p className="text-sm text-zx-text-soft mb-4">
-            {t('weeklyReview.numbersHint')}
-          </p>
-          <div className="grid grid-cols-2 divide-x divide-zx-line">
-            {[
-              { label: t('weeklyReview.income'), value: fmt(review.income, 'VND'), color: 'text-zx-positive' },
-              { label: t('common.expense'), value: fmt(review.expense, 'VND'), color: 'text-zx-text' },
-            ].map((s, i) => (
-              <div key={s.label} className={`py-4 ${i === 0 ? 'pr-4' : 'pl-4'}`}>
-                <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{s.label}</p>
-                <p className={`font-zx-display text-2xl font-bold ${s.color}`}>{s.value}</p>
+          {/* Step progress */}
+          <div className="flex items-center gap-2 mb-8">
+            {STEPS.map((s, i) => (
+              <div key={s.id} className="flex items-center gap-2">
+                <button onClick={() => setStep(i)}
+                  className={`flex items-center gap-1.5 text-xs font-medium transition ${
+                    i === step ? 'text-zx-accent' : i < step ? 'text-zx-positive' : 'text-zx-text-soft'
+                  }`}>
+                  {i < step
+                    ? <CheckCircle2 className="h-4 w-4" />
+                    : <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-bold ${
+                        i === step ? 'border-zx-accent text-zx-accent' : 'border-zx-line text-zx-text-soft'
+                      }`}>{i + 1}</span>
+                  }
+                  <span className="hidden sm:inline">{s.label}</span>
+                </button>
+                {i < STEPS.length - 1 && <div className="h-px w-6 bg-zx-line" />}
               </div>
             ))}
           </div>
-          <HL />
-          <div className="grid grid-cols-2 divide-x divide-zx-line">
-            {[
-              {
-                label: t('weeklyReview.latteFactorLabel'),
-                value: fmt(review.latteFactorTotal, 'VND'),
-                sub: review.topLatteCategory || '',
-                color: 'text-zx-accent',
-              },
-              {
-                label: t('weeklyReview.savings'),
-                value: formatPercent(review.savingsRate),
-                sub: review.savingsRate >= 0.3 ? '≥ 30% ✓' : '< 30%',
-                color: review.savingsRate >= 0.3 ? 'text-zx-positive' : 'text-zx-gold',
-              },
-            ].map((s, i) => (
-              <div key={s.label} className={`py-4 ${i === 0 ? 'pr-4' : 'pl-4'}`}>
-                <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{s.label}</p>
-                <p className={`font-zx-display text-2xl font-bold ${s.color}`}>{s.value}</p>
-                {s.sub && <p className="text-xs text-zx-text-soft mt-0.5">{s.sub}</p>}
-              </div>
-            ))}
-          </div>
-          <HL />
-          <div className="py-4 flex items-center justify-between">
+
+          {/* ── Step 0: Numbers ── */}
+          {step === 0 && (
             <div>
-              <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">Điểm kỷ luật</p>
-              <p className={`font-zx-display text-3xl font-bold ${scoreColor}`}>
-                {score > 0 ? score : '—'}<span className="text-base font-normal text-zx-text-soft">/100</span>
+              <p className="text-sm text-zx-text-soft mb-4">
+                {t('weeklyReview.numbersHint')}
+              </p>
+              <div className="grid grid-cols-2 divide-x divide-zx-line">
+                {[
+                  { label: t('weeklyReview.income'), value: fmt(review.income, 'VND'), color: 'text-zx-positive' },
+                  { label: t('common.expense'), value: fmt(review.expense, 'VND'), color: 'text-zx-text' },
+                ].map((s, i) => (
+                  <div key={s.label} className={`py-4 ${i === 0 ? 'pr-4' : 'pl-4'}`}>
+                    <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{s.label}</p>
+                    <p className={`font-zx-display text-2xl font-bold ${s.color}`}>{s.value}</p>
+                  </div>
+                ))}
+              </div>
+              <HL />
+              <div className="grid grid-cols-2 divide-x divide-zx-line">
+                {[
+                  {
+                    label: t('weeklyReview.latteFactorLabel'),
+                    value: fmt(review.latteFactorTotal, 'VND'),
+                    sub: review.topLatteCategory || '',
+                    color: 'text-zx-accent',
+                  },
+                  {
+                    label: t('weeklyReview.savings'),
+                    value: formatPercent(review.savingsRate),
+                    sub: review.savingsRate >= 0.3 ? '≥ 30% ✓' : '< 30%',
+                    color: review.savingsRate >= 0.3 ? 'text-zx-positive' : 'text-zx-gold',
+                  },
+                ].map((s, i) => (
+                  <div key={s.label} className={`py-4 ${i === 0 ? 'pr-4' : 'pl-4'}`}>
+                    <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{s.label}</p>
+                    <p className={`font-zx-display text-2xl font-bold ${s.color}`}>{s.value}</p>
+                    {s.sub && <p className="text-xs text-zx-text-soft mt-0.5">{s.sub}</p>}
+                  </div>
+                ))}
+              </div>
+              <HL />
+              <div className="py-4 flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{t('weeklyReview.disciplineScore')}</p>
+                  <p className={`font-zx-display text-3xl font-bold ${scoreColor}`}>
+                    {score > 0 ? score : '—'}<span className="text-base font-normal text-zx-text-soft">/100</span>
+                  </p>
+                </div>
+                {score >= 70 && <span className="text-2xl">✦</span>}
+              </div>
+
+              <button onClick={() => setStep(1)}
+                className="mt-4 w-full flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent py-3.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
+                {t('weeklyReview.nextReflect')} <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
+          {/* ── Step 1: Reflect ── */}
+          {step === 1 && (
+            <div className="space-y-5">
+              <p className="text-sm text-zx-text-soft">
+                {t('weeklyReview.reflectQuestion')}
+              </p>
+
+              {insight.length > 0 && (
+                <div className="rounded-zx-sm bg-zx-surface-2 border border-zx-line p-4 space-y-2">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zx-text-soft">{t('weeklyReview.insightFromData')}</p>
+                  {insight.map((line, i) => (
+                    <p key={i} className="text-sm text-zx-text leading-relaxed">{line}</p>
+                  ))}
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
+                  {t('weeklyReview.lessonLabel')}
+                </label>
+                <textarea
+                  value={form.oneLesson}
+                  onChange={e => updateField('oneLesson', e.target.value)}
+                  rows={4}
+                  placeholder={t('weeklyReview.lessonPlaceholder')}
+                  className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent transition resize-none"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button onClick={() => setStep(0)} className="px-4 py-3 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">← {t('common.back')}</button>
+                <button onClick={() => setStep(2)}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent py-3 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
+                  {t('weeklyReview.nextCommit')} <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 2: Commit ── */}
+          {step === 2 && (
+            <div className="space-y-5">
+              <p className="text-sm text-zx-text-soft">
+                {t('weeklyReview.commitQuestion')}
+              </p>
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
+                  {t('weeklyReview.commitmentLabel')}
+                </label>
+                <textarea
+                  value={form.oneActionNextWeek}
+                  onChange={e => updateField('oneActionNextWeek', e.target.value)}
+                  rows={3}
+                  placeholder={t('weeklyReview.commitmentPlaceholder')}
+                  className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent transition resize-none"
+                  autoFocus
+                />
+              </div>
+
+              {form.oneLesson && (
+                <div className="rounded-zx-sm bg-zx-surface-2 px-4 py-3">
+                  <p className="text-[10px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{t('weeklyReview.yourRecordedLesson')}</p>
+                  <p className="text-sm text-zx-text italic">"{form.oneLesson}"</p>
+                </div>
+              )}
+
+              {error && <p className="text-sm text-red-400">{error}</p>}
+
+              <div className="flex gap-2">
+                <button onClick={() => setStep(1)} className="px-4 py-3 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">← {t('common.back')}</button>
+                <button onClick={handleSave} disabled={saving}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-zx-sm bg-zx-positive py-3.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 disabled:opacity-50 transition">
+                  {saving ? t('common.saving') : t('weeklyReview.completeReview')}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── RIGHT: Summary panel (always visible on desktop) ── */}
+        <div className="hidden lg:block border-l border-zx-line pl-12 sticky top-6">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-4">
+            {t('weeklyReview.thisWeekSummary')}
+          </p>
+          <div className="space-y-4">
+            {summaryStats.map(s => (
+              <div key={s.label}>
+                <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-0.5">{s.label}</p>
+                <p className={`font-zx-display text-xl font-bold ${s.color}`}>{s.value}</p>
+              </div>
+            ))}
+            <HL />
+            <div>
+              <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-0.5">{t('weeklyReview.disciplineScore')}</p>
+              <p className={`font-zx-display text-2xl font-bold ${scoreColor}`}>
+                {score > 0 ? score : '—'}<span className="text-sm font-normal text-zx-text-soft"> /100</span>
               </p>
             </div>
-            {score >= 70 && <span className="text-2xl">✦</span>}
-          </div>
-
-          <button onClick={() => setStep(1)}
-            className="mt-4 w-full flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent py-3.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
-            {t('weeklyReview.nextReflect')} <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
-      {/* ── Step 1: Reflect ── */}
-      {step === 1 && (
-        <div className="space-y-5">
-          <p className="text-sm text-zx-text-soft">
-            {t('weeklyReview.reflectQuestion')}
-          </p>
-
-          {/* AI insight */}
-          {insight.length > 0 && (
-            <div className="rounded-zx-sm bg-zx-surface-2 border border-zx-line p-4 space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zx-text-soft">{t('weeklyReview.insightFromData')}</p>
-              {insight.map((line, i) => (
-                <p key={i} className="text-sm text-zx-text leading-relaxed">{line}</p>
-              ))}
-            </div>
-          )}
-
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
-              {t('weeklyReview.lessonLabel')}
-            </label>
-            <textarea
-              value={form.oneLesson}
-              onChange={e => updateField('oneLesson', e.target.value)}
-              rows={4}
-              placeholder={t('weeklyReview.lessonPlaceholder')}
-              className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent transition resize-none"
-              autoFocus
-            />
-          </div>
-
-          <div className="flex gap-2">
-            <button onClick={() => setStep(0)} className="px-4 py-3 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">← {t('common.back')}</button>
-            <button onClick={() => setStep(2)}
-              className="flex-1 flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent py-3 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
-              {t('weeklyReview.nextCommit')} <ArrowRight className="h-4 w-4" />
-            </button>
           </div>
         </div>
-      )}
-
-      {/* ── Step 2: Commit ── */}
-      {step === 2 && (
-        <div className="space-y-5">
-          <p className="text-sm text-zx-text-soft">
-            {t('weeklyReview.commitQuestion')}
-          </p>
-
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
-              {t('weeklyReview.commitmentLabel')}
-            </label>
-            <textarea
-              value={form.oneActionNextWeek}
-              onChange={e => updateField('oneActionNextWeek', e.target.value)}
-              rows={3}
-              placeholder={t('weeklyReview.commitmentPlaceholder')}
-              className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent transition resize-none"
-              autoFocus
-            />
-          </div>
-
-          {/* Previous lesson as reminder */}
-          {form.oneLesson && (
-            <div className="rounded-zx-sm bg-zx-surface-2 px-4 py-3">
-              <p className="text-[10px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{t('weeklyReview.yourRecordedLesson')}</p>
-              <p className="text-sm text-zx-text italic">"{form.oneLesson}"</p>
-            </div>
-          )}
-
-          {error && <p className="text-sm text-red-400">{error}</p>}
-
-          <div className="flex gap-2">
-            <button onClick={() => setStep(1)} className="px-4 py-3 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">← {t('common.back')}</button>
-            <button onClick={handleSave} disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 rounded-zx-sm bg-zx-positive py-3.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 disabled:opacity-50 transition">
-              {saving ? t('common.saving') : t('weeklyReview.completeReview')}
-            </button>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

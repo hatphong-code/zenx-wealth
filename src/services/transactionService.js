@@ -1,4 +1,4 @@
-import { collection, getDocs, orderBy, query } from 'firebase/firestore/lite';
+import { collection, doc, getDocs, orderBy, query, Timestamp, where, writeBatch } from 'firebase/firestore/lite';
 import { db } from './firebaseDb';
 import { getCachedValue, loadWithCache, removeCachedValue, setCachedValue } from './sessionCache';
 import { getUserProfile } from './userService';
@@ -18,6 +18,16 @@ async function fetchTransactions(userId) {
 
   const txs = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
   const withRecurring = detectRecurringTransactions(txs);
+
+  // Persist newly auto-detected recurring flags (fire-and-forget, don't block return)
+  const toUpdate = withRecurring.filter((tx, i) => tx.isRecurring === true && txs[i].isRecurring !== true);
+  if (toUpdate.length > 0) {
+    const batch = writeBatch(db);
+    toUpdate.forEach(tx => {
+      batch.update(doc(db, 'users', userId, 'transactions', tx.id), { isRecurring: true });
+    });
+    batch.commit().catch(err => console.warn('[recurring] Failed to persist flags:', err));
+  }
 
   return {
     currency: userProfile.settings?.currency || 'VND',
@@ -44,4 +54,17 @@ export function setTransactionsCache(userId, value) {
 
 export function invalidateTransactionsCache(userId) {
   removeCachedValue(getTransactionsCacheKey(userId));
+}
+
+// Lightweight date-filtered fetch — used by Reports compute fallback.
+// Does NOT run recurring detection (not needed for trend calculations).
+export async function getTransactionsSince(userId, sinceDate) {
+  const snapshot = await getDocs(
+    query(
+      collection(db, 'users', userId, 'transactions'),
+      where('date', '>=', Timestamp.fromDate(sinceDate)),
+      orderBy('date', 'desc')
+    )
+  );
+  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 }

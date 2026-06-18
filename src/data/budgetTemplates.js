@@ -59,6 +59,21 @@ export const budgetTemplates = [
       expense: ['Housing', 'Food', 'Transport', 'Health', 'Debt repayment', 'Education', 'Family', 'Tools', 'Other'],
     },
   },
+  {
+    id: 'mid_career',
+    phase: 4,
+    savingsRateTarget: 0.40,
+    emergencyTargetMonths: 12,
+    allocation: { living: 45, emergencyFund: 5, longTermAsset: 35, businessLearning: 10, highRiskTrading: 5 },
+    categories: {
+      income: ['Lương', 'Kinh doanh', 'Cổ tức', 'Cho thuê', 'Freelance', 'Khác'],
+      expense: ['Nhà ở', 'Ăn uống', 'Di chuyển', 'Sức khỏe', 'Con cái', 'Gia đình', 'Học tập', 'Đầu tư chi phí', 'Thuê bao', 'Biếu / Hỷ', 'Khác'],
+    },
+    categoriesEN: {
+      income: ['Salary', 'Business', 'Dividends', 'Rental income', 'Freelance', 'Other'],
+      expense: ['Housing', 'Food', 'Transport', 'Health', 'Kids', 'Family', 'Education', 'Investment costs', 'Subscriptions', 'Gifts', 'Other'],
+    },
+  },
 ];
 
 export function getBudgetTemplateById(id) {

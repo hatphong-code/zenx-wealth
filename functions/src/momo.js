@@ -11,10 +11,26 @@ const MOMO_SECRET_KEY = defineSecret('MOMO_SECRET_KEY');
 const MOMO_ENDPOINT = 'https://payment.momo.vn/v2/gateway/api/create';
 const REGION = 'asia-southeast1';
 
-const PLANS = {
+const DEFAULT_PLANS = {
   monthly: { amount: 99000, label: 'ZenX Wealth Premium — 1 tháng', days: 30 },
   yearly:  { amount: 799000, label: 'ZenX Wealth Premium — 12 tháng', days: 365 },
 };
+
+async function getBillingConfig() {
+  const db = getFirestore();
+  const [apiSnap, billingSnap] = await Promise.all([
+    db.doc('appConfig/api-settings').get(),
+    db.doc('appConfig/billing-settings').get(),
+  ]);
+  const api = apiSnap.data() || {};
+  const billing = billingSnap.data() || {};
+  return {
+    partnerCode: api.momoPartnerCode || null,
+    accessKey: api.momoAccessKey || null,
+    secretKey: api.momoSecretKey || null,
+    plans: billing.plans || {},
+  };
+}
 
 function momoSignature(rawStr, secretKey) {
   return createHmac('sha256', secretKey).update(rawStr).digest('hex');
@@ -61,14 +77,22 @@ export const createMomoPayment = onCall({
   if (!request.auth) throw new HttpsError('unauthenticated', 'Must be signed in.');
 
   const { plan, returnHost } = request.data;
-  if (!PLANS[plan]) throw new HttpsError('invalid-argument', 'Invalid plan.');
+  if (!DEFAULT_PLANS[plan]) throw new HttpsError('invalid-argument', 'Invalid plan.');
 
   const userId = request.auth.uid;
-  const partnerCode = MOMO_PARTNER_CODE.value();
-  const accessKey = MOMO_ACCESS_KEY.value();
-  const secretKey = MOMO_SECRET_KEY.value();
+  const config = await getBillingConfig();
 
-  const { amount, label, days } = PLANS[plan];
+  // Firestore config takes priority, Firebase Secrets as fallback
+  const partnerCode = config.partnerCode || MOMO_PARTNER_CODE.value();
+  const accessKey = config.accessKey || MOMO_ACCESS_KEY.value();
+  const secretKey = config.secretKey || MOMO_SECRET_KEY.value();
+
+  if (!partnerCode || !accessKey || !secretKey) {
+    throw new HttpsError('failed-precondition', 'MoMo credentials not configured. Add them in Admin Settings.');
+  }
+
+  const planConfig = { ...DEFAULT_PLANS[plan], ...(config.plans[plan] || {}) };
+  const { amount, label, days } = planConfig;
   const requestId = `${partnerCode}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const orderId = requestId;
   const extraData = Buffer.from(JSON.stringify({ userId, plan, days })).toString('base64');
@@ -115,8 +139,9 @@ export const momoIPN = onRequest({
   if (req.method !== 'POST') { res.status(405).send('Method Not Allowed'); return; }
 
   const data = req.body;
-  const accessKey = MOMO_ACCESS_KEY.value();
-  const secretKey = MOMO_SECRET_KEY.value();
+  const config = await getBillingConfig();
+  const accessKey = config.accessKey || MOMO_ACCESS_KEY.value();
+  const secretKey = config.secretKey || MOMO_SECRET_KEY.value();
 
   const expected = buildIpnSignature(data, accessKey, secretKey);
   if (expected !== data.signature) {

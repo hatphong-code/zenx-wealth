@@ -122,20 +122,26 @@ function Avatar({ size = 34 }) {
 
 function ThemeToggle({ compact = false }) {
   const { theme, setTheme } = useTheme();
+  const { t } = useI18n();
+  const themeOptions = [
+    { v: 'young', l: t('settings.themeYoungStyle') },
+    { v: 'mid', l: t('settings.themeMidStyle') },
+  ];
   if (compact) {
+    const current = themeOptions.find(o => o.v === theme) || themeOptions[0];
     return (
       <button onClick={() => setTheme(theme === 'mid' ? 'young' : 'mid')}
-        title="Đổi giao diện"
+        title={t('appShell.themeLabel')}
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-zx-sm border border-zx-line text-xs font-medium text-zx-text-soft hover:text-zx-text hover:border-zx-accent transition">
         <span className="w-2 h-2 rounded-full flex-shrink-0"
           style={{ background: theme === 'mid' ? '#C9A24B' : '#C8643C' }} />
-        {theme === 'mid' ? 'Tư gia' : 'Ấm'}
+        {current.l}
       </button>
     );
   }
   return (
     <div className="p-1 rounded-zx-sm bg-zx-surface-2 flex gap-1">
-      {[{ v: 'young', l: 'Ấm' }, { v: 'mid', l: 'Tư gia' }].map(o => (
+      {themeOptions.map(o => (
         <button key={o.v} onClick={() => setTheme(o.v)}
           className={`flex-1 text-xs font-medium py-1.5 rounded transition ${
             theme === o.v ? 'bg-zx-accent text-zx-on-accent' : 'text-zx-text-soft hover:text-zx-text'
@@ -323,7 +329,7 @@ function Sidebar({ visibleGroups, activeGroup, expandedGroups, onGroupClick, onI
 function TopBar({ activeGroup, activeItem }) {
   const { user } = useAuth();
   const { t } = useI18n();
-  const firstName = user?.displayName?.split(' ').pop() || user?.email?.split('@')[0] || 'bạn';
+  const firstName = user?.displayName?.split(' ').pop() || user?.email?.split('@')[0] || t('appShell.defaultName');
   const pageLabel = activeItem
     ? t(`nav.items.${activeItem.navKey || activeItem.featureKey}`, {}, activeItem.navKey || activeItem.featureKey)
     : activeGroup ? t(`nav.groups.${activeGroup.id}`, {}, activeGroup.label) : '';

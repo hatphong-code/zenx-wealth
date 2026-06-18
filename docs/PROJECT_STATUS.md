@@ -1,12 +1,12 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-14 (v1.10)
+Last updated: 2026-06-17 (v2.0)
 
 ## Current Phase
 
-**Design system + Enhanced analytics + Smart recurring detection + Personalized coaching.**
+**Production-ready Personal Finance OS.**
 
-The app has matured from MVP to a polished financial OS with two-theme design system, mobile-first hub navigation, recurring transaction auto-detection, and AI-powered personalized insights. Desktop layout optimized with sidebar stats and 2-column layout.
+Full feature set live: two-theme design system, i18n VI/EN, desktop 2-column layouts, recurring detection with Firestore persistence, LLM-backed AI Coach, email delivery via Resend, MoMo billing, and a unified Admin panel for all backend configuration.
 
 ## Firebase Project
 
@@ -23,61 +23,106 @@ Default hosting URL: https://zenx-wealth.web.app
 - Firebase Auth (email/password, Google, Apple)
 - Firestore Lite for all data reads
 - Protected routes + feature-gated access (free/premium)
-- Admin access control
+- Admin access control + unified Admin panel (4 tabs)
+- PWA: service worker, web manifest, offline-first cache
 
 ### Financial Modules (all routes live)
-- Dashboard
-- Transactions (list, add, edit)
-- Latte Factor engine
+- Dashboard (2-column desktop layout)
+- Transactions (list, add, edit) — search + sort + category/flag filters + filtered totals
+- Latte Factor engine + Convert→Emergency Fund flow
 - Pay Yourself First (allocation rule + progress)
 - Emergency Fund (balance tracker, progress)
 - Debt Control
 - Income Builder
 - Trading Risk
 - Assets
-- Wealth Roadmap (phase-based checklist)
-- Weekly Review (score + lesson + next action)
+- Wealth Roadmap (phase-based checklist, i18n)
+- Weekly Review (3-step wizard, 2-col desktop, sticky summary panel)
 - Reports (trend layer + estimated net worth)
-- AI Coach (rule-based on existing read models)
+- AI Coach (LLM-backed via Claude API Cloud Function)
+- Monthly Financial Letter (download + email delivery via Resend)
+- Goal Tracking (12-month goal, multi-format parsing, on-track signal)
+- Financial Health Score (5-pillar composite metric)
+- Budget Templates (pre-built category structures by life phase)
 - User Profile + Settings
+- Onboarding Flow (language / currency / basic setup for new users)
+- Import Transactions (CSV bulk import)
+- Upgrade page (MoMo payment, dynamic plans from admin)
+
+### i18n
+- Vietnamese default + English full support
+- All user-visible strings use `t()` — no hardcoded Vietnamese in UI components
+- Language toggle persisted to localStorage + synced to Firestore
+- `{symbol}` interpolation for currency in amount labels
+- Category chips use locale-aware defaults; custom Firestore categories preserved separately
 
 ### Design System (ZenXWealthUI)
 - CSS token layer: colors, typography, spacing — two themes
   - **Ấm** (Trẻ): cream/terracotta, Be Vietnam Pro + Bricolage Grotesque, light
   - **Tư gia** (Trung niên): navy/gold, Playfair Display + Hanken Grotesk, dark
+- Theme labels i18n via `t('settings.themeYoungStyle')` / `t('settings.themeMidStyle')`
 - `data-theme` switching live, persisted to localStorage
 - `ThemeProvider` context + toggle in sidebar and mobile top bar
 - Tailwind extended with `zx-*` semantic utility classes
-- `fmtShort()` compact number formatter (12,5 tr / 500k)
+
+### Desktop Layout
+- All pages standardized at `max-w-5xl`
+- 2-column `lg:grid` layout:
+  - TrackHub: cashflow+latte left | recurring+recent+actions right
+  - PlanHub: phase+items left | priority CTA right
+  - ReviewHub: score+stats+lesson left | tools right
+  - WeeklyReview: wizard left | sticky summary panel right
+  - AddTransaction: form left | today's entries right (auto-refreshes per save)
+- AddTransaction: multi-entry UX — save clears form, stays on page, "Done" to exit
 
 ### Navigation & Shell
-- `AppShell` component — full layout wrapper (replaces page-level AppNav)
-- **Desktop**: accordion sidebar — groups expand in-place with chevron, sub-items indented
-- **Mobile**: fixed bottom tabs (5 groups) + status-driven Hub pages per group
-- **Hub pages** (mobile entry points — data-driven, not menus):
-  - `TrackHub` — dòng tiền tháng + Latte Factor trend + 5 giao dịch gần nhất
-  - `PlanHub` — current phase + auto-priority (urgent/active/done) + 7 plan items with status (✓/●/○/🔒)
-  - `ReviewHub` — week status (reviewed/not reviewed) + score + metrics + CTAs
-- Mobile top bar shows current sub-item name, not just group name
-- Bottom tabs `position: fixed` — does not scroll with content
+- `AppShell` — full layout wrapper
+- **Desktop**: accordion sidebar with chevron groups
+- **Mobile**: fixed bottom tabs (5 groups) + Hub pages
+- Hub pages: TrackHub, PlanHub, ReviewHub
+- i18n theme labels, `t('appShell.defaultName')` fallback
 
-### Backend
-- Cloud Functions snapshot engine for: dashboard, latte-current, weekly-current, roadmap-current, reports-current
-- Session-level cache with stale-while-refresh for all primary routes
+### Backend (Cloud Functions)
+- Snapshot engine: dashboard, latte-current, weekly-current, roadmap-current, reports-current
+- `generateAIInsights` — calls Claude API, reads key + model from `appConfig/api-settings`
+- `sendMonthlyLetter` — sends email via Resend, reads config from `appConfig/api-settings`
+- `createMomoPayment` / `momoIPN` — billing, reads credentials from `appConfig/api-settings` with Firebase Secrets fallback
+- Session-level cache + stale-while-refresh for all primary routes
 - Structured Cloud Logging for snapshot refresh
 
-### Other
-- i18n: Vietnamese default, English ready (vi.js double-encoding bug fixed 2026-06-12)
-- ESLint baseline
+### Admin Panel (`/admin/access`)
+4-tab unified admin interface:
+
+| Tab | Content |
+|-----|---------|
+| Feature Access | Free/Premium toggle matrix, group pill filter (All / Core / Premium) |
+| Preview Plan | Switch admin account between Free/Premium for live testing |
+| API & Config | Claude key + model, Resend key + from email — status panel shows ✓/– per service |
+| Plans & Billing | Monthly/yearly plan config + MoMo credentials — live preview panel updates in real-time |
+
+### Recurring Detection
+- Auto-detects by category + amount + day-of-month (±3 day tolerance, 2+ occurrences)
+- **Persists to Firestore**: newly detected flags batch-written on first fetch
+- User-set flags preserved — detection only adds, never removes
+
+### Goal Parsing
+Handles: `500 triệu`, `1.5 tỷ`, `1,5 tỷ`, `tỷ rưỡi`, `2 tỷ rưỡi`, `500.000.000`, `500,000,000`, `1 billion`, `500 million`, natural language embedding (`tích lũy được 500 triệu`)
+
+### Billing
+- MoMo payment integration (createMomoPayment + momoIPN Cloud Functions)
+- Dynamic plan pricing via `appConfig/billing-settings` (admin configurable)
+- Fallback to hardcoded defaults if not configured
+- Subscription status read from user profile (`subscriptionTier`, `subscriptionExpiresAt`)
 
 ## Routes
 
 ```text
 /login
-/                      ← Dashboard (Home hub)
-/track                 ← TrackHub (NEW)
-/plan                  ← PlanHub (NEW)
-/review                ← ReviewHub (NEW)
+/onboarding
+/                      ← Dashboard
+/track                 ← TrackHub
+/plan                  ← PlanHub
+/review                ← ReviewHub
 /transactions
 /transactions/new
 /transactions/:id/edit
@@ -92,24 +137,16 @@ Default hosting URL: https://zenx-wealth.web.app
 /weekly-review
 /reports
 /ai-coach
+/monthly-letter
+/goal-tracking
+/health-score
+/budget-templates
+/import
 /profile
 /settings
-/admin/access
-```
-
-## User Settings Shape
-
-```text
-users/{userId}
-  subscriptionTier: free | premium
-  goal12Month: string
-  displayName / email / photoURL
-  settings.currency: VND | USD
-  settings.monthlyEssentialExpense: number
-  settings.emergencyFundTargetMonths: number
-  settings.payYourselfFirstRate: number
-  settings.allocationRule: { living, emergencyFund, longTermAsset, businessLearning, highRiskTrading }
-  settings.customCategories: { income: string[], expense: string[] }
+/upgrade
+/admin/access          ← 4-tab admin panel
+/admin/settings        ← standalone API settings (same content as admin tab)
 ```
 
 ## Firestore Collections
@@ -126,9 +163,31 @@ users/{userId}/weeklyReviews/{reviewId}
 users/{userId}/snapshots/{snapshotId}
 users/{userId}/tradingRisk/{recordId}
 appConfig/access-control
+appConfig/api-settings        ← Claude key/model, Resend key/from, MoMo credentials
+appConfig/billing-settings    ← plan pricing (monthly/yearly amounts, labels, days)
+momoPayments/{orderId}
 ```
 
-## Completed in v1.1–v1.8 (2026-06-14)
+## User Settings Shape
+
+```text
+users/{userId}
+  subscriptionTier: free | premium
+  subscriptionExpiresAt: Timestamp | null
+  subscriptionPlan: monthly | yearly | null
+  goal12Month: string
+  displayName / email / photoURL
+  settings.currency: VND | USD
+  settings.monthlyEssentialExpense: number
+  settings.emergencyFundTargetMonths: number
+  settings.payYourselfFirstRate: number
+  settings.allocationRule: { living, emergencyFund, longTermAsset, businessLearning, highRiskTrading }
+  settings.customCategories: { income: string[], expense: string[] }   ← merged (with locale defaults)
+  settings.customCategoriesRaw: { income: string[], expense: string[] } ← user-added only
+  settings.locale: vi | en
+```
+
+## Version History
 
 ### v1.1–v1.4 Foundation
 - QuickCapture FAB, Latte→Convert flow, Net Worth + Savings tiles
@@ -137,54 +196,47 @@ appConfig/access-control
 - ReviewHub score history sparkline
 
 ### v1.5 Desktop Polish
-- **Sidebar stats component** — net cash flow, emergency fund bar, current phase
-- **Dashboard 2-column layout** — hero + stats (left), focus + quick access (sticky right)
-- Better visual hierarchy for desktop
+- Sidebar stats component — net cash flow, emergency fund bar, current phase
+- Dashboard 2-column layout
 
 ### v1.6 PWA / Add to Homescreen
 - Service worker with Workbox caching strategies
-- Offline-first read for last-synced data
-- Web manifest + PNG icons (192/512) with gold Z branding
-- Meta tags for iOS/Android home screen install
+- Web manifest + PNG icons (192/512)
 
 ### v1.7 Recurring Transaction Detection
-- Auto-analysis of last 12 months — groups expenses by category, amount, day-of-month
+- Auto-analysis of last 12 months
 - Auto-flagged in Transactions list with ↻ Monthly badge
-- TrackHub recurring insight section showing monthly fixed costs
-- Pattern detection: ±3 day tolerance, 2+ occurrences = recurring
 
-### v1.8 Enhanced AI Coach
-- Personalized headline generation based on financial state
-- Operating insight analysis — detailed feedback tied to savings rate thresholds
-- Better tone + context per user phase
+### v1.8 Enhanced AI Coach (rule-based)
+- Personalized headline + operating insight analysis
 
 ### v1.9 Monthly Financial Letter
-- Personalized month-end 200–300 word summary
-- Key metrics: net cash flow, savings rate, Latte Factor, emergency fund progress
-- Adaptive messaging based on financial state
-- Download as Markdown, email delivery placeholder
+- Personalized month-end summary, download as Markdown
 
 ### v1.10 Goal Tracking
-- 12-month financial goal from Settings with auto-parsing
-- Weekly trajectory calculation — target savings rate to reach goal
-- On-track signal (90% threshold), visual progress bar
-- Remaining weeks countdown, weekly savings guidance
+- 12-month goal parsing, weekly trajectory, on-track signal
+
+### v2.0 (2026-06-17) — Production Hardening
+- **i18n complete**: all hardcoded strings moved to `t()`, category chips locale-aware, theme labels, amount symbol dynamic
+- **Desktop layouts**: 2-column for TrackHub, PlanHub, ReviewHub, WeeklyReview; `max-w-5xl` across all pages
+- **AddTransaction redesign**: multi-entry UX, today's entries panel, post-save stays on page
+- **Recurring flags persist**: batch-write to Firestore on detection; user flags preserved
+- **Goal parsing v2**: handles natural language, `tỷ rưỡi`, VN thousand separators, EN units
+- **Transaction search/filter v2**: sort (4 modes), category dropdown, latte/recurring flags, filtered totals
+- **LLM AI Coach**: Cloud Function calling Claude API; key + model configurable via admin
+- **Email delivery**: Monthly Letter sends via Resend; admin configures key + from address
+- **Admin panel v2**: 4-tab UI (Feature Access / Preview Plan / API & Config / Plans & Billing)
+- **Dynamic billing**: plan prices editable in admin; MoMo credentials via admin; `billingService` reads from Firestore
+- **PlanHub bug**: `fmt is not defined` fixed (passed as parameter to `getPriority`)
 
 ## Known Gaps
 
-- Recurring detection doesn't persist flags to Firestore (read-only on fetch)
-- AI Coach is enhanced rule-based, not LLM-backed (no external API calls)
-- Monthly letter email delivery is not yet implemented (download only)
-- Goal parsing is simple regex-based (handles "X triệu" format, but not all variations)
-- Reports still reads raw records for list-heavy routes
-- Free/Premium gating has no billing backend
-- Firebase Auth must have Apple/Google/Email providers enabled in console
-- Authorized domains must include `wealth.zenx.asia`
+- **Mobile wallet sync**: connect bank/payment app for auto-transactions — requires banking API partnership (future phase)
+- Firebase Auth providers must be enabled manually in Firebase Console (Apple/Google/Email)
+- Authorized domains must include `wealth.zenx.asia` in Firebase Auth settings
 
-## Next Recommended Work
+## Next Work
 
-1. **Transaction search/filter** — improved discovery for large histories
-2. **Budget templates** — pre-built category structures by life phase
-3. **LLM integration** — backend Cloud Function calling Claude API for insights
-4. **Mobile wallet sync** — connect bank/payment app for auto-transactions (future phase)
-5. **Financial health score** — composite metric (net worth + savings rate + consistency)
+1. **Mobile wallet sync** — future phase (banking API required, no open API in Vietnam currently)
+2. **Reports pagination** — for users with very large datasets, consider paginating the transaction list in Transactions page (Reports itself already uses snapshot)
+3. **Push notifications** — remind users to do weekly review, log transactions

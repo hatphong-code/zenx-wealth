@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { addDoc, collection, doc, getDoc, serverTimestamp, Timestamp, updateDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
 import { db } from '../services/firebaseDb';
-import { formatMoney, fmtShort } from '../utils/formatters';
+import { formatMoney, formatDate } from '../utils/formatters';
 import { useI18n } from '../i18n/useI18n';
+import { useNumberFormat } from '../hooks/useNumberFormat';
 import { invalidateDashboardStatsCache } from '../services/dashboardService';
 import { invalidateLatteFactorCache } from '../services/latteFactorService';
 import { invalidatePayYourselfFirstCache } from '../services/payYourselfFirstService';
 import { invalidateReportsCache } from '../services/reportsService';
-import { invalidateTransactionsCache } from '../services/transactionService';
+import { getTransactions, invalidateTransactionsCache } from '../services/transactionService';
 import { getUserProfile } from '../services/userService';
 import { getCurrentWeekMeta, invalidateWeeklyReviewCache } from '../services/weeklyReviewService';
 import { invalidateWealthRoadmapCache } from '../services/wealthRoadmapService';
@@ -31,28 +32,35 @@ function isLikelyLatte(category) {
   return LATTE_KEYWORDS.some(k => lower.includes(k));
 }
 
+function HL() { return <div className="h-px bg-zx-line" />; }
+
+const emptyForm = {
+  amount: '',
+  type: 'expense',
+  category: '',
+  date: today,
+  isLatteFactor: false,
+  isRecurring: false,
+  note: '',
+};
 
 export default function AddTransaction() {
   const { user } = useAuth();
   const { t } = useI18n();
+  const { fmt } = useNumberFormat();
   const navigate = useNavigate();
   const { transactionId } = useParams();
   const isEditing = Boolean(transactionId);
+  const amountRef = useRef(null);
 
-  const [form, setForm] = useState({
-    amount: '',
-    type: 'expense',
-    category: '',
-    date: today,
-    isLatteFactor: false,
-    isRecurring: false,
-    note: '',
-  });
+  const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [savedFlash, setSavedFlash] = useState(false);
   const [currency, setCurrency] = useState('VND');
   const [customCategories, setCustomCategories] = useState({ income: [], expense: [] });
+  const [todayTxs, setTodayTxs] = useState([]);
 
   useEffect(() => {
     if (!user) return;
@@ -61,13 +69,25 @@ export default function AddTransaction() {
       setError('');
       try {
         const profile = await getUserProfile(user.uid);
-        setCurrency(profile.settings?.currency || 'VND');
-        setCustomCategories(profile.settings?.customCategories || { income: [], expense: [] });
-        if (!isEditing) return;
+        const cur = profile.settings?.currency || 'VND';
+        setCurrency(cur);
+        setCustomCategories(profile.settings?.customCategoriesRaw || { income: [], expense: [] });
+
+        if (!isEditing) {
+          // Load today's transactions for the right panel
+          const txData = await getTransactions(user.uid);
+          const filtered = (txData.transactions || []).filter(tx => {
+            const d = tx.date?.toDate ? tx.date.toDate().toISOString().slice(0, 10) : '';
+            return d === today;
+          });
+          setTodayTxs(filtered);
+          return;
+        }
+
         const snap = await getDoc(doc(db, 'users', user.uid, 'transactions', transactionId));
         if (!snap.exists()) { setError(t('addTransaction.errors.notFound')); return; }
         const data = snap.data();
-        setCurrency(data.currency || profile.settings?.currency || 'VND');
+        setCurrency(data.currency || cur);
         setForm({
           amount: String(data.amount || ''),
           type: data.type || 'expense',
@@ -86,7 +106,6 @@ export default function AddTransaction() {
   const updateField = (field, value) => {
     setForm(c => {
       const next = { ...c, [field]: value };
-      // Auto-suggest Latte Factor when category is entered
       if (field === 'category' && next.type === 'expense' && !isEditing) {
         next.isLatteFactor = isLikelyLatte(value);
       }
@@ -111,187 +130,281 @@ export default function AddTransaction() {
         note: form.note.trim(),
         updatedAt: serverTimestamp(),
       };
+
       if (isEditing) {
         await updateDoc(doc(db, 'users', user.uid, 'transactions', transactionId), payload);
-      } else {
-        await addDoc(collection(db, 'users', user.uid, 'transactions'), { ...payload, createdAt: serverTimestamp() });
+        invalidateTransactionsCache(user.uid);
+        invalidateDashboardStatsCache(user.uid);
+        invalidateLatteFactorCache(user.uid);
+        invalidatePayYourselfFirstCache(user.uid);
+        invalidateReportsCache(user.uid);
+        invalidateAICoachCache(user.uid);
+        invalidateWeeklyReviewCache(user.uid, getCurrentWeekMeta().weekKey);
+        invalidateWealthRoadmapCache(user.uid);
+        navigate('/transactions');
+        return;
       }
+
+      const docRef = await addDoc(collection(db, 'users', user.uid, 'transactions'), { ...payload, createdAt: serverTimestamp() });
       invalidateTransactionsCache(user.uid);
       invalidateDashboardStatsCache(user.uid);
       invalidateLatteFactorCache(user.uid);
       invalidatePayYourselfFirstCache(user.uid);
       invalidateReportsCache(user.uid);
       invalidateAICoachCache(user.uid);
-      const weekMeta = getCurrentWeekMeta();
-      invalidateWeeklyReviewCache(user.uid, weekMeta.weekKey);
+      invalidateWeeklyReviewCache(user.uid, getCurrentWeekMeta().weekKey);
       invalidateWealthRoadmapCache(user.uid);
-      navigate(isEditing ? '/transactions' : '/track');
+
+      // Append to panel immediately (no extra fetch needed)
+      if (form.date === today) {
+        setTodayTxs(prev => [{ id: docRef.id, ...payload, date: { toDate: () => new Date(`${form.date}T00:00:00`) } }, ...prev]);
+      }
+
+      // Clear form, keep type + date for quick re-entry
+      setForm(prev => ({ ...emptyForm, type: prev.type, date: prev.date }));
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 2000);
+      amountRef.current?.focus();
+
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
   };
 
   if (loading) return <div className="p-10 text-center text-zx-text-soft">{t('common.loading')}</div>;
 
-  // Categories: custom first, then locale-aware defaults
   const defaultExpenseCategories = t('addTransaction.expenseCategories');
   const defaultIncomeCategories = t('addTransaction.incomeCategories');
   const allCategories = form.type === 'expense'
     ? [...new Set([...customCategories.expense, ...defaultExpenseCategories])]
     : [...new Set([...customCategories.income, ...defaultIncomeCategories])];
+  const chipCategories = form.type === 'expense' ? defaultExpenseCategories : defaultIncomeCategories;
 
   const inputCls = 'w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent transition';
 
+  const panelTxs = todayTxs;
+  const panelIncome = panelTxs.filter(tx => tx.type === 'income').reduce((s, tx) => s + Number(tx.amount), 0);
+  const panelExpense = panelTxs.filter(tx => tx.type === 'expense').reduce((s, tx) => s + Number(tx.amount), 0);
+
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 pb-24 md:pb-8">
-      <h1 className="font-zx-head text-xl font-bold text-zx-text mb-6">
-        {isEditing ? t('addTransaction.editTitle') : t('addTransaction.addTitle')}
-      </h1>
+    <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-8">
+      <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-x-12 lg:items-start">
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-
-        {/* Type toggle */}
-        <div className="flex gap-2">
-          {[
-            { value: 'expense', label: t('addTransaction.expenseType') },
-            { value: 'income', label: t('addTransaction.incomeType') },
-          ].map(opt => (
-            <button key={opt.value} type="button" onClick={() => updateField('type', opt.value)}
-              className={`flex-1 py-2.5 rounded-zx-sm text-sm font-semibold transition ${
-                form.type === opt.value
-                  ? opt.value === 'expense' ? 'bg-zx-accent text-zx-on-accent' : 'bg-zx-positive text-zx-on-accent'
-                  : 'border border-zx-line text-zx-text-soft hover:text-zx-text'
-              }`}>
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Amount */}
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
-            {t('addTransaction.amountLabel')}
-          </label>
-          <input
-            type="number" min="1" step="any" value={form.amount}
-            onChange={e => updateField('amount', e.target.value)}
-            placeholder="0"
-            className={`${inputCls} font-zx-display text-2xl font-bold`}
-            required
-          />
-          {form.amount && (
-            <p className="text-xs text-zx-text-soft mt-1.5">
-              {formatMoney(form.amount, currency)}
-            </p>
-          )}
-        </div>
-
-        {/* Category */}
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
-            {t('addTransaction.categoryLabel')}
-          </label>
-          <input
-            type="text"
-            list={`cats-${form.type}`}
-            value={form.category}
-            onChange={e => updateField('category', e.target.value)}
-            placeholder={form.type === 'expense' ? t('addTransaction.expensePlaceholder') : t('addTransaction.incomePlaceholder')}
-            className={inputCls}
-            required
-          />
-          <datalist id={`cats-${form.type}`}>
-            {allCategories.map(c => <option key={c} value={c} />)}
-          </datalist>
-          {/* Quick-tap chips */}
-          <div className="flex flex-wrap gap-2 mt-2">
-            {allCategories.slice(0, 8).map(cat => (
-              <button key={cat} type="button" onClick={() => updateField('category', cat)}
-                className={`rounded-full px-3 py-1.5 text-xs transition ${
-                  form.category === cat
-                    ? 'bg-zx-accent-soft border border-zx-accent text-zx-accent font-medium'
-                    : 'border border-zx-line text-zx-text-soft hover:border-zx-accent hover:text-zx-text'
-                }`}>
-                {cat}
-              </button>
-            ))}
+        {/* ── LEFT: Form ── */}
+        <div className="max-w-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="font-zx-head text-xl font-bold text-zx-text">
+              {isEditing ? t('addTransaction.editTitle') : t('addTransaction.addTitle')}
+            </h1>
+            {savedFlash && (
+              <span className="text-sm font-medium text-zx-positive">{t('addTransaction.savedSuccess')}</span>
+            )}
           </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+
+            {/* Type toggle */}
+            <div className="flex gap-2">
+              {[
+                { value: 'expense', label: t('addTransaction.expenseType') },
+                { value: 'income', label: t('addTransaction.incomeType') },
+              ].map(opt => (
+                <button key={opt.value} type="button" onClick={() => updateField('type', opt.value)}
+                  className={`flex-1 py-2.5 rounded-zx-sm text-sm font-semibold transition ${
+                    form.type === opt.value
+                      ? opt.value === 'expense' ? 'bg-zx-accent text-zx-on-accent' : 'bg-zx-positive text-zx-on-accent'
+                      : 'border border-zx-line text-zx-text-soft hover:text-zx-text'
+                  }`}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Amount */}
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
+                {t('addTransaction.amountLabel', { symbol: currency === 'USD' ? '$' : '₫' })}
+              </label>
+              <input
+                ref={amountRef}
+                type="number" min="1" step="any" value={form.amount}
+                onChange={e => updateField('amount', e.target.value)}
+                placeholder="0"
+                className={`${inputCls} font-zx-display text-2xl font-bold`}
+                required
+              />
+              {form.amount && (
+                <p className="text-xs text-zx-text-soft mt-1.5">
+                  {formatMoney(form.amount, currency)}
+                </p>
+              )}
+            </div>
+
+            {/* Category */}
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
+                {t('addTransaction.categoryLabel')}
+              </label>
+              <input
+                type="text"
+                list={`cats-${form.type}`}
+                value={form.category}
+                onChange={e => updateField('category', e.target.value)}
+                placeholder={form.type === 'expense' ? t('addTransaction.expensePlaceholder') : t('addTransaction.incomePlaceholder')}
+                className={inputCls}
+                required
+              />
+              <datalist id={`cats-${form.type}`}>
+                {allCategories.map(c => <option key={c} value={c} />)}
+              </datalist>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {chipCategories.slice(0, 8).map(cat => (
+                  <button key={cat} type="button" onClick={() => updateField('category', cat)}
+                    className={`rounded-full px-3 py-1.5 text-xs transition ${
+                      form.category === cat
+                        ? 'bg-zx-accent-soft border border-zx-accent text-zx-accent font-medium'
+                        : 'border border-zx-line text-zx-text-soft hover:border-zx-accent hover:text-zx-text'
+                    }`}>
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Date */}
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
+                {t('common.date')}
+              </label>
+              <input type="date" value={form.date} onChange={e => updateField('date', e.target.value)}
+                className={inputCls} required />
+            </div>
+
+            {/* Flags */}
+            {form.type === 'expense' && (
+              <div className="space-y-2">
+                <button type="button" onClick={() => updateField('isLatteFactor', !form.isLatteFactor)}
+                  className={`w-full flex items-center justify-between rounded-zx-sm border px-4 py-3 text-sm transition ${
+                    form.isLatteFactor
+                      ? 'border-zx-accent bg-zx-accent-soft text-zx-accent'
+                      : 'border-zx-line text-zx-text-soft hover:border-zx-accent'
+                  }`}>
+                  <span className="flex items-center gap-2">
+                    <span className="text-base">☕</span>
+                    <span className="font-medium">Latte Factor</span>
+                    {isLikelyLatte(form.category) && !form.isLatteFactor && (
+                      <span className="text-[10px] bg-zx-accent-soft text-zx-accent px-2 py-0.5 rounded-full">{t('common.suggestion')}</span>
+                    )}
+                  </span>
+                  <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    form.isLatteFactor ? 'bg-zx-accent border-zx-accent' : 'border-zx-line'
+                  }`}>
+                    {form.isLatteFactor && <span className="text-[10px] text-zx-on-accent font-bold">✓</span>}
+                  </span>
+                </button>
+
+                <button type="button" onClick={() => updateField('isRecurring', !form.isRecurring)}
+                  className={`w-full flex items-center justify-between rounded-zx-sm border px-4 py-3 text-sm transition ${
+                    form.isRecurring
+                      ? 'border-zx-accent bg-zx-accent-soft text-zx-accent'
+                      : 'border-zx-line text-zx-text-soft hover:border-zx-accent'
+                  }`}>
+                  <span className="flex items-center gap-2">
+                    <span className="text-base">🔁</span>
+                    <span className="font-medium">{t('addTransaction.recurringLabel')}</span>
+                  </span>
+                  <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    form.isRecurring ? 'bg-zx-accent border-zx-accent' : 'border-zx-line'
+                  }`}>
+                    {form.isRecurring && <span className="text-[10px] text-zx-on-accent font-bold">✓</span>}
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {/* Note */}
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
+                {t('common.noteOptional')}
+              </label>
+              <textarea value={form.note} onChange={e => updateField('note', e.target.value)}
+                rows={2} placeholder={t('addTransaction.addNotePlaceholder')} className={inputCls} />
+            </div>
+
+            {error && <p className="rounded-zx-sm bg-red-950/40 border border-red-900 p-3 text-sm text-red-300">{error}</p>}
+
+            <div className="flex gap-2">
+              <button type="submit" disabled={saving}
+                className={`flex-1 py-3.5 rounded-zx-sm text-sm font-semibold text-zx-on-accent transition hover:opacity-90 disabled:opacity-50 ${
+                  form.type === 'expense' ? 'bg-zx-accent' : 'bg-zx-positive'
+                }`}>
+                {saving ? t('common.saving') : isEditing ? t('addTransaction.saveChanges') : t('addTransaction.saveTransaction')}
+              </button>
+              {isEditing ? (
+                <button type="button" onClick={() => navigate(-1)}
+                  className="flex-1 sm:flex-none sm:px-6 py-3.5 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">
+                  {t('common.cancel')}
+                </button>
+              ) : (
+                <button type="button" onClick={() => navigate('/track')}
+                  className="flex-1 sm:flex-none sm:px-6 py-3.5 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">
+                  {t('addTransaction.done')}
+                </button>
+              )}
+            </div>
+          </form>
         </div>
 
-        {/* Date */}
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
-            {t('common.date')}
-          </label>
-          <input type="date" value={form.date} onChange={e => updateField('date', e.target.value)}
-            className={inputCls} required />
-        </div>
+        {/* ── RIGHT: Today's transactions panel ── */}
+        {!isEditing && (
+          <div className="hidden lg:block border-l border-zx-line pl-10 sticky top-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-4">
+              {t('addTransaction.todayPanel')} · {formatDate(new Date(`${form.date}T00:00:00`))}
+            </p>
 
-        {/* Flags */}
-        {form.type === 'expense' && (
-          <div className="space-y-2">
-            <button type="button" onClick={() => updateField('isLatteFactor', !form.isLatteFactor)}
-              className={`w-full flex items-center justify-between rounded-zx-sm border px-4 py-3 text-sm transition ${
-                form.isLatteFactor
-                  ? 'border-zx-accent bg-zx-accent-soft text-zx-accent'
-                  : 'border-zx-line text-zx-text-soft hover:border-zx-accent'
-              }`}>
-              <span className="flex items-center gap-2">
-                <span className="text-base">☕</span>
-                <span className="font-medium">Latte Factor</span>
-                {isLikelyLatte(form.category) && !form.isLatteFactor && (
-                  <span className="text-[10px] bg-zx-accent-soft text-zx-accent px-2 py-0.5 rounded-full">{t('common.suggestion')}</span>
-                )}
-              </span>
-              <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                form.isLatteFactor ? 'bg-zx-accent border-zx-accent' : 'border-zx-line'
-              }`}>
-                {form.isLatteFactor && <span className="text-[10px] text-zx-on-accent font-bold">✓</span>}
-              </span>
-            </button>
+            {/* Income / Expense totals */}
+            {panelTxs.length > 0 && (
+              <>
+                <div className="grid grid-cols-2 divide-x divide-zx-line mb-4">
+                  <div className="pr-4">
+                    <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-0.5">{t('addTransaction.totalIncome')}</p>
+                    <p className="font-zx-display text-lg font-bold text-zx-positive">{fmt(panelIncome, currency)}</p>
+                  </div>
+                  <div className="pl-4">
+                    <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-0.5">{t('addTransaction.totalExpense')}</p>
+                    <p className="font-zx-display text-lg font-bold text-zx-accent">{fmt(panelExpense, currency)}</p>
+                  </div>
+                </div>
+                <HL />
+              </>
+            )}
 
-            <button type="button" onClick={() => updateField('isRecurring', !form.isRecurring)}
-              className={`w-full flex items-center justify-between rounded-zx-sm border px-4 py-3 text-sm transition ${
-                form.isRecurring
-                  ? 'border-zx-accent bg-zx-accent-soft text-zx-accent'
-                  : 'border-zx-line text-zx-text-soft hover:border-zx-accent'
-              }`}>
-              <span className="flex items-center gap-2">
-                <span className="text-base">🔁</span>
-                <span className="font-medium">{t('addTransaction.recurringLabel')}</span>
-              </span>
-              <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                form.isRecurring ? 'bg-zx-accent border-zx-accent' : 'border-zx-line'
-              }`}>
-                {form.isRecurring && <span className="text-[10px] text-zx-on-accent font-bold">✓</span>}
-              </span>
-            </button>
+            {/* Transaction list */}
+            {panelTxs.length === 0 ? (
+              <p className="text-sm text-zx-text-soft mt-4">{t('addTransaction.todayEmpty')}</p>
+            ) : (
+              <div className="mt-3">
+                {panelTxs.map((tx, i) => (
+                  <div key={tx.id || i}>
+                    {i > 0 && <HL />}
+                    <div className="flex items-center justify-between py-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-zx-text truncate">{tx.category}</p>
+                        {tx.note && <p className="text-xs text-zx-text-soft truncate">{typeof tx.note === 'string' ? tx.note : ''}</p>}
+                        {tx.isLatteFactor && <span className="text-[10px] text-zx-accent font-medium">☕ Latte</span>}
+                      </div>
+                      <p className={`text-sm font-bold font-zx-display flex-shrink-0 ml-3 ${
+                        tx.type === 'income' ? 'text-zx-positive' : 'text-zx-text'
+                      }`}>
+                        {tx.type === 'income' ? '+' : '-'}{fmt(tx.amount, currency)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
-
-        {/* Note */}
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
-            {t('common.noteOptional')}
-          </label>
-          <textarea value={form.note} onChange={e => updateField('note', e.target.value)}
-            rows={2} placeholder={t('addTransaction.addNotePlaceholder')} className={inputCls} />
-        </div>
-
-        {error && <p className="rounded-zx-sm bg-red-950/40 border border-red-900 p-3 text-sm text-red-300">{error}</p>}
-
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <button type="submit" disabled={saving}
-            className={`flex-1 py-3.5 rounded-zx-sm text-sm font-semibold text-zx-on-accent transition hover:opacity-90 disabled:opacity-50 ${
-              form.type === 'expense' ? 'bg-zx-accent' : 'bg-zx-positive'
-            }`}>
-            {saving ? t('common.saving') : isEditing ? t('addTransaction.saveChanges') : t('addTransaction.saveTransaction')}
-          </button>
-          <button type="button" onClick={() => navigate(-1)}
-            className="flex-1 sm:flex-none sm:px-6 py-3.5 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">
-            {t('common.cancel')}
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }

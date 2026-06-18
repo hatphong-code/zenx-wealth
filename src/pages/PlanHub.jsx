@@ -51,7 +51,7 @@ function getMilestone(months) {
   return null;
 }
 
-function getPriority(stats, debtSummary, latteMonthly, t) {
+function getPriority(stats, debtSummary, latteMonthly, t, fmt, fmtNum) {
   if (stats.emergencyMonths < 1) {
     return {
       level: 'urgent',
@@ -85,7 +85,7 @@ function getPriority(stats, debtSummary, latteMonthly, t) {
   if (stats.payYourselfProgress < 80) {
     return {
       level: 'active',
-      label: 'Bước tiếp theo',
+      label: t('planHub.nextStep'),
       message: t('planHub.focusPYF', { target: stats.targetMonths }),
       action: t('planHub.action.payYourself'),
       to: '/pay-yourself-first',
@@ -95,7 +95,7 @@ function getPriority(stats, debtSummary, latteMonthly, t) {
   if (debtSummary.totalDebt > 0) {
     return {
       level: 'active',
-      label: 'Cần xử lý',
+      label: t('planHub.needsAttention'),
       message: t('planHub.debtRemaining', { amount: fmtNum(debtSummary.totalDebt) }),
       action: t('planHub.action.debts'),
       to: '/debts',
@@ -105,7 +105,7 @@ function getPriority(stats, debtSummary, latteMonthly, t) {
   return {
     level: 'done',
     label: t('planHub.building'),
-    message: 'Nền tảng vững. Tập trung xây dựng tài sản và dòng thu nhập mới.',
+    message: t('planHub.solidFoundation'),
     action: t('planHub.action.roadmap'),
     to: '/roadmap',
     tip: null,
@@ -158,7 +158,7 @@ export default function PlanHub() {
   const milestone = getMilestone(stats.emergencyMonths);
   const eta = calcETA(stats, pyfData);
   const latteMonthly = stats.latteFactor || 0;
-  const priority = getPriority(stats, debtData.summary, latteMonthly, t);
+  const priority = getPriority(stats, debtData.summary, latteMonthly, t, fmt, fmtNum);
 
   const planItems = [
     {
@@ -172,7 +172,7 @@ export default function PlanHub() {
     {
       key: 'emergency', label: t('planHub.items.emergencyFund'),
       value: `${formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 })}/${stats.targetMonths} ${t('common.months')}`,
-      sub: stats.emergencyMonths >= stats.targetMonths ? 'Đạt mục tiêu ✓' : `${Math.round(emgPct)}% mục tiêu`,
+      sub: stats.emergencyMonths >= stats.targetMonths ? t('planHub.goalReached') : t('planHub.pctOfGoal', { pct: Math.round(emgPct) }),
       to: '/emergency',
       status: stats.emergencyMonths >= stats.targetMonths ? 'done' : 'active',
       featureKey: 'emergency_fund',
@@ -210,7 +210,7 @@ export default function PlanHub() {
       featureKey: 'assets',
     },
     {
-      key: 'trading', label: 'Rủi ro đầu tư',
+      key: 'trading', label: t('planHub.items.trading'),
       value: null,
       sub: t('planHub.afterEmergencyFund'),
       to: '/trading-risk',
@@ -220,111 +220,112 @@ export default function PlanHub() {
   ];
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 pb-24 md:pb-8">
+    <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-8">
+      <div className="lg:grid lg:grid-cols-[1fr_380px] lg:gap-x-12 lg:items-start">
 
-      {/* ── Phase + milestone ── */}
-      <section className="pb-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
-          {t('planHub.currentPhase')}
-        </p>
-        {loading ? (
-          <p className="text-sm text-zx-text-soft">{t('common.loading')}</p>
-        ) : (
-          <>
-            {/* Milestone celebration */}
-            {milestone && (
-              <div className="mb-3 flex items-center gap-2">
-                <span className="text-lg">{'✦'.repeat(milestone.stars)}</span>
-                <span className={`text-sm font-semibold ${milestone.color}`}>{t(milestone.labelKey)}</span>
-              </div>
-            )}
+        {/* ── LEFT: Phase + milestone + progress ── */}
+        <div>
+          <section className="pb-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
+              {t('planHub.currentPhase')}
+            </p>
+            {loading ? (
+              <p className="text-sm text-zx-text-soft">{t('common.loading')}</p>
+            ) : (
+              <>
+                {milestone && (
+                  <div className="mb-3 flex items-center gap-2">
+                    <span className="text-lg">{'✦'.repeat(milestone.stars)}</span>
+                    <span className={`text-sm font-semibold ${milestone.color}`}>{t(milestone.labelKey)}</span>
+                  </div>
+                )}
 
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <p className="font-zx-display text-4xl font-bold text-zx-text leading-none">
-                  {roadmap.completedPhases + 1}
-                  <span className="text-lg font-normal text-zx-text-soft ml-1">
-                    / {roadmap.phases.length || '—'}
-                  </span>
-                </p>
-                <p className="font-zx-head text-base font-semibold text-zx-text mt-1">
-                  {currentPhase?.title || 'Chưa có lộ trình'}
-                </p>
-              </div>
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="font-zx-display text-4xl font-bold text-zx-text leading-none">
+                      {roadmap.completedPhases + 1}
+                      <span className="text-lg font-normal text-zx-text-soft ml-1">
+                        / {roadmap.phases.length || '—'}
+                      </span>
+                    </p>
+                    <p className="font-zx-head text-base font-semibold text-zx-text mt-1">
+                      {currentPhase?.title || t('planHub.notSetup')}
+                    </p>
+                  </div>
 
-              {/* ETA */}
-              {eta && (
-                <div className="text-right">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-zx-text-soft">
-                    {t('planHub.toMilestone', { months: eta.nextMilestone })}
-                  </p>
-                  <p className="font-zx-display text-xl font-bold text-zx-accent mt-0.5">
-                    ~{eta.monthsLeft} {t('common.months')}
-                  </p>
-                  <p className="text-[11px] text-zx-text-soft">{t('planHub.atCurrentRate')}</p>
+                  {eta && (
+                    <div className="text-right">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-zx-text-soft">
+                        {t('planHub.toMilestone', { months: eta.nextMilestone })}
+                      </p>
+                      <p className="font-zx-display text-xl font-bold text-zx-accent mt-0.5">
+                        ~{eta.monthsLeft} {t('common.months')}
+                      </p>
+                      <p className="text-[11px] text-zx-text-soft">{t('planHub.atCurrentRate')}</p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {currentPhase && (
-              <div className="mt-3">
-                <div className="h-1.5 rounded-full bg-zx-surface-2 overflow-hidden">
-                  <div className="progress-fill h-full rounded-full"
-                    style={{ width: `${roadmap.phases.length ? (roadmap.completedPhases / roadmap.phases.length) * 100 : 0}%` }} />
-                </div>
-                <p className="text-xs text-zx-text-soft mt-1.5">
-                  {t('planHub.phasesCompleted', { completed: roadmap.completedPhases, total: roadmap.phases.length })}
-                </p>
-              </div>
+                {currentPhase && (
+                  <div className="mt-3">
+                    <div className="h-1.5 rounded-full bg-zx-surface-2 overflow-hidden">
+                      <div className="progress-fill h-full rounded-full"
+                        style={{ width: `${roadmap.phases.length ? (roadmap.completedPhases / roadmap.phases.length) * 100 : 0}%` }} />
+                    </div>
+                    <p className="text-xs text-zx-text-soft mt-1.5">
+                      {t('planHub.phasesCompleted', { completed: roadmap.completedPhases, total: roadmap.phases.length })}
+                    </p>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
-      </section>
+          </section>
 
-      <HL />
+          <HL />
 
-      {/* ── Ưu tiên ── */}
-      <section className="py-6">
-        <div className="flex items-center gap-2 mb-3">
-          <span className={`text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full ${
-            priority.level === 'urgent' ? 'bg-zx-accent-soft text-zx-accent' :
-            priority.level === 'done'   ? 'bg-zx-positive-soft text-zx-positive' :
-            'bg-zx-surface-2 text-zx-text-soft'
-          }`}>
-            {priority.label}
-          </span>
+          {/* ── All plan items ── */}
+          <section className="pt-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 pt-4">
+              {t('planHub.allPlan')}
+            </p>
+            {planItems.map((item, i) => (
+              <div key={item.key}>
+                {i > 0 && <HL />}
+                <PlanItem {...item} canAccess={canAccess(item.featureKey)} />
+              </div>
+            ))}
+          </section>
         </div>
-        <p className="text-sm text-zx-text leading-relaxed mb-3">{priority.message}</p>
 
-        {/* Latte insight */}
-        {priority.tip && (
-          <p className="text-xs text-zx-gold bg-zx-gold-soft rounded-zx-sm px-3 py-2 mb-3">
-            💡 {priority.tip}
-          </p>
-        )}
+        {/* ── RIGHT: Priority + CTA ── */}
+        <div className="border-t border-zx-line pt-6 lg:border-t-0 lg:pt-0 lg:border-l lg:border-zx-line lg:pl-12">
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <span className={`text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full ${
+                priority.level === 'urgent' ? 'bg-zx-accent-soft text-zx-accent' :
+                priority.level === 'done'   ? 'bg-zx-positive-soft text-zx-positive' :
+                'bg-zx-surface-2 text-zx-text-soft'
+              }`}>
+                {priority.label}
+              </span>
+            </div>
+            <p className="text-sm text-zx-text leading-relaxed mb-3">{priority.message}</p>
 
-        {canAccess(planItems.find(i => i.to === priority.to)?.featureKey || 'roadmap') && (
-          <Link to={priority.to}
-            className="inline-flex items-center gap-2 rounded-zx-sm bg-zx-accent px-4 py-2.5 text-sm font-medium text-zx-on-accent hover:opacity-90 transition">
-            {priority.action} <ArrowRight className="h-4 w-4" />
-          </Link>
-        )}
-      </section>
+            {priority.tip && (
+              <p className="text-xs text-zx-gold bg-zx-gold-soft rounded-zx-sm px-3 py-2 mb-3">
+                💡 {priority.tip}
+              </p>
+            )}
 
-      <HL />
-
-      {/* ── All plan items ── */}
-      <section className="pt-2">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 pt-4">
-          Toàn bộ kế hoạch
-        </p>
-        {planItems.map((item, i) => (
-          <div key={item.key}>
-            {i > 0 && <HL />}
-            <PlanItem {...item} canAccess={canAccess(item.featureKey)} />
-          </div>
-        ))}
-      </section>
+            {canAccess(planItems.find(i => i.to === priority.to)?.featureKey || 'roadmap') && (
+              <Link to={priority.to}
+                className="inline-flex items-center gap-2 rounded-zx-sm bg-zx-accent px-4 py-2.5 text-sm font-medium text-zx-on-accent hover:opacity-90 transition">
+                {priority.action} <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
+          </section>
+        </div>
+      </div>
     </div>
   );
 }

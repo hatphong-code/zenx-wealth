@@ -81,10 +81,10 @@ export function detectRecurringTransactions(transactions) {
     }
   }
 
-  // Mark transactions as recurring
+  // Preserve user-set flags; auto-detection can only add, never remove
   return transactions.map(tx => ({
     ...tx,
-    isRecurring: recurringTxIds.has(tx.id),
+    isRecurring: tx.isRecurring === true || recurringTxIds.has(tx.id),
   }));
 }
 

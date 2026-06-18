@@ -62,7 +62,7 @@ export default function Dashboard() {
     : 0;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+    <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
       {/* Desktop 2-column: left=data, right=focus+actions (sticky) */}
       <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-10 lg:items-start">
       <div> {/* left column */}
@@ -144,7 +144,7 @@ export default function Dashboard() {
             label: t('dashboard.cards.payYourselfFirst'),
             value: `${formatNumber(stats.payYourselfProgress)}%`,
             valueColor: stats.payYourselfProgress >= 100 ? 'text-zx-positive' : 'text-zx-gold',
-            sub: `${fmt(stats.payYourselfSaved, currency)} đã trích`,
+            sub: `${fmt(stats.payYourselfSaved, currency)} ${t('dashboard.cards.savedSoFar')}`,
             subPositive: stats.payYourselfProgress >= 100,
             to: canAccess('pay_yourself_first') ? '/pay-yourself-first' : null,
           },

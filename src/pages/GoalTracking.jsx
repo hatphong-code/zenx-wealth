@@ -169,7 +169,7 @@ export default function GoalTracking() {
                 <span className="font-semibold text-zx-accent">
                   {fmt(weeklyTargetSavings - estimatedWeeklySavings, 'VND')}{t('goalTracking.perWeek')}
                 </span>
-                {' '}để theo đúng kế hoạch.
+                {' '}{t('goalTracking.toStayOnTrack')}
               </p>
             )}
           </div>

@@ -2,6 +2,89 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-17 — v2.0 Production Hardening
+
+### i18n — Complete English Support
+
+- Fixed category chips showing Vietnamese in EN mode: `AddTransaction` now uses `customCategoriesRaw` (user-added only) for autocomplete, and a separate `chipCategories` array from `t()` for quick-tap chips. Root cause was `mergeTransactionCategories('vi')` baking VI defaults into `customCategories` in `userService`.
+- Fixed theme labels `'Ấm'`/`'Tư gia'` hardcoded in `AppShell.jsx` → uses `t('settings.themeYoungStyle')` / `t('settings.themeMidStyle')`.
+- Fixed `amountLabel` hardcoding `₫` in both dictionaries → template `'Amount ({symbol})'` with currency interpolated from user settings.
+- Replaced all remaining hardcoded Vietnamese strings in `PlanHub`, `Dashboard`, `GoalTracking`, `Reports`, `AppShell` with `t()` keys. New keys added: `planHub.nextStep`, `planHub.needsAttention`, `planHub.solidFoundation`, `planHub.goalReached`, `planHub.pctOfGoal`, `planHub.items.trading`, `dashboard.cards.savedSoFar`, `goalTracking.toStayOnTrack`, `reports.insights.smallRecurring`, `appShell.defaultName`.
+
+### Desktop Layout — 2-Column + Size Consistency
+
+- Standardized all pages to `max-w-5xl`. Previously: Dashboard `max-w-6xl`, Profile `max-w-4xl`, AddTransaction `max-w-2xl`, WeeklyReview done-state `max-w-lg`.
+- TrackHub: `lg:grid-cols-[1fr_380px]` — cashflow+latte left, recurring+recent+quick-actions right.
+- PlanHub: `lg:grid-cols-[1fr_380px]` — phase+ETA+plan-items left, priority CTA right.
+- ReviewHub: `lg:grid-cols-[1fr_360px]` — score+stats+lesson left, tools right.
+- WeeklyReview: `lg:grid-cols-[1fr_300px]` — wizard left, sticky numbers summary panel right (hidden on mobile).
+- AddTransaction: `lg:grid-cols-[1fr_300px]` — form left (centered `max-w-2xl`), today's entries panel right.
+
+### AddTransaction — Multi-Entry UX
+
+- After successful save (non-edit mode): form clears, amount input focused, panel updates — page does NOT navigate away.
+- Added "Done" button to exit to `/track` when finished entering.
+- Edit mode retains existing behavior (navigate to `/transactions` after save).
+- Right panel shows today's transactions (filtered by selected date), income/expense totals, and entry list.
+
+### Recurring Detection — Firestore Persistence
+
+- `recurringDetectionService.js`: changed `isRecurring: recurringTxIds.has(tx.id)` to `isRecurring: tx.isRecurring === true || recurringTxIds.has(tx.id)` — user-set flags now preserved.
+- `transactionService.js`: after detection, filters for newly-detected flags (stored `false` → detected `true`) and batch-writes them to Firestore via `writeBatch`. Fire-and-forget — does not block the return.
+
+### Goal Parsing — Multi-Format Support
+
+- Rewrote `parseGoalAmount` in `goalTrackingService.js`.
+- Added `parseViNum` helper: handles VN decimal (`,`/`.`), VN thousand separators (`1.000.000`), and mixed formats.
+- Handles: `500 triệu`, `1.5 tỷ`, `1,5 tỷ`, `tỷ rưỡi`, `2 tỷ rưỡi`, `500.000.000`, `500,000,000`, `1 billion`, `500 million`, natural-language sentences (`tích lũy được 500 triệu`).
+- Root issue: `\b` word boundary doesn't work after Vietnamese non-ASCII chars — fixed with `(?=[^a-z]|$)` lookahead.
+- Added `goalParsing.test.js` with 8 test cases covering all formats; all pass.
+
+### Transaction Search/Filter — Enhanced
+
+- Added 4-mode sort cycle: newest → oldest → highest amount → lowest amount (button with label).
+- Added category dropdown (exact match from existing transaction data).
+- Added flag toggles: ☕ Latte Factor, ↻ Recurring (pill buttons, toggle on/off).
+- Collapsible "Advanced filters" panel with active-filter dot indicator.
+- Filtered totals: shown above list (income / expense / net) and in desktop table footer row.
+- Row hover highlight on desktop table.
+- All new keys added to both i18n dictionaries.
+
+### LLM AI Coach — Real Claude API
+
+- `functions/src/llmInsights.js`: reads API key from `appConfig/api-settings` at call time; falls back to Firebase Secret `ANTHROPIC_API_KEY`. Model also configurable via admin.
+- `generateAIInsights` exported from `functions/src/index.js`.
+- `src/services/llmCoachService.js` already wired correctly.
+
+### Monthly Letter — Email Delivery
+
+- New `functions/src/sendEmail.js`: `sendMonthlyLetter` Cloud Function. Reads Resend API key and from-address from `appConfig/api-settings`. Converts letter markdown to branded HTML email template. Returns `{ success, id }`.
+- `sendMonthlyLetter` exported from `functions/src/index.js`.
+- New `src/services/emailService.js`: frontend caller.
+- `MonthlyLetter.jsx`: replaced `alert()` placeholder with real email form — pre-fills user's email, shows loading spinner, success message, error state.
+
+### Admin Panel — 4-Tab Unified Interface
+
+- Replaced stacked sections with tab navigation: **Feature Access** / **Preview Plan** / **API & Config** / **Plans & Billing**.
+- Feature Access tab: group pill filter (All / Core / Premium), feature count per group, row hover, stat counters.
+- Preview Plan tab: tier switching with explanatory note.
+- API & Config tab: `lg:grid-cols-[1fr_260px]` — form left, status panel right (✓/– per service, "AI Coach ready" / "Email delivery ready" badges).
+- Plans & Billing tab: `lg:grid-cols-[1fr_280px]` — plan forms + MoMo credentials left, **live preview** of plan cards right (updates on every keystroke).
+- New `src/services/adminSettingsService.js`: read/write `appConfig/api-settings`.
+- New `src/pages/AdminSettings.jsx`: standalone settings page at `/admin/settings`.
+
+### Dynamic Billing — Plans Configurable via Admin
+
+- `billingService.js`: `getPlans()` async function reads `appConfig/billing-settings` (5 min cache), falls back to `DEFAULT_PLANS`.
+- `Upgrade.jsx`: uses `getPlans()` instead of hardcoded `PLANS`.
+- `functions/src/momo.js`: `createMomoPayment` and `momoIPN` read MoMo credentials from `appConfig/api-settings` via new `getBillingConfig()`, fall back to Firebase Secrets.
+- `appConfig/billing-settings` structure: `{ plans: { monthly: { amount, label, durationLabel, days }, yearly: { ..., badge } } }`.
+
+### PlanHub Bug Fix
+
+- `getPriority()` was a module-level function referencing `fmt` and `fmtNum` not in its scope.
+- Fix: added `fmt, fmtNum` parameters to function signature; updated call site to pass them.
+
 ## 2026-06-11
 
 ### Vietnamese-First I18n Foundation

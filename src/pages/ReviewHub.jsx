@@ -71,140 +71,142 @@ export default function ReviewHub() {
   const savingsRatePct = Math.round((review.savingsRate || 0) * 100);
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 pb-24 md:pb-8">
+    <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-8">
+      <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-x-12 lg:items-start">
 
-      {/* ── Tuần này ── */}
-      <section className="pb-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
-          {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : t('reviewHub.thisWeek')}
-        </p>
+        {/* ── LEFT: Score + Stats + Lesson/Commitment ── */}
+        <div>
+          <section className="pb-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
+              {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : t('reviewHub.thisWeek')}
+            </p>
 
-        {loading ? (
-          <p className="text-sm text-zx-text-soft">{t('common.loading')}</p>
-        ) : hasReviewed ? (
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <div className="flex items-baseline gap-2 mb-1">
-                <p className={`font-zx-display text-5xl font-bold leading-none ${scoreColor}`}>
-                  {score.toFixed(0)}
-                </p>
-                <p className="text-base text-zx-text-soft">/ 100</p>
+            {loading ? (
+              <p className="text-sm text-zx-text-soft">{t('common.loading')}</p>
+            ) : hasReviewed ? (
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <p className={`font-zx-display text-5xl font-bold leading-none ${scoreColor}`}>
+                      {score.toFixed(0)}
+                    </p>
+                    <p className="text-base text-zx-text-soft">/ 100</p>
+                  </div>
+                  <p className="text-sm text-zx-text-soft">
+                    {score >= 80 ? t('reviewHub.scoreExcellent') : score >= 60 ? t('reviewHub.scoreGood') : score >= 40 ? t('reviewHub.scoreOk') : t('reviewHub.scoreHard')}
+                  </p>
+                </div>
+                {history.length > 1 && (
+                  <div className="text-right">
+                    <p className="text-[10px] text-zx-text-soft mb-2">{t('reviewHub.last5Weeks')}</p>
+                    <ScoreSparkline scores={history} />
+                  </div>
+                )}
               </div>
-              <p className="text-sm text-zx-text-soft">
-                {score >= 80 ? t('reviewHub.scoreExcellent') : score >= 60 ? t('reviewHub.scoreGood') : score >= 40 ? t('reviewHub.scoreOk') : t('reviewHub.scoreHard')}
-              </p>
-            </div>
-            {/* Score history bars */}
-            {history.length > 1 && (
-              <div className="text-right">
-                <p className="text-[10px] text-zx-text-soft mb-2">5 tuần gần nhất</p>
-                <ScoreSparkline scores={history} />
+            ) : (
+              <div>
+                <p className="font-zx-head text-xl font-semibold text-zx-text mb-1">{t('reviewHub.notReviewedYet')}</p>
+                <p className="text-sm text-zx-text-soft">{t('reviewHub.reviewHint')}</p>
               </div>
             )}
-          </div>
-        ) : (
-          <div>
-            <p className="font-zx-head text-xl font-semibold text-zx-text mb-1">{t('reviewHub.notReviewedYet')}</p>
-            <p className="text-sm text-zx-text-soft">{t('reviewHub.reviewHint')}</p>
-          </div>
-        )}
-      </section>
+          </section>
 
-      <HL />
+          <HL />
 
-      {/* ── Số liệu / CTA ── */}
-      {hasReviewed ? (
-        <section className="py-6">
-          <div className="grid grid-cols-2 gap-0 divide-x divide-zx-line">
+          {hasReviewed ? (
+            <section className="py-6">
+              <div className="grid grid-cols-2 gap-0 divide-x divide-zx-line">
+                {[
+                  { label: t('common.income'), value: fmt(review.income, 'VND'), color: 'text-zx-positive' },
+                  { label: t('common.expense'), value: fmt(review.expense, 'VND'), color: 'text-zx-text' },
+                  { label: t('common.savings'), value: `${savingsRatePct}%`, color: savingsRatePct >= 30 ? 'text-zx-positive' : 'text-zx-gold' },
+                  { label: t('common.latteFactor'), value: fmt(review.latteFactorTotal, 'VND'), color: 'text-zx-accent' },
+                ].map((s, i) => (
+                  <div key={s.label} className={`px-4 py-4 ${i >= 2 ? 'border-t border-zx-line' : ''} ${i % 2 === 0 ? 'pl-0' : ''}`}>
+                    <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{s.label}</p>
+                    <p className={`font-zx-display text-xl font-bold ${s.color}`}>{s.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {form.oneLesson && (
+                <>
+                  <HL />
+                  <div className="py-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2">{t('reviewHub.lesson')}</p>
+                    <p className="text-sm text-zx-text italic">"{form.oneLesson}"</p>
+                  </div>
+                </>
+              )}
+
+              {form.oneActionNextWeek && (
+                <>
+                  <HL />
+                  <div className="py-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2">{t('reviewHub.commitment')}</p>
+                    <p className="text-sm font-medium text-zx-text">"{form.oneActionNextWeek}"</p>
+                  </div>
+                </>
+              )}
+            </section>
+          ) : (
+            <section className="py-6">
+              <p className="text-sm text-zx-text-soft leading-relaxed mb-4">
+                {t('reviewHub.hint')}
+              </p>
+              {canAccess('weekly_review') && (
+                <Link to="/weekly-review"
+                  className="flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent px-4 py-3 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
+                  <ClipboardCheck className="h-4 w-4" />
+                  {t('reviewHub.startReview')}
+                </Link>
+              )}
+            </section>
+          )}
+        </div>
+
+        {/* ── RIGHT: Tools ── */}
+        <div className="border-t border-zx-line pt-6 lg:border-t-0 lg:pt-0 lg:border-l lg:border-zx-line lg:pl-12">
+          <section>
             {[
-              { label: t('common.income'), value: fmt(review.income, 'VND'), color: 'text-zx-positive' },
-              { label: t('common.expense'), value: fmt(review.expense, 'VND'), color: 'text-zx-text' },
-              { label: t('common.savings'), value: `${savingsRatePct}%`, color: savingsRatePct >= 30 ? 'text-zx-positive' : 'text-zx-gold' },
-              { label: t('common.latteFactor'), value: fmt(review.latteFactorTotal, 'VND'), color: 'text-zx-accent' },
-            ].map((s, i) => (
-              <div key={s.label} className={`px-4 py-4 ${i >= 2 ? 'border-t border-zx-line' : ''} ${i % 2 === 0 ? 'pl-0' : ''}`}>
-                <p className="text-[11px] text-zx-text-soft uppercase tracking-[0.1em] mb-1">{s.label}</p>
-                <p className={`font-zx-display text-xl font-bold ${s.color}`}>{s.value}</p>
+              {
+                icon: ClipboardCheck, label: t('reviewHub.weeklyReviewLabel'),
+                sub: hasReviewed ? t('reviewHub.completed') : t('reviewHub.notDone'),
+                to: '/weekly-review', featureKey: 'weekly_review', active: !hasReviewed,
+              },
+              {
+                icon: BarChart3, label: t('reviewHub.reportsLabel'),
+                sub: t('reviewHub.monthlyTrends'),
+                to: '/reports', featureKey: 'reports', active: false,
+              },
+              {
+                icon: Bot, label: t('reviewHub.aiCoachLabel'),
+                sub: t('reviewHub.askAssistant'),
+                to: '/ai-coach', featureKey: 'ai_coach', active: false,
+              },
+            ].filter(item => canAccess(item.featureKey)).map((item, i) => (
+              <div key={item.to}>
+                {i > 0 && <HL />}
+                <Link to={item.to}
+                  className="flex items-center justify-between py-4 hover:text-zx-accent transition group">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-zx-sm flex items-center justify-center flex-shrink-0 zx-transition ${
+                      item.active ? 'bg-zx-accent text-zx-on-accent' : 'bg-zx-icon-bg text-zx-text-soft group-hover:text-zx-accent'
+                    }`}>
+                      <item.icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-zx-text">{item.label}</p>
+                      <p className={`text-xs mt-0.5 ${item.active ? 'text-zx-accent' : 'text-zx-text-soft'}`}>{item.sub}</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-zx-text-soft group-hover:text-zx-accent transition" />
+                </Link>
               </div>
             ))}
-          </div>
-
-          {form.oneLesson && (
-            <>
-              <HL />
-              <div className="py-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2">{t('reviewHub.lesson')}</p>
-                <p className="text-sm text-zx-text italic">"{form.oneLesson}"</p>
-              </div>
-            </>
-          )}
-
-          {form.oneActionNextWeek && (
-            <>
-              <HL />
-              <div className="py-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2">{t('reviewHub.commitment')}</p>
-                <p className="text-sm font-medium text-zx-text">"{form.oneActionNextWeek}"</p>
-              </div>
-            </>
-          )}
-        </section>
-      ) : (
-        <section className="py-6">
-          <p className="text-sm text-zx-text-soft leading-relaxed mb-4">
-            {t('reviewHub.hint')}
-          </p>
-          {canAccess('weekly_review') && (
-            <Link to="/weekly-review"
-              className="flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent px-4 py-3 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
-              <ClipboardCheck className="h-4 w-4" />
-              {t('reviewHub.startReview')}
-            </Link>
-          )}
-        </section>
-      )}
-
-      <HL />
-
-      {/* ── Tools ── */}
-      <section className="pt-2">
-        {[
-          {
-            icon: ClipboardCheck, label: t('reviewHub.weeklyReviewLabel'),
-            sub: hasReviewed ? t('reviewHub.completed') : t('reviewHub.notDone'),
-            to: '/weekly-review', featureKey: 'weekly_review', active: !hasReviewed,
-          },
-          {
-            icon: BarChart3, label: t('reviewHub.reportsLabel'),
-            sub: t('reviewHub.monthlyTrends'),
-            to: '/reports', featureKey: 'reports', active: false,
-          },
-          {
-            icon: Bot, label: t('reviewHub.aiCoachLabel'),
-            sub: t('reviewHub.askAssistant'),
-            to: '/ai-coach', featureKey: 'ai_coach', active: false,
-          },
-        ].filter(item => canAccess(item.featureKey)).map((item, i) => (
-          <div key={item.to}>
-            {i > 0 && <HL />}
-            <Link to={item.to}
-              className="flex items-center justify-between py-4 hover:text-zx-accent transition group">
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-zx-sm flex items-center justify-center flex-shrink-0 zx-transition ${
-                  item.active ? 'bg-zx-accent text-zx-on-accent' : 'bg-zx-icon-bg text-zx-text-soft group-hover:text-zx-accent'
-                }`}>
-                  <item.icon className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-zx-text">{item.label}</p>
-                  <p className={`text-xs mt-0.5 ${item.active ? 'text-zx-accent' : 'text-zx-text-soft'}`}>{item.sub}</p>
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4 text-zx-text-soft group-hover:text-zx-accent transition" />
-            </Link>
-          </div>
-        ))}
-      </section>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }
