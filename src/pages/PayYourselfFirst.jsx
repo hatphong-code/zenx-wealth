@@ -64,7 +64,7 @@ export default function PayYourselfFirst() {
   };
 
   return (
-      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-surface">
             <PiggyBank className="h-7 w-7 text-zx-accent" />
@@ -77,26 +77,26 @@ export default function PayYourselfFirst() {
           </div>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="py-4">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('payYourself.stats.incomeBase')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(data.totalIncome, data.currency)}</p>
           </div>
-          <div className="py-4">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('payYourself.stats.required')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(data.status.required, data.currency)}</p>
           </div>
-          <div className="py-4">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('payYourself.stats.done')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(data.status.done, data.currency)}</p>
           </div>
-          <div className="py-4">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('payYourself.stats.remaining')}</p>
             <p className="mt-2 text-2xl font-bold text-orange-300">{formatMoney(data.status.remaining, data.currency)}</p>
           </div>
         </section>
 
-        <section className="py-5">
+        <section className="rounded-zx border border-zx-line bg-zx-surface p-5">
           <div className="mb-3 flex items-center justify-between text-sm text-zx-text-soft">
             <span>{t('common.progress')}</span>
             <span>{formatNumber(data.status.progress)}%</span>
@@ -106,7 +106,7 @@ export default function PayYourselfFirst() {
           </div>
         </section>
 
-        <form onSubmit={handleSave} className="space-y-5 rounded-lg border border-zx-line bg-zx-surface p-5">
+        <form onSubmit={handleSave} className="space-y-5 rounded-zx border border-zx-line bg-zx-surface p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-zx-head text-lg font-semibold text-zx-text">{t('payYourself.ruleTitle')}</h2>
             <span className={`text-sm ${totalPercent === 100 ? 'text-zx-positive' : 'text-orange-300'}`}>
@@ -125,7 +125,7 @@ export default function PayYourselfFirst() {
                   step="1"
                   value={value}
                   onChange={(event) => updateField(key, event.target.value)}
-                  className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </label>
             ))}
@@ -144,11 +144,11 @@ export default function PayYourselfFirst() {
           </Button>
         </form>
 
-        <section className="py-5">
-          <h2 className="font-zx-head text-lg font-semibold text-zx-text">{t('payYourself.allocationTitle')}</h2>
-          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <section className="rounded-zx border border-zx-line bg-zx-surface p-5">
+          <h2 className="font-zx-head text-lg font-semibold text-zx-text mb-4">{t('payYourself.allocationTitle')}</h2>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             {data.allocations.map((item) => (
-              <div key={item.key} className="rounded border border-zx-line bg-zx-bg p-4">
+              <div key={item.key} className="rounded-zx-sm border border-zx-line bg-zx-bg p-4">
                 <p className="text-sm text-zx-text-soft">{t('payYourself.allocationLabels.' + item.key)}</p>
                 <p className="mt-2 text-lg font-semibold">{formatNumber(item.percentage)}%</p>
                 <p className="mt-1 text-sm text-zx-text-soft">{formatMoney(item.amount, data.currency)}</p>

@@ -130,8 +130,8 @@ export default function TradingRisk() {
   };
 
   return (
-      <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
-        <section className="pb-6">
+      <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
+        <section>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 rounded-lg border border-amber-900 bg-amber-950/40 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-gold">
@@ -157,8 +157,8 @@ export default function TradingRisk() {
           </div>
         </section>
 
-        {error && <div className="rounded-lg border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>}
-        {message && <div className="rounded-lg border border-green-900 bg-green-950/40 p-3 text-sm text-zx-positive">{message}</div>}
+        {error && <div className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>}
+        {message && <div className="rounded-zx-sm border border-green-900 bg-green-950/40 p-3 text-sm text-zx-positive">{message}</div>}
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Card>
@@ -214,7 +214,7 @@ export default function TradingRisk() {
                 { label: t('trading.monitorRows.weekly'), value: summary.weekly, context: summary.weekPnl },
                 { label: t('trading.monitorRows.monthly'), value: summary.monthly, context: summary.monthPnl },
               ].map((item) => (
-                <div key={item.label} className="rounded-lg border border-zx-line bg-zx-bg p-4">
+                <div key={item.label} className="rounded-zx-sm border border-zx-line bg-zx-bg p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="text-sm text-zx-text-soft">{item.label}</p>
@@ -222,7 +222,7 @@ export default function TradingRisk() {
                         {formatMoney(item.context, currency)}
                       </p>
                     </div>
-                    <div className={`rounded-lg border px-3 py-2 text-sm font-medium ${statusTone(item.value.status)}`}>
+                    <div className={`rounded-zx-sm border px-3 py-2 text-sm font-medium ${statusTone(item.value.status)}`}>
                       {statusLabel(item.value.status)}
                     </div>
                   </div>
@@ -259,7 +259,7 @@ export default function TradingRisk() {
                       step="any"
                       value={configForm.capital}
                       onChange={(event) => updateConfig('capital', event.target.value)}
-                      className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
+                      className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                     />
                   </label>
                   <label className="space-y-2">
@@ -271,7 +271,7 @@ export default function TradingRisk() {
                       step="1"
                       value={configForm.profitWithdrawalPct}
                       onChange={(event) => updateConfig('profitWithdrawalPct', event.target.value)}
-                      className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
+                      className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                     />
                   </label>
                   <label className="space-y-2">
@@ -282,7 +282,7 @@ export default function TradingRisk() {
                       step="0.1"
                       value={configForm.dailyLossLimitPct}
                       onChange={(event) => updateConfig('dailyLossLimitPct', event.target.value)}
-                      className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
+                      className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                     />
                   </label>
                   <label className="space-y-2">
@@ -293,7 +293,7 @@ export default function TradingRisk() {
                       step="0.1"
                       value={configForm.weeklyLossLimitPct}
                       onChange={(event) => updateConfig('weeklyLossLimitPct', event.target.value)}
-                      className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
+                      className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                     />
                   </label>
                   <label className="space-y-2 md:col-span-2">
@@ -304,7 +304,7 @@ export default function TradingRisk() {
                       step="0.1"
                       value={configForm.monthlyLossLimitPct}
                       onChange={(event) => updateConfig('monthlyLossLimitPct', event.target.value)}
-                      className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
+                      className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                     />
                   </label>
                 </div>
@@ -335,7 +335,7 @@ export default function TradingRisk() {
                       type="date"
                       value={journalForm.date}
                       onChange={(event) => updateJournal('date', event.target.value)}
-                      className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
+                      className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                     />
                   </label>
                   <label className="space-y-2">
@@ -346,7 +346,7 @@ export default function TradingRisk() {
                       value={journalForm.pnl}
                       onChange={(event) => updateJournal('pnl', event.target.value)}
                       placeholder="-250000 or 480000"
-                      className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
+                      className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                     />
                   </label>
                 </div>
@@ -357,7 +357,7 @@ export default function TradingRisk() {
                     value={journalForm.note}
                     onChange={(event) => updateJournal('note', event.target.value)}
                     placeholder={t('trading.journalFields.notePlaceholder')}
-                    className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
+                    className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                   />
                 </label>
                 <Button type="submit" disabled={savingJournal} className="w-full bg-amber-600 text-zx-text hover:bg-amber-700">
@@ -374,13 +374,13 @@ export default function TradingRisk() {
             </CardHeader>
             <CardContent>
               {data.records.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-zx-line bg-zx-bg p-6 text-center text-sm text-zx-text-soft">
+                <div className="rounded-zx border border-dashed border-zx-line bg-zx-bg p-6 text-center text-sm text-zx-text-soft">
                   {t('trading.noEntries')}
                 </div>
               ) : (
                 <div className="space-y-3">
                   {data.records.slice(0, 8).map((record) => (
-                    <div key={record.id} className="flex flex-col gap-2 rounded-lg border border-zx-line bg-zx-bg p-4 md:flex-row md:items-center md:justify-between">
+                    <div key={record.id} className="flex flex-col gap-2 rounded-zx-sm border border-zx-line bg-zx-bg p-4 md:flex-row md:items-center md:justify-between">
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-zx-text">{formatDate(record.date)}</p>
                         <p className="text-sm text-zx-text-soft">{record.note || t('common.noNote')}</p>

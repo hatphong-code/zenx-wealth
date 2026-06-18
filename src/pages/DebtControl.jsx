@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { CreditCard, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { Button } from '../components/ui/button';
 import { formatMoney, formatNumber } from '../utils/formatters';
@@ -137,35 +137,40 @@ export default function DebtControl() {
   const { currency, debts, summary } = data;
 
   return (
-      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
-        <div className="space-y-1">
-          <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('debts.title')}</h1>
-          <p className="text-sm text-zx-text-soft">{t('debts.subtitle')}</p>
-          {loading && <p className="text-sm text-zx-text-soft">{t('debts.loading')}</p>}
-          {refreshing && <p className="text-sm text-zx-accent">{t('debts.refreshing')}</p>}
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-icon-bg">
+            <CreditCard className="h-6 w-6 text-red-400" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('debts.title')}</h1>
+            <p className="text-sm text-zx-text-soft">{t('debts.subtitle')}</p>
+            {loading && <p className="text-sm text-zx-text-soft">{t('debts.loading')}</p>}
+            {refreshing && <p className="text-sm text-zx-accent">{t('debts.refreshing')}</p>}
+          </div>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="py-4">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('debts.stats.total')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(summary.totalDebt, currency)}</p>
           </div>
-          <div className="py-4">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('debts.stats.bad')}</p>
             <p className="mt-2 text-2xl font-bold text-red-300">{formatMoney(summary.badDebt, currency)}</p>
           </div>
-          <div className="py-4">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('debts.stats.monthly')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(summary.monthlyPayment, currency)}</p>
           </div>
-          <div className="py-4">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('debts.stats.progress')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatNumber(summary.payoffProgress)}%</p>
           </div>
         </section>
 
         {summary.highestPriorityDebt && (
-          <section className="rounded-lg border border-[#3F2A2A] bg-[#1A1313] p-4">
+          <section className="rounded-zx border border-[#3F2A2A] bg-[#1A1313] p-4">
             <p className="text-sm text-red-300">{t('debts.suggestedAction')}</p>
             <p className="mt-2 text-sm text-zx-text-soft">
               {t('debts.focusPayment', { name: summary.highestPriorityDebt.debtName, rate: formatNumber(summary.highestPriorityDebt.interestRate, { maximumFractionDigits: 1 }) })}
@@ -230,7 +235,7 @@ export default function DebtControl() {
           </Button>
         </form>
 
-        <section className="overflow-hidden">
+        <section className="rounded-zx border border-zx-line bg-zx-surface overflow-hidden">
           <div className="border-b border-zx-line p-4">
             <h2 className="font-semibold">{t('debts.portfolio')}</h2>
           </div>

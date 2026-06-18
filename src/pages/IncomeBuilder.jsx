@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, TrendingUp } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { Button } from '../components/ui/button';
 import { formatMoney } from '../utils/formatters';
@@ -128,28 +128,33 @@ export default function IncomeBuilder() {
   const { currency, incomeSources, summary } = data;
 
   return (
-      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
-        <div className="space-y-1">
-          <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('income.title')}</h1>
-          <p className="text-sm text-zx-text-soft">{t('income.subtitle')}</p>
-          {loading && <p className="text-sm text-zx-text-soft">{t('income.loading')}</p>}
-          {refreshing && <p className="text-sm text-zx-accent">{t('income.refreshing')}</p>}
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-icon-bg">
+            <TrendingUp className="h-6 w-6 text-zx-accent" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('income.title')}</h1>
+            <p className="text-sm text-zx-text-soft">{t('income.subtitle')}</p>
+            {loading && <p className="text-sm text-zx-text-soft">{t('income.loading')}</p>}
+            {refreshing && <p className="text-sm text-zx-accent">{t('income.refreshing')}</p>}
+          </div>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="py-4">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('income.stats.current')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(summary.currentMonthlyIncome, currency)}</p>
           </div>
-          <div className="py-4">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('income.stats.target')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(summary.targetMonthlyIncome, currency)}</p>
           </div>
-          <div className="py-4">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('income.stats.gap')}</p>
             <p className="mt-2 text-2xl font-bold text-orange-300">{formatMoney(summary.gap, currency)}</p>
           </div>
-          <div className="py-4">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('income.stats.sources')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{summary.activeSources}</p>
           </div>
@@ -204,7 +209,7 @@ export default function IncomeBuilder() {
           </Button>
         </form>
 
-        <section className="overflow-hidden">
+        <section className="rounded-zx border border-zx-line bg-zx-surface overflow-hidden">
           <div className="border-b border-zx-line p-4">
             <h2 className="font-semibold">{t('income.pipeline')}</h2>
           </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle, ChevronDown, ChevronUp, LayoutTemplate, X } from 'lucide-react';
+import { CheckCircle, LayoutTemplate, X } from 'lucide-react';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
 import { useI18n } from '../i18n/useI18n';
@@ -9,13 +9,16 @@ import { getBudgetTemplates } from '../services/budgetTemplatesService';
 import { db } from '../services/firebaseDb';
 import { getUserProfile, setUserProfileCache } from '../services/userService';
 import { invalidatePayYourselfFirstCache } from '../services/payYourselfFirstService';
+import { invalidateDashboardStatsCache } from '../services/dashboardService';
 import { invalidateReportsCache } from '../services/reportsService';
 import { invalidateWealthRoadmapCache } from '../services/wealthRoadmapService';
 import { invalidateAICoachCache } from '../services/aiCoachService';
+import { getCurrentWeekMeta, invalidateWeeklyReviewCache } from '../services/weeklyReviewService';
 
 const ALLOCATION_KEYS = ['living', 'emergencyFund', 'longTermAsset', 'businessLearning', 'highRiskTrading'];
 const ALLOC_COLORS = ['bg-zx-accent', 'bg-zx-positive', 'bg-blue-500', 'bg-purple-500', 'bg-red-500'];
 
+/* Full bar + legend — dùng trong modal */
 function AllocationBar({ allocation, t }) {
   const entries = ALLOCATION_KEYS.map((key, i) => ({
     key, label: t(`settings.fields.${key}`), value: allocation[key] || 0, color: ALLOC_COLORS[i],
@@ -39,6 +42,30 @@ function AllocationBar({ allocation, t }) {
   );
 }
 
+/* Compact bar — chỉ bar + dot-% không label, dùng trong card */
+function AllocationBarCompact({ allocation }) {
+  const entries = ALLOCATION_KEYS.map((key, i) => ({
+    key, value: allocation[key] || 0, color: ALLOC_COLORS[i],
+  }));
+  return (
+    <div className="space-y-1.5">
+      <div className="flex h-2 rounded-full overflow-hidden gap-px">
+        {entries.map(e => e.value > 0 && (
+          <div key={e.key} className={`${e.color} h-full`} style={{ width: `${e.value}%` }} />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+        {entries.filter(e => e.value > 0).map(e => (
+          <span key={e.key} className="flex items-center gap-1 text-[11px] text-zx-text-soft">
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${e.color}`} />
+            {e.value}%
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function DiffRow({ label, current, next }) {
   const changed = current !== next;
   return (
@@ -52,9 +79,9 @@ function DiffRow({ label, current, next }) {
   );
 }
 
-/* ── Preview modal before applying ── */
 function ApplyModal({ template, currentSettings, onConfirm, onCancel, applying, t, locale }) {
-  const name = t(`budgetTemplates.templates.${template.id}.name`, {}, template.id);
+  const name = (locale === 'en' ? template.nameEN : template.nameVI)
+    || t(`budgetTemplates.templates.${template.id}.name`, {}, template.nameVI || template.id);
   const cats = locale === 'en' && template.categoriesEN
     ? template.categoriesEN
     : template.categories;
@@ -75,7 +102,7 @@ function ApplyModal({ template, currentSettings, onConfirm, onCancel, applying, 
         <div className="px-5 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
           <p className="text-sm text-zx-text-soft">{t('budgetTemplates.previewHint')}</p>
 
-          {/* Allocation changes */}
+          {/* Allocation */}
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2">{t('budgetTemplates.allocation')}</p>
             <AllocationBar allocation={template.allocation} t={t} />
@@ -91,7 +118,7 @@ function ApplyModal({ template, currentSettings, onConfirm, onCancel, applying, 
             </div>
           </div>
 
-          {/* Emergency fund */}
+          {/* Emergency */}
           <div className="divide-y divide-zx-line/50 border-t border-zx-line pt-3">
             <DiffRow
               label={t('budgetTemplates.emergencyTarget')}
@@ -100,13 +127,24 @@ function ApplyModal({ template, currentSettings, onConfirm, onCancel, applying, 
             />
           </div>
 
-          {/* Categories */}
-          <div className="border-t border-zx-line pt-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2">{t('budgetTemplates.categories')}</p>
-            <div className="flex flex-wrap gap-1.5">
-              {[...cats.income, ...cats.expense].map(cat => (
-                <span key={cat} className="rounded-full bg-zx-accent-soft border border-zx-accent/30 px-2.5 py-1 text-xs text-zx-accent">{cat}</span>
-              ))}
+          {/* Categories — tách income / expense */}
+          <div className="border-t border-zx-line pt-3 space-y-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('budgetTemplates.categories')}</p>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-zx-positive mb-1.5">{t('budgetTemplates.income')}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {cats.income.map(cat => (
+                  <span key={cat} className="rounded-full bg-emerald-950/40 border border-emerald-900/50 px-2.5 py-1 text-xs text-zx-positive">{cat}</span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-zx-text-soft mb-1.5">{t('budgetTemplates.expense')}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {cats.expense.map(cat => (
+                  <span key={cat} className="rounded-full bg-zx-accent-soft border border-zx-accent/30 px-2.5 py-1 text-xs text-zx-accent">{cat}</span>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -138,7 +176,6 @@ export default function BudgetTemplates() {
   const [error, setError] = useState('');
   const [previewTemplate, setPreviewTemplate] = useState(null);
   const [currentSettings, setCurrentSettings] = useState(null);
-  const [expanded, setExpanded] = useState({});
   const [templates, setTemplates] = useState([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
 
@@ -150,7 +187,6 @@ export default function BudgetTemplates() {
 
   const openPreview = (template) => setPreviewTemplate(template);
   const closePreview = () => setPreviewTemplate(null);
-  const toggleExpand = (id) => setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
 
   const handleApply = async () => {
     const template = previewTemplate;
@@ -162,6 +198,7 @@ export default function BudgetTemplates() {
       const nextSettings = {
         ...(profile.settings || {}),
         allocationRule: template.allocation,
+        payYourselfFirstRate: 1 - (template.allocation.living / 100),
         customCategories: {
           income: template.categories.income,
           expense: template.categories.expense,
@@ -171,10 +208,12 @@ export default function BudgetTemplates() {
       await setDoc(doc(db, 'users', user.uid), { settings: nextSettings, updatedAt: serverTimestamp() }, { merge: true });
       setUserProfileCache(user.uid, { ...profile, settings: nextSettings });
       setCurrentSettings(nextSettings);
+      invalidateDashboardStatsCache(user.uid);
       invalidatePayYourselfFirstCache(user.uid);
       invalidateReportsCache(user.uid);
       invalidateWealthRoadmapCache(user.uid);
       invalidateAICoachCache(user.uid);
+      invalidateWeeklyReviewCache(user.uid, getCurrentWeekMeta().weekKey);
       setApplied(template.id);
       closePreview();
     } catch {
@@ -186,7 +225,7 @@ export default function BudgetTemplates() {
   };
 
   return (
-    <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
+    <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
       <div className="space-y-1">
         <div className="inline-flex items-center gap-2 rounded-full border border-zx-line px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-text-soft">
           <LayoutTemplate className="h-3.5 w-3.5" />
@@ -196,7 +235,7 @@ export default function BudgetTemplates() {
         <p className="text-sm text-zx-text-soft">{t('budgetTemplates.subtitle')}</p>
       </div>
 
-      {error && <div className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>}
+      {error && <div className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>}
 
       {applied && (
         <div className="flex items-center gap-2 rounded-zx border border-emerald-800 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-200">
@@ -207,75 +246,85 @@ export default function BudgetTemplates() {
 
       {loadingTemplates && <p className="text-sm text-zx-text-soft">{t('common.loading')}</p>}
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {templates.map((template) => {
           const isApplied = applied === template.id;
-          const isExpanded = expanded[template.id];
-          const name = t(`budgetTemplates.templates.${template.id}.name`, {}, template.id);
-          const description = t(`budgetTemplates.templates.${template.id}.description`, {}, '');
-          const cats = locale === 'en' && template.categoriesEN
-            ? [...template.categoriesEN.income, ...template.categoriesEN.expense]
-            : [...template.categories.income, ...template.categories.expense];
+          const name = (locale === 'en' ? template.nameEN : template.nameVI)
+            || t(`budgetTemplates.templates.${template.id}.name`, {}, template.nameVI || template.id);
+          const description = (locale === 'en' ? template.descEN : template.descVI)
+            || t(`budgetTemplates.templates.${template.id}.description`, {}, template.descVI || '');
+          const incCats = (locale === 'en' && template.categoriesEN)
+            ? template.categoriesEN.income
+            : template.categories.income;
+          const expCats = (locale === 'en' && template.categoriesEN)
+            ? template.categoriesEN.expense
+            : template.categories.expense;
 
           return (
-            <Card key={template.id} className={isApplied ? 'ring-2 ring-zx-positive' : ''}>
-              <CardHeader>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <CardTitle className="text-base">{name}</CardTitle>
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-zx-text-soft border border-zx-line rounded-full px-2 py-0.5">
-                        {t('budgetTemplates.savingsTarget')}: {Math.round(template.savingsRateTarget * 100)}%
-                      </span>
-                    </div>
-                    <p className="text-sm text-zx-text-soft leading-5">{description}</p>
-                  </div>
-                  {isApplied && <CheckCircle className="h-5 w-5 text-zx-positive flex-shrink-0 mt-0.5" />}
+            <Card key={template.id} className={`flex flex-col ${isApplied ? 'ring-2 ring-zx-positive' : ''}`}>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-base leading-snug">{name}</CardTitle>
+                  {isApplied && <CheckCircle className="h-4 w-4 text-zx-positive flex-shrink-0 mt-0.5" />}
+                </div>
+                <p className="text-xs text-zx-text-soft leading-relaxed mt-1">{description}</p>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide border border-zx-line rounded-full px-2 py-0.5 text-zx-text-soft">
+                    {t('budgetTemplates.savingsTarget')} {Math.round(template.savingsRateTarget * 100)}%
+                  </span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wide border border-zx-line rounded-full px-2 py-0.5 text-zx-text-soft">
+                    {t('budgetTemplates.emergencyTarget')} {template.emergencyTargetMonths}{t('budgetTemplates.months')}
+                  </span>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Allocation bar */}
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-zx-text-soft">{t('budgetTemplates.allocation')}</p>
-                  <AllocationBar allocation={template.allocation} t={t} />
-                </div>
 
-                {/* Emergency target */}
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-zx-text-soft">{t('budgetTemplates.emergencyTarget')}</span>
-                  <span className="font-semibold text-zx-text">{template.emergencyTargetMonths} {t('budgetTemplates.months')}</span>
-                </div>
-
-                {/* Categories — expandable */}
+              <CardContent className="pt-0 space-y-4 flex flex-col flex-1">
+                {/* Compact allocation bar */}
                 <div>
-                  <button onClick={() => toggleExpand(template.id)}
-                    className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-zx-text-soft hover:text-zx-text transition">
-                    {t('budgetTemplates.categories')} ({cats.length})
-                    {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                  </button>
-                  {isExpanded && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {cats.map(cat => (
-                        <span key={cat} className="rounded-full bg-zx-surface-2 px-2.5 py-1 text-xs text-zx-text-soft">{cat}</span>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2">
+                    {t('budgetTemplates.allocation')}
+                  </p>
+                  <AllocationBarCompact allocation={template.allocation} />
+                </div>
+
+                {/* Categories — income / expense split */}
+                <div className="space-y-2.5 flex-1">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-positive mb-1.5">
+                      {t('budgetTemplates.income')}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {incCats.slice(0, 4).map(cat => (
+                        <span key={cat} className="rounded-full bg-emerald-950/40 border border-emerald-900/50 px-2 py-0.5 text-[11px] text-zx-positive">
+                          {cat}
+                        </span>
                       ))}
-                    </div>
-                  )}
-                  {!isExpanded && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {cats.slice(0, 6).map(cat => (
-                        <span key={cat} className="rounded-full bg-zx-surface-2 px-2.5 py-1 text-xs text-zx-text-soft">{cat}</span>
-                      ))}
-                      {cats.length > 6 && (
-                        <span className="rounded-full bg-zx-surface-2 px-2.5 py-1 text-xs text-zx-text-soft">+{cats.length - 6}</span>
+                      {incCats.length > 4 && (
+                        <span className="px-1 text-[11px] text-zx-text-soft self-center">+{incCats.length - 4}</span>
                       )}
                     </div>
-                  )}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-1.5">
+                      {t('budgetTemplates.expense')}
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {expCats.slice(0, 5).map(cat => (
+                        <span key={cat} className="rounded-full bg-zx-surface-2 border border-zx-line px-2 py-0.5 text-[11px] text-zx-text-soft">
+                          {cat}
+                        </span>
+                      ))}
+                      {expCats.length > 5 && (
+                        <span className="px-1 text-[11px] text-zx-text-soft self-center">+{expCats.length - 5}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <Button type="button"
                   onClick={() => openPreview(template)}
                   disabled={Boolean(applying)}
-                  className={`w-full ${isApplied ? 'bg-zx-positive/20 text-zx-positive hover:opacity-80' : 'bg-zx-accent text-zx-on-accent hover:opacity-90'}`}>
+                  className={`w-full mt-auto ${isApplied ? 'bg-zx-positive/20 text-zx-positive hover:opacity-80' : 'bg-zx-accent text-zx-on-accent hover:opacity-90'}`}>
                   {isApplied ? t('budgetTemplates.currentLabel') : t('budgetTemplates.previewApplyButton')}
                 </Button>
               </CardContent>
@@ -284,7 +333,6 @@ export default function BudgetTemplates() {
         })}
       </div>
 
-      {/* Apply preview modal */}
       {previewTemplate && (
         <ApplyModal
           template={previewTemplate}

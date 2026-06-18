@@ -2,6 +2,57 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-18 — v2.1 Plan Layout Polish + Budget Templates Overhaul
+
+### Plan Section — Layout Standardization (6 pages)
+
+Standardized all Plan sub-pages to consistent container, stats, and spacing patterns:
+
+- **Container widths unified**: EmergencyFund `max-w-6xl` → `max-w-5xl`; Assets + TradingRisk `max-w-7xl` → `max-w-6xl`; BudgetTemplates `max-w-5xl` → `max-w-6xl`
+- **Padding pattern**: all use `px-4 md:px-8 py-6 pb-24 md:pb-8` (was `p-4 md:p-6` on 3 pages)
+- **`space-y-6`** added to PayYourselfFirst, DebtControl, IncomeBuilder (had no section spacing)
+- **Stats cards**: PayYourselfFirst, DebtControl, IncomeBuilder — bare `<div class="py-4">` → `rounded-zx border border-zx-line bg-zx-surface p-4` cards
+- **Stats grid**: `md:grid-cols-2 xl:grid-cols-4` → `sm:grid-cols-2 xl:grid-cols-4` (better tablet breakpoint)
+- **Progress section**: PayYourselfFirst — bare `py-5` section → card with border/bg
+- **Allocation section**: PayYourselfFirst — bare `py-5` → card with border/bg
+- **List sections**: DebtControl, IncomeBuilder, Assets — `overflow-hidden` only → `rounded-zx border border-zx-line bg-zx-surface overflow-hidden`
+- **Icon headers**: DebtControl (added `CreditCard`), IncomeBuilder (added `TrendingUp`) — now consistent with EmergencyFund, Assets, PayYourselfFirst
+- **Design tokens**: Assets + TradingRisk — all `rounded-lg` (Tailwind generic) → `rounded-zx` / `rounded-zx-sm` (design system); form container, inputs, monitor items, status badges, journal entries
+
+### Budget Templates — UI Redesign
+
+- **3-column grid**: `md:grid-cols-2` → `md:grid-cols-2 xl:grid-cols-3` for better use of wide screens; 5 templates now display 3+2 instead of 2+2+1
+- **Categories split income/expense**: replaced flat expandable list with always-visible two-section layout — income chips (emerald tones) / expense chips (muted surface-2); shows max 4 income + 5 expense per card, overflow as `+N`
+- **Compact allocation bar** (`AllocationBarCompact`): card uses `h-2` bar + dot-% inline (no text labels); full bar with legend retained in modal only — saves ~3 lines per card
+- **Badges in header**: savings target + emergency target moved into `CardHeader` as pill badges (previously in CardContent body)
+- **Removed** expand/collapse mechanism (`expanded` state, `toggleExpand`, `ChevronDown/Up` icons)
+- **Modal categories**: also updated to show income/expense split (was flat `[...income, ...expense]`)
+- **New i18n keys**: `budgetTemplates.income` (Thu nhập / Income) and `budgetTemplates.expense` (Chi tiêu / Expenses) in both dictionaries
+
+### Budget Templates — Bug Fixes
+
+**Template name/description not using admin-edited values**
+- Root cause: `BudgetTemplates.jsx` used `t('budgetTemplates.templates.{id}.name', {}, template.id)` — always fell back to i18n key, never read `nameVI`/`nameEN` fields saved by admin
+- Fix: prefer `template.nameEN` / `template.nameVI` first, fall back to i18n key; same for description
+- New templates created by admin (id = `tmpl_{timestamp}`) now display correctly instead of showing raw ID
+
+**`payYourselfFirstRate` not updated when applying template**
+- Root cause: `handleApply` wrote `allocationRule` to Firestore but omitted `payYourselfFirstRate`, which `dashboardService` reads directly (`settings.payYourselfFirstRate || 0.3`). `payYourselfFirstService` re-derives it from `allocationRule.living` so PYF page was correct, but Dashboard was stale.
+- Fix: added `payYourselfFirstRate: 1 - (template.allocation.living / 100)` to `nextSettings`
+
+**Missing cache invalidations on template apply**
+- `invalidateDashboardStatsCache` not called → Dashboard `payYourselfProgress` / `emergencyMonths` stale for up to 5 minutes
+- `invalidateWeeklyReviewCache` not called → Weekly review PYF check used old allocation rule
+- Fix: both added to `handleApply` in `BudgetTemplates.jsx`
+
+### Admin — Budget Templates Tab
+
+Added 5th tab **Budget Templates** to Admin panel (`/admin/access`):
+- Full CRUD: create, edit, delete templates; reset to hardcoded defaults
+- `TemplateEditor` component: collapsible per-template editor with VI/EN name+description, allocation inputs (with live total validator showing X/100), savings %, emergency months, and category textareas (comma-separated)
+- Templates saved to Firestore `appConfig/budget-templates` via `saveBudgetTemplates()`; in-memory cache invalidated on save
+- `getBudgetTemplates()` service: reads from Firestore with 5-min TTL cache, falls back to hardcoded `src/data/budgetTemplates.js` if Firestore doc is empty
+
 ## 2026-06-17 — v2.0 Production Hardening
 
 ### i18n — Complete English Support

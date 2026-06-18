@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-17 (v2.0)
+Last updated: 2026-06-18 (v2.1)
 
 ## Current Phase
 
@@ -66,7 +66,11 @@ Default hosting URL: https://zenx-wealth.web.app
 - Tailwind extended with `zx-*` semantic utility classes
 
 ### Desktop Layout
-- All pages standardized at `max-w-5xl`
+- Plan pages: `max-w-5xl` (standard); `max-w-6xl` for data-heavy pages (Assets, TradingRisk, BudgetTemplates)
+- All Plan sub-pages use `px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6` container pattern
+- Stats cards: `sm:grid-cols-2 xl:grid-cols-4` grid, each card `rounded-zx border border-zx-line bg-zx-surface p-4`
+- List sections: `rounded-zx border border-zx-line bg-zx-surface overflow-hidden`
+- All pages use design token border-radius (`rounded-zx`, `rounded-zx-sm`) — no `rounded-lg`
 - 2-column `lg:grid` layout:
   - TrackHub: cashflow+latte left | recurring+recent+actions right
   - PlanHub: phase+items left | priority CTA right
@@ -91,7 +95,7 @@ Default hosting URL: https://zenx-wealth.web.app
 - Structured Cloud Logging for snapshot refresh
 
 ### Admin Panel (`/admin/access`)
-4-tab unified admin interface:
+5-tab unified admin interface:
 
 | Tab | Content |
 |-----|---------|
@@ -99,6 +103,7 @@ Default hosting URL: https://zenx-wealth.web.app
 | Preview Plan | Switch admin account between Free/Premium for live testing |
 | API & Config | Claude key + model, Resend key + from email — status panel shows ✓/– per service |
 | Plans & Billing | Monthly/yearly plan config + MoMo credentials — live preview panel updates in real-time |
+| Budget Templates | Full CRUD for budget templates — VI/EN names, allocation editor with live total validator, category lists |
 
 ### Recurring Detection
 - Auto-detects by category + amount + day-of-month (±3 day tolerance, 2+ occurrences)
@@ -189,6 +194,15 @@ users/{userId}
 
 ## Version History
 
+### v2.1 (2026-06-18) — Plan Layout Polish + Budget Templates Overhaul
+- **Plan pages layout**: standardized container widths, stats cards (border/bg), section spacing (`space-y-6`), list section borders across 6 pages (EmergencyFund, Assets, TradingRisk, PayYourselfFirst, DebtControl, IncomeBuilder)
+- **Design tokens**: replaced all `rounded-lg` with `rounded-zx`/`rounded-zx-sm` across Assets and TradingRisk
+- **BudgetTemplates redesign**: 3-column grid (`xl:grid-cols-3`), always-visible income/expense category split, compact allocation bar in card vs full bar in modal
+- **Admin Budget Templates tab** (5th tab): full CRUD with bilingual name/description, allocation editor, category management
+- **Bug fix**: template `nameVI`/`nameEN` from admin now displayed on user-facing page (was always using i18n key fallback)
+- **Bug fix**: `payYourselfFirstRate` now written to Firestore when applying template (was causing Dashboard to show stale PYF progress)
+- **Bug fix**: `invalidateDashboardStatsCache` + `invalidateWeeklyReviewCache` added to template apply flow
+
 ### v1.1–v1.4 Foundation
 - QuickCapture FAB, Latte→Convert flow, Net Worth + Savings tiles
 - Smart AddTransaction, PlanHub ETA, Milestone celebrations, Latte insights
@@ -240,3 +254,4 @@ users/{userId}
 1. **Mobile wallet sync** — future phase (banking API required, no open API in Vietnam currently)
 2. **Reports pagination** — for users with very large datasets, consider paginating the transaction list in Transactions page (Reports itself already uses snapshot)
 3. **Push notifications** — remind users to do weekly review, log transactions
+4. **Budget template migration guidance** — when user switches template, old transactions retain original categories; consider surfacing a "your X old transactions used category Y" advisory in the success state

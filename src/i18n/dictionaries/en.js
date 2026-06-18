@@ -840,6 +840,8 @@ export default {
     currentLabel: 'In use ✓',
     allocation: 'Allocation',
     categories: 'Suggested categories',
+    income: 'Income',
+    expense: 'Expenses',
     savingsTarget: 'Savings target',
     emergencyTarget: 'Emergency fund target',
     months: 'months',

@@ -119,9 +119,9 @@ export default function Assets() {
   const { currency, accounts, summary } = data;
 
   return (
-      <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
+      <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-surface">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-icon-bg">
             <Landmark className="h-7 w-7 text-emerald-400" />
           </div>
           <div className="space-y-1">
@@ -151,7 +151,7 @@ export default function Assets() {
           </Card>
         </section>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-zx-line bg-zx-surface p-5">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-zx border border-zx-line bg-zx-surface p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-zx-head text-lg font-semibold text-zx-text">{editingId ? t('assets.form.editTitle') : t('assets.form.addTitle')}</h2>
             {editingId && (
@@ -163,23 +163,23 @@ export default function Assets() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <label className="space-y-2 xl:col-span-2">
               <span className="text-sm text-zx-text-soft">{t('assets.form.nameLabel')}</span>
-              <input value={form.name} onChange={(e) => updateField('name', e.target.value)} className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              <input value={form.name} onChange={(e) => updateField('name', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('assets.form.typeLabel')}</span>
-              <select value={form.type} onChange={(e) => updateField('type', e.target.value)} className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
+              <select value={form.type} onChange={(e) => updateField('type', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
                 {accountTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
               </select>
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('assets.form.purposeLabel')}</span>
-              <select value={form.purpose} onChange={(e) => updateField('purpose', e.target.value)} className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
+              <select value={form.purpose} onChange={(e) => updateField('purpose', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
                 {accountPurposes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
               </select>
             </label>
             <label className="space-y-2 md:col-span-2 xl:col-span-4">
               <span className="text-sm text-zx-text-soft">{t('assets.form.balanceLabel')}</span>
-              <input type="number" min="0" step="any" value={form.balance} onChange={(e) => updateField('balance', e.target.value)} className="w-full rounded-lg border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              <input type="number" min="0" step="any" value={form.balance} onChange={(e) => updateField('balance', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
             </label>
           </div>
           {error && <p className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
@@ -188,7 +188,7 @@ export default function Assets() {
           </Button>
         </form>
 
-        <section className="overflow-hidden">
+        <section className="rounded-zx border border-zx-line bg-zx-surface overflow-hidden">
           <div className="border-b border-zx-line p-4">
             <h2 className="font-semibold">{t('assets.listTitle')}</h2>
           </div>

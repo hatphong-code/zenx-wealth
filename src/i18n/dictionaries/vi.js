@@ -968,6 +968,8 @@ export default {
     currentLabel: 'Đang dùng ✓',
     allocation: 'Phân bổ',
     categories: 'Danh mục gợi ý',
+    income: 'Thu nhập',
+    expense: 'Chi tiêu',
     savingsTarget: 'Mục tiêu tiết kiệm',
     emergencyTarget: 'Quỹ dự phòng mục tiêu',
     months: 'tháng',

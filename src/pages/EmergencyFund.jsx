@@ -106,7 +106,7 @@ export default function EmergencyFund() {
   const inputCls = 'w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent';
 
   return (
-      <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-icon-bg">
             <Shield className="h-7 w-7 text-zx-positive" />
