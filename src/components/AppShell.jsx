@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import {
-  ChevronRight, ClipboardCheck, Compass, Home, LogOut, Plus, UserCircle, Wallet, X,
+  ChevronRight, ClipboardCheck, Compass, Home, LogOut, Plus, SlidersHorizontal, UserCircle, Wallet, X,
 } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
@@ -19,50 +19,55 @@ import { getCachedUserProfile, setUserProfileCache } from '../services/userServi
 /* ─────────────── nav data ─────────────── */
 
 const NAV_GROUPS = [
-  { id: 'home',    icon: Home,           mobileTo: '/',       label: 'Home' },
-  { id: 'track',   icon: Wallet,         mobileTo: '/track',  label: 'Track' },
-  { id: 'plan',    icon: Compass,        mobileTo: '/plan',   label: 'Plan' },
-  { id: 'review',  icon: ClipboardCheck, mobileTo: '/review', label: 'Review' },
-  { id: 'profile', icon: UserCircle,     mobileTo: '/settings', label: 'Profile' },
+  { id: 'home',    icon: Home,               mobileTo: '/',             label: 'Home' },
+  { id: 'track',   icon: Wallet,             mobileTo: '/track',        label: 'Track' },
+  { id: 'plan',    icon: Compass,            mobileTo: '/plan',         label: 'Plan' },
+  { id: 'review',  icon: ClipboardCheck,     mobileTo: '/review',       label: 'Review' },
+  { id: 'profile', icon: UserCircle,         mobileTo: '/settings',     label: 'Profile' },
+  { id: 'admin',   icon: SlidersHorizontal,  mobileTo: '/admin/access', label: 'Admin' },
 ];
 
-const isTrack  = p => ['/track','/transactions','/transactions/new','/latte','/import'].includes(p) || /^\/transactions\/[^/]+\/edit$/.test(p);
-const isPlan   = p => ['/plan','/roadmap','/assets','/pay-yourself-first','/emergency','/debts','/income','/trading-risk','/budget-templates'].includes(p);
-const isReview = p => ['/review','/weekly-review','/reports','/ai-coach','/health-score'].includes(p);
-const isProfile= p => ['/settings','/profile','/admin/access','/monthly-letter','/goal-tracking','/upgrade'].includes(p);
+const isTrack   = p => ['/track','/transactions','/transactions/new','/latte','/import'].includes(p) || /^\/transactions\/[^/]+\/edit$/.test(p);
+const isPlan    = p => ['/plan','/roadmap','/assets','/pay-yourself-first','/emergency','/debts','/income','/trading-risk','/budget-templates'].includes(p);
+const isReview  = p => ['/review','/weekly-review','/reports','/ai-coach','/health-score'].includes(p);
+const isProfile = p => ['/settings','/profile','/monthly-letter','/goal-tracking','/upgrade'].includes(p);
+const isAdminP  = p => ['/admin/access','/admin/settings'].includes(p);
 
 const SUB_ITEMS = {
   home:    [{ to: '/', featureKey: 'dashboard', matches: p => p === '/' }],
   track:   [
-    { to: '/track',            featureKey: 'transactions',    navKey: 'track_hub',    matches: p => p === '/track' },
-    { to: '/transactions',     featureKey: 'transactions',    matches: p => p === '/transactions' || /^\/transactions\/[^/]+\/edit$/.test(p) },
-    { to: '/transactions/new', featureKey: 'add_transaction', matches: p => p === '/transactions/new' },
-    { to: '/latte',            featureKey: 'latte_factor',       matches: p => p === '/latte' },
-    { to: '/import',           featureKey: 'import_transactions', matches: p => p === '/import' },
+    { to: '/track',            featureKey: 'transactions',       navKey: 'track_hub', matches: p => p === '/track' },
+    { to: '/transactions',     featureKey: 'transactions',                            matches: p => p === '/transactions' || /^\/transactions\/[^/]+\/edit$/.test(p) },
+    { to: '/transactions/new', featureKey: 'add_transaction',                         matches: p => p === '/transactions/new' },
+    { to: '/latte',            featureKey: 'latte_factor',                            matches: p => p === '/latte' },
+    { to: '/import',           featureKey: 'import_transactions',                     matches: p => p === '/import' },
   ],
   plan: [
-    { to: '/plan',               featureKey: 'roadmap',            navKey: 'plan_hub',   matches: p => p === '/plan' },
-    { to: '/roadmap',            featureKey: 'roadmap',            matches: p => p === '/roadmap' },
-    { to: '/emergency',          featureKey: 'emergency_fund',     matches: p => p === '/emergency' },
-    { to: '/pay-yourself-first', featureKey: 'pay_yourself_first', matches: p => p === '/pay-yourself-first' },
-    { to: '/debts',              featureKey: 'debt_control',       matches: p => p === '/debts' },
-    { to: '/income',             featureKey: 'income_builder',     matches: p => p === '/income' },
-    { to: '/assets',             featureKey: 'assets',             matches: p => p === '/assets' },
-    { to: '/trading-risk',       featureKey: 'trading_risk',       matches: p => p === '/trading-risk' },
-    { to: '/budget-templates',   featureKey: 'budget_templates',   matches: p => p === '/budget-templates' },
+    { to: '/plan',               featureKey: 'roadmap',            navKey: 'plan_hub', matches: p => p === '/plan' },
+    { to: '/roadmap',            featureKey: 'roadmap',                                matches: p => p === '/roadmap' },
+    { to: '/emergency',          featureKey: 'emergency_fund',                         matches: p => p === '/emergency' },
+    { to: '/pay-yourself-first', featureKey: 'pay_yourself_first',                     matches: p => p === '/pay-yourself-first' },
+    { to: '/debts',              featureKey: 'debt_control',                           matches: p => p === '/debts' },
+    { to: '/income',             featureKey: 'income_builder',                         matches: p => p === '/income' },
+    { to: '/assets',             featureKey: 'assets',                                 matches: p => p === '/assets' },
+    { to: '/trading-risk',       featureKey: 'trading_risk',                           matches: p => p === '/trading-risk' },
+    { to: '/budget-templates',   featureKey: 'budget_templates',                       matches: p => p === '/budget-templates' },
   ],
   review: [
     { to: '/review',        featureKey: 'weekly_review', navKey: 'review_hub', matches: p => p === '/review' },
-    { to: '/weekly-review', featureKey: 'weekly_review', matches: p => p === '/weekly-review' },
-    { to: '/reports',       featureKey: 'reports',       matches: p => p === '/reports' },
-    { to: '/ai-coach',      featureKey: 'ai_coach',      matches: p => p === '/ai-coach' },
-    { to: '/health-score',  featureKey: 'health_score',  matches: p => p === '/health-score' },
+    { to: '/weekly-review', featureKey: 'weekly_review',                        matches: p => p === '/weekly-review' },
+    { to: '/reports',       featureKey: 'reports',                              matches: p => p === '/reports' },
+    { to: '/ai-coach',      featureKey: 'ai_coach',                             matches: p => p === '/ai-coach' },
+    { to: '/health-score',  featureKey: 'health_score',                         matches: p => p === '/health-score' },
   ],
   profile: [
-    { to: '/settings',     featureKey: 'settings',      matches: p => p === '/settings' },
-    { to: '/profile',      featureKey: 'profile',       matches: p => p === '/profile' },
-    { to: '/upgrade',      featureKey: 'dashboard',     matches: p => p === '/upgrade' },
-    { to: '/admin/access', featureKey: 'admin_access',  adminOnly: true, matches: p => p === '/admin/access' },
+    { to: '/settings', featureKey: 'settings',  matches: p => p === '/settings' },
+    { to: '/profile',  featureKey: 'profile',   matches: p => p === '/profile' },
+    { to: '/upgrade',  featureKey: 'dashboard', matches: p => p === '/upgrade' },
+  ],
+  admin: [
+    { to: '/admin/access',   navKey: 'admin_access',   adminOnly: true, matches: p => p === '/admin/access' },
+    { to: '/admin/settings', navKey: 'admin_settings', adminOnly: true, matches: p => p === '/admin/settings' },
   ],
 };
 
@@ -73,6 +78,7 @@ const GROUP_MATCH = {
   plan:    isPlan,
   review:  isReview,
   profile: isProfile,
+  admin:   isAdminP,
 };
 
 /* ─────────────── hooks ─────────────── */
@@ -326,10 +332,18 @@ function Sidebar({ visibleGroups, activeGroup, expandedGroups, onGroupClick, onI
 
 /* ─────────────── top bar (desktop) ─────────────── */
 
+function getTimeGreeting(t, name) {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return t('dashboard.greetingMorning', { name });
+  if (h >= 12 && h < 18) return t('dashboard.greetingAfternoon', { name });
+  return t('dashboard.greetingEvening', { name });
+}
+
 function TopBar({ activeGroup, activeItem }) {
   const { user } = useAuth();
   const { t } = useI18n();
   const firstName = user?.displayName?.split(' ').pop() || user?.email?.split('@')[0] || t('appShell.defaultName');
+  const greeting = getTimeGreeting(t, firstName);
   const pageLabel = activeItem
     ? t(`nav.items.${activeItem.navKey || activeItem.featureKey}`, {}, activeItem.navKey || activeItem.featureKey)
     : activeGroup ? t(`nav.groups.${activeGroup.id}`, {}, activeGroup.label) : '';
@@ -337,7 +351,7 @@ function TopBar({ activeGroup, activeItem }) {
   return (
     <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-zx-line flex-shrink-0 zx-transition">
       <div className="min-w-0">
-        <p className="text-xs text-zx-text-soft">{t('dashboard.greeting', { name: firstName })}</p>
+        <p className="text-xs text-zx-text-soft">{greeting}</p>
         <h1 className="font-zx-head text-xl font-semibold text-zx-text leading-tight mt-0.5">{pageLabel}</h1>
       </div>
       <div className="flex items-center gap-3 flex-shrink-0">

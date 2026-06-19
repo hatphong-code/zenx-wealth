@@ -18,6 +18,8 @@ function getDashboardSnapshotRef(userId) {
 export function normalizeDashboardStats(data = {}) {
   return {
     netCashFlow: data.netCashFlow || 0,
+    income: data.income || 0,
+    expense: data.expense || 0,
     latteFactor: data.latteFactor || 0,
     latteFactorPercent: data.latteFactorPercent || 0,
     emergencyMonths: data.emergencyMonths || 0,
@@ -68,7 +70,14 @@ async function persistDashboardSnapshot(userId, stats) {
 async function fetchDashboardStats(userId) {
   const snapshot = await getDoc(getDashboardSnapshotRef(userId));
   if (snapshot.exists()) {
-    return normalizeDashboardStats(snapshot.data());
+    const data = snapshot.data();
+    // Recompute if snapshot predates income/expense fields
+    if (data.income === undefined || data.expense === undefined) {
+      const computedStats = await computeDashboardStats(userId);
+      await persistDashboardSnapshot(userId, computedStats);
+      return computedStats;
+    }
+    return normalizeDashboardStats(data);
   }
 
   const computedStats = await computeDashboardStats(userId);

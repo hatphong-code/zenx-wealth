@@ -118,5 +118,8 @@ export async function saveUserSubscriptionTier(userId, profile, tier) {
   }, { merge: true });
 
   setUserProfileCache(userId, nextProfile);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('zenx:user-profile-changed'));
+  }
   return nextProfile;
 }

@@ -3,6 +3,8 @@ import { getCachedDashboardStats, getDashboardStats } from '../services/dashboar
 
 const defaultStats = {
   netCashFlow: 0,
+  income: 0,
+  expense: 0,
   latteFactor: 0,
   latteFactorPercent: 0,
   emergencyMonths: 0,

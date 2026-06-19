@@ -41,6 +41,8 @@ export function calculateDashboardMetrics({
 
   return {
     netCashFlow,
+    income: totalIncome,
+    expense: totalExpense,
     latteFactor: latteTotal,
     latteFactorPercent: 0,
     emergencyMonths,
