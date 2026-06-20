@@ -57,6 +57,35 @@ Phương án B: ... → Ưu: ... / Nhược: ...
 Không bắt đầu viết code cho đến khi người dùng xác nhận phương án.
 Ngoại lệ duy nhất: yêu cầu rõ ràng, chỉ có một cách làm, không có risk — có thể hỏi nhanh "tiến hành luôn?" thay vì trình bày phương án.
 
+---
+
+### Phát hiện vấn đề ngoài phạm vi yêu cầu
+
+Trong lúc nghiên cứu hoặc implement, Claude thường thấy các vấn đề liên quan mà người dùng chưa yêu cầu. Quy tắc xử lý:
+
+**Phân loại theo mức độ:**
+
+| Loại | Ví dụ | Hành động |
+|------|-------|-----------|
+| **Blocking** — ảnh hưởng trực tiếp đến task đang làm | Bug trong function sắp gọi, token sai gây UI vỡ | Fix luôn, báo cáo sau |
+| **Liên quan chặt** — cùng file, cùng component | Inconsistency nhỏ, magic string nên dùng token | Fix luôn nếu < 5 phút, ghi chú trong commit |
+| **Cải thiện / tối ưu** — scope rộng hơn | Refactor, thêm tính năng, đổi architecture | **Không làm — ghi vào danh sách đề xuất** |
+| **Ý tưởng mở rộng** — giá trị mới chưa có | Feature mới, UX pattern tốt hơn | **Không làm — nêu ngắn gọn cuối báo cáo** |
+
+**Format báo cáo phát hiện thêm** (cuối bước 7):
+
+```
+✅ Đã làm: [task chính]
+
+💡 Phát hiện thêm (chưa xử lý):
+- [Vấn đề A] — [mô tả 1 dòng] → đề xuất: [giải pháp ngắn]
+- [Cơ hội B] — [mô tả 1 dòng] → có thể mang lại: [giá trị cụ thể]
+
+Xử lý ngay hay để backlog?
+```
+
+**Nguyên tắc cốt lõi:** Làm đúng những gì được yêu cầu. Những gì thấy thêm — ghi lại rõ ràng, đề xuất, để người dùng quyết định. Không tự mở rộng scope mà không có xác nhận.
+
 **4. Implement — checklist khi viết code**
 - [ ] Màu qua `zx-*` token — không hex, không `red-*` Tailwind thuần
 - [ ] Radius qua `rounded-zx` / `rounded-zx-sm` — không `rounded-lg`
