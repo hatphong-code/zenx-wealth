@@ -61,45 +61,37 @@ export default function AICoach() {
 
   return (
       <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
-        <section className="overflow-hidden rounded-zx border border-zx-line bg-zx-hero p-5 md:p-7">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-900/70 bg-blue-950/40 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-accent">
-                <BrainCircuit className="h-3.5 w-3.5" />
-                {t('coach.badge')}
+        <section className="rounded-zx border border-zx-line bg-zx-hero px-5 py-4 md:px-6 md:py-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-zx-sm bg-zx-icon-bg text-zx-accent">
+                <BrainCircuit className="h-4 w-4" />
               </div>
-              <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{t('coach.title')}</h1>
-              <p className="text-sm leading-6 text-zx-text-soft md:text-base">
-                {t('coach.subtitle')}
-              </p>
-              <div className="rounded-zx-sm border border-zx-line bg-zx-bg/80 p-4">
-                <p className="text-xs uppercase tracking-wide text-zx-text-soft">{t('coach.primaryFocus')}</p>
-                <p className="mt-2 text-base font-semibold text-zx-text md:text-lg">
-                  {data.headline || t('coach.defaultHeadline')}
-                </p>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zx-text-soft">{t('coach.badge')}</p>
+                <h1 className="font-zx-head text-lg font-bold text-zx-text truncate">{t('coach.title')}</h1>
               </div>
             </div>
 
-            {data.focus && (
-              <Link
-                to={data.focus.route}
-                className="flex min-w-[280px] items-center justify-between rounded-zx border border-zx-line bg-zx-bg/75 px-4 py-4 text-sm text-zx-text-soft transition hover:border-zx-line hover:bg-zx-surface"
-              >
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-zx-text-soft">{data.focus.priority}</p>
-                  <p className="mt-1 font-semibold text-zx-text">{data.focus.title}</p>
-                  <p className="mt-1 text-zx-text-soft">{data.focus.buttonLabel}</p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-zx-text-soft" />
-              </Link>
-            )}
+            <div className="flex flex-wrap items-center gap-3 sm:flex-shrink-0">
+              {data.focus && (
+                <Link to={data.focus.route}
+                  className="inline-flex items-center gap-2 rounded-zx-sm border border-zx-line bg-zx-bg/75 px-3 py-2 text-sm text-zx-text-soft transition hover:bg-zx-surface hover:text-zx-text">
+                  <span className="font-medium">{data.focus.title}</span>
+                  <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+                </Link>
+              )}
+              {loading && <p className="text-sm text-zx-text-soft">{t('coach.loading')}</p>}
+              {error && <p className="text-sm text-zx-negative">{error}</p>}
+            </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-4 text-sm">
-            {loading && <p className="text-zx-text-soft">{t('coach.loading')}</p>}
-            {refreshing && <p className="text-zx-accent">{t('coach.refreshing')}</p>}
-            {error && <p className="text-zx-negative">{error}</p>}
-          </div>
+          {data.headline && (
+            <div className="mt-3 rounded-zx-sm border border-zx-line bg-zx-bg/60 px-4 py-3">
+              <p className="text-[11px] uppercase tracking-[0.12em] text-zx-text-soft">{t('coach.primaryFocus')}</p>
+              <p className="mt-1 text-sm font-semibold text-zx-text">{data.headline}</p>
+            </div>
+          )}
         </section>
 
         {/* LLM Insights section */}

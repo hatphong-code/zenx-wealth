@@ -846,7 +846,7 @@ function TemplateEditor({ tmpl, onSave, onDelete, t }) {
               <Save className="h-3.5 w-3.5" /> {t('common.save')}
             </button>
             <button onClick={() => { if (window.confirm(t('adminBudgetTemplates.deleteConfirm', { name: displayName }))) onDelete(tmpl.id); }}
-              className="rounded-zx-sm border border-red-900 px-4 py-2 text-sm text-red-300 hover:bg-red-950/30 transition">
+              className="rounded-zx-sm border border-zx-negative/40 px-4 py-2 text-sm text-zx-negative hover:bg-zx-negative/10 transition">
               {t('common.delete')}
             </button>
           </div>
@@ -1013,9 +1013,9 @@ export default function AdminAccessControl() {
       </div>
 
       {!isAdmin ? (
-        <div className="rounded-zx border border-red-900 bg-red-950/30 p-5">
-          <h2 className="text-lg font-semibold text-red-200">{t('adminAccess.noAccessTitle')}</h2>
-          <p className="mt-2 text-sm text-red-100/90">{t('adminAccess.noAccessBody')}</p>
+        <div className="rounded-zx border border-zx-negative/30 bg-zx-negative/10 p-5">
+          <h2 className="text-lg font-semibold text-zx-negative">{t('adminAccess.noAccessTitle')}</h2>
+          <p className="mt-2 text-sm text-zx-text-soft">{t('adminAccess.noAccessBody')}</p>
         </div>
       ) : (
         <>
@@ -1068,4 +1068,5 @@ export default function AdminAccessControl() {
     </main>
   );
 }
+
 

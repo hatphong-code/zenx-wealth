@@ -158,7 +158,7 @@ export default function TradingRisk() {
           </div>
         </section>
 
-        {error && <div className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</div>}
+        {error && <div id="trading-error" role="alert" className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</div>}
         {message && <div className="rounded-zx-sm border border-green-900 bg-green-950/40 p-3 text-sm text-zx-positive">{message}</div>}
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -260,6 +260,7 @@ export default function TradingRisk() {
                       step="any"
                       value={configForm.capital}
                       onChange={(event) => updateConfig('capital', event.target.value)}
+                      aria-describedby={error ? 'trading-error' : undefined}
                       className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
                     />
                   </label>

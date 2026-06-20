@@ -13,8 +13,10 @@ export function Combobox({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef(null);
   const inputRef = useRef(null);
+  const listRef = useRef(null);
 
   const normalized = options.map(o =>
     typeof o === 'string' ? { value: o, label: o } : o
@@ -24,10 +26,13 @@ export function Combobox({
     ? normalized.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
     : normalized;
 
+  // All items including the "empty" option at index 0
+  const allItems = [{ value: emptyValue, label: emptyLabel }, ...filtered];
+
   const selectedLabel = normalized.find(o => o.value === value)?.label ?? '';
 
   useEffect(() => {
-    if (!open) setQuery('');
+    if (!open) { setQuery(''); setActiveIndex(-1); }
   }, [open]);
 
   useEffect(() => {
@@ -38,15 +43,46 @@ export function Combobox({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // Scroll active item into view
+  useEffect(() => {
+    if (activeIndex >= 0 && listRef.current) {
+      const item = listRef.current.children[activeIndex];
+      item?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [activeIndex]);
+
   const select = (val) => {
     onChange(val);
     setOpen(false);
   };
 
+  const handleKeyDown = (e) => {
+    if (!open) {
+      if (e.key === 'ArrowDown' || e.key === 'Enter') { setOpen(true); e.preventDefault(); }
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex(i => Math.min(i + 1, allItems.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex(i => Math.max(i - 1, 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeIndex >= 0) select(allItems[activeIndex].value);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  };
+
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${className}`} onKeyDown={handleKeyDown}>
       <div
-        className="flex items-center gap-1 rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-1.5 text-sm text-zx-text cursor-pointer"
+        role="combobox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        tabIndex={disabled ? -1 : 0}
+        className="flex items-center gap-1 rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-1.5 text-sm text-zx-text cursor-pointer focus:outline-none focus:ring-2 focus:ring-zx-accent"
         onClick={() => { if (!disabled) { setOpen(v => !v); setTimeout(() => inputRef.current?.focus(), 10); } }}
       >
         <span className={`flex-1 truncate ${!value ? 'text-zx-text-soft' : ''}`}>
@@ -68,20 +104,28 @@ export function Combobox({
             <input
               ref={inputRef}
               value={query}
-              onChange={e => setQuery(e.target.value)}
+              onChange={e => { setQuery(e.target.value); setActiveIndex(-1); }}
               placeholder="Tìm..."
               className="w-full bg-transparent text-sm text-zx-text placeholder:text-zx-text-soft outline-none"
               onClick={e => e.stopPropagation()}
             />
           </div>
-          <div className="max-h-52 overflow-y-auto">
-            <button type="button" onClick={() => select(emptyValue)}
-              className={`w-full px-3 py-2 text-left text-sm transition hover:bg-zx-surface-2 ${!value ? 'text-zx-accent font-medium' : 'text-zx-text-soft'}`}>
-              {emptyLabel}
-            </button>
-            {filtered.map(o => (
-              <button key={o.value} type="button" onClick={() => select(o.value)}
-                className={`w-full px-3 py-2 text-left text-sm transition hover:bg-zx-surface-2 ${o.value === value ? 'text-zx-accent font-medium' : 'text-zx-text'}`}>
+          <div ref={listRef} role="listbox" className="max-h-52 overflow-y-auto">
+            {allItems.map((o, i) => (
+              <button
+                key={o.value || '__empty__'}
+                type="button"
+                role="option"
+                aria-selected={o.value === value}
+                onClick={() => select(o.value)}
+                onMouseEnter={() => setActiveIndex(i)}
+                className={`w-full px-3 py-2 text-left text-sm transition ${
+                  i === activeIndex ? 'bg-zx-surface-2' : ''
+                } ${
+                  o.value === value ? 'text-zx-accent font-medium' :
+                  o.value === emptyValue ? 'text-zx-text-soft' : 'text-zx-text'
+                }`}
+              >
                 {o.label}
               </button>
             ))}

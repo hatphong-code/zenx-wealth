@@ -179,10 +179,10 @@ export default function Assets() {
             </label>
             <label className="space-y-2 md:col-span-2 xl:col-span-4">
               <span className="text-sm text-zx-text-soft">{t('assets.form.balanceLabel')}</span>
-              <input type="number" min="0" step="any" value={form.balance} onChange={(e) => updateField('balance', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              <input type="number" min="0" step="any" value={form.balance} onChange={(e) => updateField('balance', e.target.value)} aria-describedby={error ? 'assets-error' : undefined} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
             </label>
           </div>
-          {error && <p className="rounded border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
+          {error && <p id="assets-error" role="alert" className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
           <Button type="submit" disabled={saving} className="bg-emerald-600 text-zx-text hover:bg-emerald-700">
             <Plus className="mr-2 h-4 w-4" /> {saving ? t('common.saving') : editingId ? t('assets.form.saveButton') : t('assets.form.addButton')}
           </Button>

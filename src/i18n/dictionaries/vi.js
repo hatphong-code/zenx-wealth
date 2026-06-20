@@ -34,6 +34,7 @@ export default {
     txUpdated: 'Đã cập nhật giao dịch',
     txDeleted: 'Đã xóa giao dịch',
     txBulkDeleted: 'Đã xóa {count} giao dịch',
+    txBulkRecategorized: 'Đã đổi danh mục {count} giao dịch',
     settingsSaved: 'Đã lưu thiết lập',
     dismissLabel: 'Đóng thông báo',
   },
@@ -437,6 +438,10 @@ export default {
     bulkSelectAll: 'Chọn tất cả',
     bulkDeselectAll: 'Bỏ chọn tất cả',
     confirmBulkDelete: 'Xóa {count} giao dịch đã chọn? Không thể hoàn tác.',
+    bulkRecategorize: 'Đổi danh mục',
+    bulkRecategorizeBtn: 'Đổi',
+    bulkRecategorizePlaceholder: 'Danh mục mới...',
+    txBulkRecategorized: 'Đã đổi danh mục {count} giao dịch',
     table: {
       date: 'Ngày',
       category: 'Danh mục',

@@ -56,6 +56,7 @@ export default function Transactions() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [recatCategory, setRecatCategory] = useState('');
 
   const monthOptions = useMemo(() => getMonthOptions(transactions), [transactions]);
   const categoryOptions = useMemo(() => getCategoryOptions(transactions), [transactions]);
@@ -237,6 +238,29 @@ export default function Transactions() {
     }
   };
 
+  const handleBulkRecategorize = async () => {
+    if (!user || selectedIds.size === 0 || !recatCategory.trim()) return;
+    const count = selectedIds.size;
+    try {
+      const batch = writeBatch(db);
+      [...selectedIds].forEach(id => batch.update(doc(db, 'users', user.uid, 'transactions', id), { category: recatCategory.trim() }));
+      await batch.commit();
+      const nextTxs = transactions.map(tx => selectedIds.has(tx.id) ? { ...tx, category: recatCategory.trim() } : tx);
+      const nextData = { ...data, transactions: nextTxs };
+      setData(nextData);
+      setTransactionsCache(user.uid, nextData);
+      invalidateReportsCache(user.uid);
+      invalidateAICoachCache(user.uid);
+      setSelectedIds(new Set());
+      setSelectionMode(false);
+      setRecatCategory('');
+      toast({ title: t('toast.txBulkRecategorized', {}, `Đã đổi danh mục ${count} giao dịch`).replace('{count}', count), variant: 'success' });
+    } catch (err) {
+      setError(err.message);
+      toast({ title: err.message, variant: 'error' });
+    }
+  };
+
   return (
     <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
       {/* Header */}
@@ -274,17 +298,37 @@ export default function Transactions() {
             </>
           )}
           {selectionMode && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-zx-text-soft">{t('transactions.bulkSelected', { count: selectedIds.size })}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-zx-text-soft shrink-0">{t('transactions.bulkSelected', { count: selectedIds.size })}</span>
               {selectedIds.size > 0 && (
-                <button onClick={handleBulkDelete}
-                  className="inline-flex items-center gap-1.5 rounded-zx-sm bg-zx-negative/10 border border-zx-negative/40 px-3 py-2 text-sm font-medium text-zx-negative transition hover:bg-zx-negative/20">
-                  <Trash2 className="h-3.5 w-3.5" />
-                  {t('transactions.bulkDeleteBtn', { count: selectedIds.size })}
-                </button>
+                <>
+                  {/* Re-categorize */}
+                  <div className="flex items-center gap-1">
+                    <input
+                      value={recatCategory}
+                      onChange={e => setRecatCategory(e.target.value)}
+                      placeholder={t('transactions.bulkRecategorizePlaceholder')}
+                      list="recat-options"
+                      className="rounded-zx-sm border border-zx-line bg-zx-surface-2 px-2 py-1.5 text-sm text-zx-text outline-none focus:ring-2 focus:ring-zx-accent w-36"
+                    />
+                    <datalist id="recat-options">
+                      {categoryOptions.map(c => <option key={c} value={c} />)}
+                    </datalist>
+                    <button onClick={handleBulkRecategorize} disabled={!recatCategory.trim()}
+                      className="rounded-zx-sm border border-zx-line bg-zx-surface-2 px-2.5 py-1.5 text-sm text-zx-text-soft transition hover:text-zx-text disabled:opacity-40">
+                      {t('transactions.bulkRecategorizeBtn')}
+                    </button>
+                  </div>
+                  {/* Delete */}
+                  <button onClick={handleBulkDelete}
+                    className="inline-flex items-center gap-1.5 rounded-zx-sm bg-zx-negative/10 border border-zx-negative/40 px-3 py-1.5 text-sm font-medium text-zx-negative transition hover:bg-zx-negative/20">
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {t('transactions.bulkDeleteBtn', { count: selectedIds.size })}
+                  </button>
+                </>
               )}
               <button onClick={toggleSelectionMode}
-                className="inline-flex items-center gap-1.5 rounded-zx-sm border border-zx-line px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text">
+                className="inline-flex items-center gap-1.5 rounded-zx-sm border border-zx-line px-3 py-1.5 text-sm text-zx-text-soft transition hover:text-zx-text">
                 {t('transactions.bulkCancel')}
               </button>
             </div>

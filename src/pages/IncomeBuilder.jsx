@@ -173,7 +173,7 @@ export default function IncomeBuilder() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.nameLabel')}</span>
-              <Input value={form.sourceName} onChange={(e) => updateField('sourceName', e.target.value)}  required />
+              <Input value={form.sourceName} onChange={(e) => updateField('sourceName', e.target.value)} aria-describedby={error ? 'income-error' : undefined} required />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.typeLabel')}</span>
@@ -204,7 +204,7 @@ export default function IncomeBuilder() {
             <span className="text-sm text-zx-text-soft">{t('common.note')}</span>
             <Input value={form.note} onChange={(e) => updateField('note', e.target.value)}  />
           </label>
-          {error && <p className="rounded border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
+          {error && <p id="income-error" role="alert" className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
           <Button type="submit" disabled={saving} className="bg-zx-accent text-zx-on-accent hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60">
             {saving ? t('common.saving') : editingId ? t('income.form.saveButton') : t('income.form.addButton')}
           </Button>

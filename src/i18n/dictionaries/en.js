@@ -34,6 +34,7 @@ export default {
     txUpdated: 'Transaction updated',
     txDeleted: 'Transaction deleted',
     txBulkDeleted: '{count} transactions deleted',
+    txBulkRecategorized: 'Category changed for {count} transactions',
     settingsSaved: 'Settings saved',
     dismissLabel: 'Dismiss notification',
   },
@@ -433,6 +434,10 @@ export default {
     bulkSelectAll: 'Select all',
     bulkDeselectAll: 'Deselect all',
     confirmBulkDelete: 'Delete {count} selected transactions? This cannot be undone.',
+    bulkRecategorize: 'Change category',
+    bulkRecategorizeBtn: 'Apply',
+    bulkRecategorizePlaceholder: 'New category...',
+    txBulkRecategorized: 'Changed category for {count} transactions',
     table: { date: 'Date', category: 'Category', type: 'Type', amount: 'Amount', flags: 'Flags', note: 'Note', action: 'Action' },
   },
   trackHub: {

@@ -96,8 +96,9 @@ export default function WealthRoadmap() {
 
         {error && <p className="rounded border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
 
-        <section className="overflow-x-auto pb-1">
-          <div className="flex min-w-max gap-3">
+        <section className="relative">
+          <div className="overflow-x-auto pb-1 scrollbar-thin">
+            <div className="flex min-w-max gap-3">
             {data.phases.map((phase, index) => (
               <div
                 key={phase.id}
@@ -113,12 +114,15 @@ export default function WealthRoadmap() {
                 <p className="mt-1 font-medium">{t(`roadmap.phases.${phase.id}`, {}, phase.title)}</p>
               </div>
             ))}
+            </div>
           </div>
+          {/* Fade-right scroll indicator */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-zx-bg to-transparent" />
         </section>
 
         <section className="space-y-4">
           {data.phases.map((phase) => (
-            <article key={phase.id} className={`rounded-lg border p-5 ${phase.id === data.currentPhaseId ? 'border-zx-accent bg-zx-surface' : 'border-zx-line bg-zx-surface'}`}>
+            <article key={phase.id} className={`rounded-zx border p-5 ${phase.id === data.currentPhaseId ? 'border-zx-accent bg-zx-surface' : 'border-zx-line bg-zx-surface'}`}>
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
