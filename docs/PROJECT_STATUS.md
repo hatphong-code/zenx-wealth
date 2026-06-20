@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-20 (v2.4)
+Last updated: 2026-06-20 (v2.5)
 
 ## Current Phase
 
@@ -199,6 +199,12 @@ users/{userId}
 ```
 
 ## Version History
+
+### v2.5 (2026-06-20) — Scorecard Improvements (Accessibility + PDF + Responsive + Form Migration)
+- **Accessibility**: skip-to-content link; aria-live on AICoach + GlobalSearch; aria-describedby + role=alert on all error messages; bulk-fixed red-* → zx-negative across 19+ pages
+- **Export PDF**: `@media print` CSS + window.print() button in Reports
+- **Responsive**: `lg:grid-cols-3` on all `sm→xl` stat grids in 6 pages; charts `h-72 md:h-80 xl:h-96`
+- **Form migration**: Input component now used in EmergencyFund, DebtControl, IncomeBuilder, TradingRisk (was inline Tailwind)
 
 ### v2.4 (2026-06-20) — Priority 3 UI/UX Polish
 - **prefers-reduced-motion**: `@media` query in `index.css` respects OS accessibility preference
