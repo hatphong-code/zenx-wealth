@@ -17,6 +17,58 @@ Production: **https://wealth.zenx.asia** · Firebase project: `zenx-wealth`
 
 ---
 
+## Quy trình xử lý yêu cầu
+
+### Phân loại yêu cầu trước khi làm
+
+| Loại | Dấu hiệu | Cách xử lý |
+|------|----------|------------|
+| **Câu hỏi / phân tích** | "tại sao", "có nên", "giải thích", "check" | Trả lời trực tiếp, không code |
+| **Bug fix** | "lỗi", "không hoạt động", "sai" | Tìm root cause trước, fix tối thiểu, không refactor xung quanh |
+| **Feature mới** | "thêm", "tạo", "implement" | Chạy đủ quy trình bên dưới |
+| **UI/style** | "sửa giao diện", "đổi màu", "layout" | Kiểm tra design token trước khi code |
+
+---
+
+### Quy trình cho Feature / Fix có code changes
+
+**1. Đọc context trước khi code**
+- `docs/PROJECT_STATUS.md` — feature đã có chưa, đang ở phase nào
+- File(s) liên quan trực tiếp đến yêu cầu
+- Nếu có UI: `ZenXWealthUI/readme.md` → đúng pattern và token
+
+**2. Thiết kế trước khi viết JSX**
+- Mobile-first: layout mobile trước, desktop sau (`md:`, `lg:`)
+- Xác định max-width container (`max-w-5xl` / `max-w-6xl` / `max-w-7xl`)
+- Dùng "Ít khung" (hairline + whitespace), không thêm Card wrapper thừa
+- Nếu cần route mới: thêm vào `src/App.jsx` với lazy import + feature key
+
+**3. Implement — checklist khi viết code**
+- [ ] Màu qua `zx-*` token — không hex, không `red-*` Tailwind thuần
+- [ ] Radius qua `rounded-zx` / `rounded-zx-sm` — không `rounded-lg`
+- [ ] Mọi chuỗi UI qua `t('key')` — thêm vào **cả** `vi.js` và `en.js`
+- [ ] Số tiền qua `fmtShort()` (hub) hoặc `formatMoney(value, currency)` (detail)
+- [ ] Icon-only buttons có `aria-label`
+- [ ] Form inputs có `<label htmlFor>` tường minh
+- [ ] Feedback sau action (inline state cho đến khi có Toast system)
+
+**4. Kiểm tra trước khi commit**
+```bash
+npm run build   # bắt buộc — không commit nếu build lỗi
+npm test        # chạy nếu có thay đổi logic tài chính hoặc services
+```
+
+**5. Commit & push**
+- Conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `style:`
+- Mỗi commit một việc — không gộp feature + style + bug fix vào một commit
+- Push lên feature branch, không push thẳng `main`
+
+**6. Cập nhật docs — bắt buộc cuối session**
+- `docs/IMPLEMENTATION_LOG.md` — ghi ngắn gọn những gì đã làm
+- `docs/PROJECT_STATUS.md` — nếu có feature mới hoàn thành hoặc đổi version
+
+---
+
 ## Tech Stack
 
 - **React 18** + **Vite** — route-level lazy loading với `Suspense`
