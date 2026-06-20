@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-20 (v2.5)
+Last updated: 2026-06-21 (v2.6)
 
 ## Current Phase
 
@@ -199,6 +199,14 @@ users/{userId}
 ```
 
 ## Version History
+
+### v2.6 (2026-06-21) — Remaining UX Polish (items 1–7)
+- **AICoach hero**: Compact row layout — saves ~40% vertical space, badge+title inline, focus box conditional
+- **Bulk re-categorize**: Inline input + datalist in bulk action bar; writeBatch updates category field
+- **Roadmap scroll cue**: Fade-right gradient overlay on phase tabs scroll container
+- **Admin cleanup**: AdminAccessControl + AdminSettings — all red-* → zx-negative, rounded-zx-sm fixes
+- **Combobox keyboard nav**: ArrowUp/Down/Enter/Escape; role=combobox/listbox/option; aria-expanded/selected
+- **aria-describedby**: Assets, IncomeBuilder, TradingRisk — id + role=alert on errors, aria-describedby on key inputs
 
 ### v2.5 (2026-06-20) — Scorecard Improvements (Accessibility + PDF + Responsive + Form Migration)
 - **Accessibility**: skip-to-content link; aria-live on AICoach + GlobalSearch; aria-describedby + role=alert on all error messages; bulk-fixed red-* → zx-negative across 19+ pages
