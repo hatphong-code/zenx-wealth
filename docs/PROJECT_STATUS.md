@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-18 (v2.1)
+Last updated: 2026-06-20 (v2.2)
 
 ## Current Phase
 
@@ -55,6 +55,12 @@ Default hosting URL: https://zenx-wealth.web.app
 - Language toggle persisted to localStorage + synced to Firestore
 - `{symbol}` interpolation for currency in amount labels
 - Category chips use locale-aware defaults; custom Firestore categories preserved separately
+
+### UI Components (src/components/ui/)
+- `Toast.jsx` + `useToast()` hook — success/error/info variants, auto-dismiss, stacks
+- `Input.jsx`, `Textarea.jsx`, `Select.jsx` — base form components, token-based styling, `error` prop
+- `Skeleton.jsx` — `Skeleton`, `SkeletonText`, `SkeletonCard`, `SkeletonRow` for loading states
+- `Button.jsx`, `Card.jsx` — existing
 
 ### Design System (ZenXWealthUI)
 - CSS token layer: colors, typography, spacing — two themes
@@ -193,6 +199,13 @@ users/{userId}
 ```
 
 ## Version History
+
+### v2.2 (2026-06-20) — Priority 1 UI/UX Improvements
+- **Toast system**: `ToastProvider` + `useToast()` wired app-wide; replaces inline success messages
+- **Base form components**: `Input`, `Textarea`, `Select` in `src/components/ui/` — unified token-based styling
+- **aria-labels**: All icon-only buttons now have `aria-label` (AppShell, AppNav, BudgetTemplates, TrackHub)
+- **Skeleton loading**: `Skeleton*` components; AddTransaction and Transactions use skeleton on load
+- **Error token**: Replaced hard-coded `red-*` error classes with `zx-negative` token across 3 pages
 
 ### v2.1 (2026-06-18) — Plan Layout Polish + Budget Templates Overhaul
 - **Plan pages layout**: standardized container widths, stats cards (border/bg), section spacing (`space-y-6`), list section borders across 6 pages (EmergencyFund, Assets, TradingRisk, PayYourselfFirst, DebtControl, IncomeBuilder)

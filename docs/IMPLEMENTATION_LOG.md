@@ -2,6 +2,36 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-20 — v2.2 Priority 1 UI/UX Improvements
+
+### Toast/Notification System
+- Tạo `src/components/ui/Toast.jsx`: `ToastProvider` + `useToast()` hook, 3 variants (success/error/info), auto-dismiss 3.5s, stacks nhiều toast
+- Wire vào `main.jsx` (wrap toàn app)
+- Wire vào `Transactions.jsx` (delete success/error), `AddTransaction.jsx` (add/edit success), `Settings.jsx` (save success/error)
+- Xóa `savedFlash` state và `message` state cũ (replaced by toast)
+
+### Base Form Components
+- Tạo `src/components/ui/Input.jsx`, `Textarea.jsx`, `Select.jsx` — unified styling qua design tokens
+- Replace `const inputCls` pattern trong `Settings.jsx` và `AddTransaction.jsx`
+- Error state prop: `error={true}` đổi border sang `zx-negative`
+
+### aria-label cho icon-only buttons
+- `AppShell.jsx`: close button mobile nav group sheet
+- `AppNav.jsx`: hamburger menu button + close menu button
+- `BudgetTemplates.jsx`: close button template preview modal
+- `TrackHub.jsx`: close button convert panel
+- i18n keys: `nav.openMenu` thêm vào vi.js + en.js
+
+### Skeleton Loading
+- Tạo `src/components/ui/Skeleton.jsx`: `Skeleton`, `SkeletonText`, `SkeletonCard`, `SkeletonRow`
+- `AddTransaction.jsx`: thay `<div>Đang tải...</div>` → skeleton form (5 skeleton bars)
+- `Transactions.jsx`: khi `loading && transactions.length === 0` → hiện 6 `SkeletonRow`
+
+### Error token fix
+- `Transactions.jsx`, `AddTransaction.jsx`, `Settings.jsx`: thay `border-red-900 bg-red-950 text-red-300` → `border-zx-negative/40 bg-zx-negative/10 text-zx-negative`
+
+---
+
 ## 2026-06-20 — v2.1 UI/UX Analysis + Project Documentation
 
 ### UI/UX Desktop Analysis
