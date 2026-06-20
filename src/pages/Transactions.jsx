@@ -7,6 +7,7 @@ import { ArrowUpDown, Download, Filter, Pencil, Plus, Search, Trash2, X } from '
 import { Button } from '../components/ui/button';
 import { useToast } from '../components/ui/Toast';
 import { SkeletonRow } from '../components/ui/Skeleton';
+import { Combobox } from '../components/ui/Combobox';
 import { formatDate, formatMoney } from '../utils/formatters';
 import { db } from '../services/firebaseDb';
 import { useNumberFormat } from '../hooks/useNumberFormat';
@@ -335,20 +336,24 @@ export default function Transactions() {
 
             {/* Month */}
             {monthOptions.length > 0 && (
-              <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
-                className="rounded-zx-sm border border-zx-line bg-zx-bg px-2 py-1.5 text-sm text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                <option value="">{t('transactions.allMonths')}</option>
-                {monthOptions.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
+              <Combobox
+                options={monthOptions}
+                value={filterMonth}
+                onChange={setFilterMonth}
+                emptyLabel={t('transactions.allMonths')}
+                className="min-w-[120px]"
+              />
             )}
 
             {/* Category */}
             {categoryOptions.length > 0 && (
-              <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
-                className="rounded-zx-sm border border-zx-line bg-zx-bg px-2 py-1.5 text-sm text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                <option value="">{t('transactions.allCategories')}</option>
-                {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <Combobox
+                options={categoryOptions}
+                value={filterCategory}
+                onChange={setFilterCategory}
+                emptyLabel={t('transactions.allCategories')}
+                className="min-w-[140px]"
+              />
             )}
           </div>
 

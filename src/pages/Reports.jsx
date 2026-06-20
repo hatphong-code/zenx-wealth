@@ -17,16 +17,33 @@ import { useReportsData } from '../hooks/useReportsData';
 import { useI18n } from '../i18n/useI18n';
 import { formatMoney, formatNumber, formatPercent } from '../utils/formatters';
 
-function ChartShell({ title, subtitle, children }) {
+function EmptyChart({ hint }) {
+  const { t } = useI18n();
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-2 py-8 text-center">
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zx-surface-2 text-zx-text-soft">
+        <BarChart3 className="h-5 w-5" />
+      </div>
+      <p className="text-sm font-medium text-zx-text-soft">{t('reports.noChartData')}</p>
+      <p className="text-xs text-zx-text-soft/70">{hint || t('reports.noChartDataHint')}</p>
+    </div>
+  );
+}
+
+function ChartShell({ title, subtitle, isEmpty, children }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {subtitle && <p className="text-sm text-zx-text-soft">{subtitle}</p>}
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent>{isEmpty ? <EmptyChart /> : children}</CardContent>
     </Card>
   );
+}
+
+function isEmptyTrend(arr) {
+  return !arr?.length || arr.every(d => !d.income && !d.expense && !d.value && !d.netWorth && !d.estimated);
 }
 
 const DATE_RANGES = ['3m', '6m', 'ytd', 'all'];
@@ -112,6 +129,7 @@ export default function Reports() {
           <ChartShell
             title={t('reports.charts.cashFlowTitle')}
             subtitle={t('reports.charts.cashFlowSubtitle')}
+            isEmpty={isEmptyTrend(trends.cashFlow)}
           >
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -162,6 +180,7 @@ export default function Reports() {
           <ChartShell
             title={t('reports.charts.netWorthEstimateTitle')}
             subtitle={t('reports.charts.netWorthEstimateSubtitle')}
+            isEmpty={isEmptyTrend(trends.netWorthEstimate)}
           >
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
@@ -182,6 +201,7 @@ export default function Reports() {
           <ChartShell
             title={t('reports.charts.emergencyCoverageTitle')}
             subtitle={t('reports.charts.emergencyCoverageSubtitle')}
+            isEmpty={isEmptyTrend(trends.emergencyCoverage)}
           >
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">

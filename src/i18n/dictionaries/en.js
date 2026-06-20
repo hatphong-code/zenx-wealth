@@ -547,6 +547,8 @@ export default {
     last5Weeks: 'Last 5 weeks',
   },
   weeklyReview: {
+    autoSaved: 'Auto-saved',
+    autoSaving: 'Saving...',
     title: 'Weekly Review',
     thisWeekSummary: "This week's numbers",
     disciplineScore: 'Discipline score',
@@ -582,6 +584,8 @@ export default {
     },
   },
   reports: {
+    noChartData: 'No data yet',
+    noChartDataHint: 'Add transactions to see charts appear here.',
     badge: 'Advanced Reports',
     title: 'Financial Reports',
     subtitle: 'Read the system from three angles: current balance sheet, 6-month operating track, and where risk or leakage is still distorting wealth building.',

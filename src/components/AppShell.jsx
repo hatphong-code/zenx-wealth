@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import {
   ChevronRight, ClipboardCheck, Compass, Home, LogOut, Plus, Search, SlidersHorizontal, UserCircle, Wallet, X,
 } from 'lucide-react';
 import GlobalSearch from './GlobalSearch';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useAuth } from '../auth/useAuth';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useI18n } from '../i18n/useI18n';
@@ -441,14 +442,17 @@ function BottomTabs({ visibleGroups, activeGroup, onTabClick }) {
 
 function BottomSheet({ group, activeItem, onClose, onItemClick, t }) {
   const location = useLocation();
+  const sheetRef = useRef(null);
+  useFocusTrap(sheetRef, Boolean(group));
+
   if (!group) return null;
   return (
-    <div className="md:hidden fixed inset-0 z-50">
+    <div className="md:hidden fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={t(`nav.groups.${group.id}`, {}, group.label)}>
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Sheet */}
-      <div className="absolute bottom-0 inset-x-0 bg-zx-surface rounded-t-zx border-t border-zx-line zx-transition"
+      <div ref={sheetRef} className="absolute bottom-0 inset-x-0 bg-zx-surface rounded-t-zx border-t border-zx-line zx-transition"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {/* Handle */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3">

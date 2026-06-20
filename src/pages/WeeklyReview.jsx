@@ -53,6 +53,7 @@ export default function WeeklyReview() {
   const [done, setDone] = useState(false);
   const [step, setStep] = useState(0); // 0=numbers, 1=reflect, 2=commit
   const [dirty, setDirty] = useState(false);
+  const [autoSavedAt, setAutoSavedAt] = useState(null);
 
   const STEPS = [
     { id: 'numbers', label: t('weeklyReview.steps.numbers') },
@@ -68,6 +69,27 @@ export default function WeeklyReview() {
   useEffect(() => {
     if (data.form.oneLesson || data.form.oneActionNextWeek) setStep(2);
   }, [data.form]);
+
+  // Auto-save: debounced 30s when dirty and not already saving
+  useEffect(() => {
+    if (!dirty || saving || !user || !weekMeta?.weekKey) return;
+    const timer = setTimeout(async () => {
+      setSaving(true);
+      try {
+        await setDoc(doc(db, 'users', user.uid, 'weeklyReviews', weekMeta.weekKey), {
+          weekStart: Timestamp.fromDate(weekMeta.weekStart),
+          weekEnd: Timestamp.fromDate(weekMeta.weekEnd),
+          oneLesson: form.oneLesson.trim(),
+          oneActionNextWeek: form.oneActionNextWeek.trim(),
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+        setAutoSavedAt(new Date());
+        setDirty(false);
+      } catch { /* silent fail — user can still manually save */ }
+      finally { setSaving(false); }
+    }, 30_000);
+    return () => clearTimeout(timer);
+  }, [dirty, form, saving, user, weekMeta]);
 
   const updateField = (field, value) => {
     setDirty(true);
@@ -152,7 +174,12 @@ export default function WeeklyReview() {
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-1">
           {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : t('reviewHub.thisWeek')}
         </p>
-        <h1 className="font-zx-head text-xl font-bold text-zx-text">{t('weeklyReview.title')}</h1>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="font-zx-head text-xl font-bold text-zx-text">{t('weeklyReview.title')}</h1>
+          <span className="text-xs text-zx-text-soft flex-shrink-0">
+            {saving ? t('weeklyReview.autoSaving') : autoSavedAt ? `${t('weeklyReview.autoSaved')} ${autoSavedAt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}` : null}
+          </span>
+        </div>
         {loading && <p className="text-xs text-zx-text-soft mt-1">{t('common.loading')}</p>}
       </div>
 

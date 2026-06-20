@@ -559,6 +559,8 @@ export default {
     last5Weeks: '5 tuần gần nhất',
   },
   weeklyReview: {
+    autoSaved: 'Đã lưu tự động',
+    autoSaving: 'Đang lưu...',
     title: 'Review tuần',
     thisWeekSummary: 'Số liệu tuần này',
     disciplineScore: 'Điểm kỷ luật',
@@ -598,6 +600,8 @@ export default {
     },
   },
   reports: {
+    noChartData: 'Chưa có dữ liệu',
+    noChartDataHint: 'Thêm giao dịch để xem biểu đồ xuất hiện ở đây.',
     badge: 'Báo cáo nâng cao',
     title: 'Báo cáo tài chính',
     subtitle: 'Đọc hệ thống từ ba góc: bảng cân đối hiện tại, độ vận hành 6 tháng gần nhất, và nơi rủi ro hoặc rò rỉ vẫn đang làm méo quá trình tích sản.',
