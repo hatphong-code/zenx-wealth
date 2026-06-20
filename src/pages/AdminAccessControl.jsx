@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { Crown, Save, Settings2, ShieldCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
@@ -144,7 +144,7 @@ function FeaturesTab({ form, updateFeature, groupedFeatures, saving, handleSave,
         </div>
       ))}
 
-      {error && <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
+      {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
       {message && <p className="rounded-zx-sm border border-green-900 bg-green-950/40 p-3 text-sm text-zx-positive">{message}</p>}
 
       <Button type="button" onClick={handleSave} disabled={saving}
@@ -266,7 +266,7 @@ function ApiTab({ t }) {
 
       {/* LEFT: Form */}
       <form onSubmit={handleSave} className="space-y-5">
-        {error && <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
+        {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
         {message && <p className="rounded-zx-sm border border-emerald-900 bg-emerald-950/40 p-3 text-sm text-emerald-300">{message}</p>}
 
         {/* Claude section */}
@@ -481,7 +481,7 @@ function PlansTab({ t }) {
 
       {/* LEFT: Form */}
       <form onSubmit={handleSave} className="space-y-5">
-        {error && <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
+        {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
         {message && <p className="rounded-zx-sm border border-emerald-900 bg-emerald-950/40 p-3 text-sm text-emerald-300">{message}</p>}
 
         {/* Monthly */}
@@ -922,7 +922,7 @@ function BudgetTemplatesTab({ t }) {
         </div>
       </div>
 
-      {error && <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
+      {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
       {message && <p className="rounded-zx-sm border border-emerald-900 bg-emerald-950/40 p-3 text-sm text-emerald-300">{message}</p>}
       {saving && <p className="text-xs text-zx-accent">{t('common.saving')}</p>}
 
@@ -1068,3 +1068,4 @@ export default function AdminAccessControl() {
     </main>
   );
 }
+

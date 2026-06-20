@@ -552,6 +552,12 @@ export default function AppShell({ children }) {
 
   return (
     <div className="flex h-screen bg-zx-bg text-zx-text overflow-hidden zx-transition">
+      {/* Skip-to-content — visible on keyboard focus only */}
+      <a href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-zx-sm focus:bg-zx-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-zx-on-accent">
+        {t('appShell.skipToContent', {}, 'Bỏ qua điều hướng')}
+      </a>
+
       {/* Desktop sidebar */}
       <Sidebar
         visibleGroups={visibleGroups}
@@ -573,7 +579,7 @@ export default function AppShell({ children }) {
         <MobileTopBar activeGroup={activeGroup} activeItem={activeItem} />
 
         {/* Scrollable content */}
-        <main className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
+        <main id="main-content" className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
           <div className="pb-24 md:pb-0">
             {children}
           </div>

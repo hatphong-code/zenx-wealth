@@ -318,7 +318,7 @@ export default function Settings() {
             </div>
           </section>
 
-          {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
+          {error && <p id="settings-error" role="alert" className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
 
           <Button type="submit" disabled={saving}
             className="w-full bg-zx-accent text-zx-on-accent hover:opacity-90 md:w-auto">

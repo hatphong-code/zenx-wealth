@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore/lite';
 import { ArrowRight, Coffee, Plus, TrendingDown, TrendingUp, X } from 'lucide-react';
@@ -125,7 +125,7 @@ function ConvertSheet({ latteTotal, currency, emergencyData, userId, onClose, on
             </div>
           </div>
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-zx-negative">{error}</p>}
 
           <button onClick={handleConfirm} disabled={saving || !amount}
             className="w-full flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent py-3.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition disabled:opacity-50">
@@ -422,3 +422,5 @@ export default function TrackHub() {
     </div>
   );
 }
+
+

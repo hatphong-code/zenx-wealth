@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { BarChart3, ShieldAlert, Sparkles, TrendingUp, Wallet } from 'lucide-react';
+﻿import { useMemo, useState } from 'react';
+import { BarChart3, Printer, ShieldAlert, Sparkles, TrendingUp, Wallet } from 'lucide-react';
 import {
   Bar,
   BarChart,
@@ -94,7 +94,14 @@ export default function Reports() {
               {loading && <p className="text-zx-text-soft">{t('reports.loading')}</p>}
               {refreshing && <p className="text-zx-accent">{t('reports.refreshing')}</p>}
               {error && <p className="text-zx-negative">{error}</p>}
-              <div className="flex rounded-zx-sm border border-zx-line overflow-hidden text-xs ml-auto">
+              <div className="flex items-center gap-2 ml-auto print:hidden">
+                <button onClick={() => window.print()}
+                  className="inline-flex items-center gap-1.5 rounded-zx-sm border border-zx-line px-3 py-1.5 text-xs text-zx-text-soft transition hover:text-zx-text">
+                  <Printer className="h-3.5 w-3.5" />
+                  {t('reports.exportPdf')}
+                </button>
+              </div>
+              <div className="flex rounded-zx-sm border border-zx-line overflow-hidden text-xs">
                 {dateRangeOptions.map(opt => (
                   <button key={opt.key} onClick={() => setDateRange(opt.key)}
                     className={`px-3 py-1.5 transition ${dateRange === opt.key ? 'bg-zx-accent text-zx-on-accent font-medium' : 'text-zx-text-soft hover:text-zx-text'}`}>
@@ -106,7 +113,7 @@ export default function Reports() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <Card>
             <CardHeader><CardTitle>{t('reports.cards.netWorth')}</CardTitle></CardHeader>
             <CardContent><p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(data.balanceSheet.netWorth, currency)}</p></CardContent>
@@ -117,7 +124,7 @@ export default function Reports() {
           </Card>
           <Card>
             <CardHeader><CardTitle>{t('reports.cards.totalDebt')}</CardTitle></CardHeader>
-            <CardContent><p className="text-2xl font-bold text-red-300">{formatMoney(data.balanceSheet.totalDebt, currency)}</p></CardContent>
+            <CardContent><p className="text-2xl font-bold text-zx-negative">{formatMoney(data.balanceSheet.totalDebt, currency)}</p></CardContent>
           </Card>
           <Card>
             <CardHeader><CardTitle>{t('reports.cards.avgMonthlyCashFlow')}</CardTitle></CardHeader>
@@ -131,7 +138,7 @@ export default function Reports() {
             subtitle={t('reports.charts.cashFlowSubtitle')}
             isEmpty={isEmptyTrend(trends.cashFlow)}
           >
-            <div className="h-72">
+            <div className="h-72 md:h-80 xl:h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={trends.cashFlow}>
                   <CartesianGrid stroke="#1F2937" vertical={false} />
@@ -182,7 +189,7 @@ export default function Reports() {
             subtitle={t('reports.charts.netWorthEstimateSubtitle')}
             isEmpty={isEmptyTrend(trends.netWorthEstimate)}
           >
-            <div className="h-72">
+            <div className="h-72 md:h-80 xl:h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trends.netWorthEstimate}>
                   <CartesianGrid stroke="#1F2937" vertical={false} />
@@ -203,7 +210,7 @@ export default function Reports() {
             subtitle={t('reports.charts.emergencyCoverageSubtitle')}
             isEmpty={isEmptyTrend(trends.emergencyCoverage)}
           >
-            <div className="h-72">
+            <div className="h-72 md:h-80 xl:h-96">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trends.emergencyCoverage}>
                   <CartesianGrid stroke="#1F2937" vertical={false} />
@@ -302,4 +309,5 @@ export default function Reports() {
       </main>
   );
 }
+
 

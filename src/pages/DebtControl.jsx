@@ -1,7 +1,8 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { CreditCard, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/Input';
 import { formatMoney, formatNumber } from '../utils/formatters';
 import {
   createDebt,
@@ -140,7 +141,7 @@ export default function DebtControl() {
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-icon-bg">
-            <CreditCard className="h-6 w-6 text-red-400" />
+            <CreditCard className="h-6 w-6 text-zx-negative" />
           </div>
           <div className="space-y-1">
             <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('debts.title')}</h1>
@@ -150,14 +151,14 @@ export default function DebtControl() {
           </div>
         </div>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('debts.stats.total')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(summary.totalDebt, currency)}</p>
           </div>
           <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('debts.stats.bad')}</p>
-            <p className="mt-2 text-2xl font-bold text-red-300">{formatMoney(summary.badDebt, currency)}</p>
+            <p className="mt-2 text-2xl font-bold text-zx-negative">{formatMoney(summary.badDebt, currency)}</p>
           </div>
           <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('debts.stats.monthly')}</p>
@@ -170,15 +171,15 @@ export default function DebtControl() {
         </section>
 
         {summary.highestPriorityDebt && (
-          <section className="rounded-zx border border-[#3F2A2A] bg-[#1A1313] p-4">
-            <p className="text-sm text-red-300">{t('debts.suggestedAction')}</p>
+          <section className="rounded-zx border border-zx-negative/30 bg-zx-negative/10 p-4">
+            <p className="text-sm text-zx-negative">{t('debts.suggestedAction')}</p>
             <p className="mt-2 text-sm text-zx-text-soft">
               {t('debts.focusPayment', { name: summary.highestPriorityDebt.debtName, rate: formatNumber(summary.highestPriorityDebt.interestRate, { maximumFractionDigits: 1 }) })}
             </p>
           </section>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-zx-line bg-zx-surface p-5">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-zx border border-zx-line bg-zx-surface p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-zx-head text-lg font-semibold text-zx-text">{editingId ? t('debts.form.editTitle') : t('debts.form.addTitle')}</h2>
             {editingId && (
@@ -190,46 +191,46 @@ export default function DebtControl() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.nameLabel')}</span>
-              <input value={form.debtName} onChange={(e) => updateField('debtName', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" required />
+              <Input value={form.debtName} onChange={(e) => updateField('debtName', e.target.value)}  required />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.totalLabel')}</span>
-              <input type="number" min="0" step="any" value={form.totalAmount} onChange={(e) => updateField('totalAmount', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" required />
+              <Input type="number" min="0" step="any" value={form.totalAmount} onChange={(e) => updateField('totalAmount', e.target.value)}  required />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.remainingLabel')}</span>
-              <input type="number" min="0" step="any" value={form.remainingAmount} onChange={(e) => updateField('remainingAmount', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              <Input type="number" min="0" step="any" value={form.remainingAmount} onChange={(e) => updateField('remainingAmount', e.target.value)}  />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.interestLabel')}</span>
-              <input type="number" min="0" step="0.1" value={form.interestRate} onChange={(e) => updateField('interestRate', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              <Input type="number" min="0" step="0.1" value={form.interestRate} onChange={(e) => updateField('interestRate', e.target.value)}  />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.minPaymentLabel')}</span>
-              <input type="number" min="0" step="any" value={form.minimumPayment} onChange={(e) => updateField('minimumPayment', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              <Input type="number" min="0" step="any" value={form.minimumPayment} onChange={(e) => updateField('minimumPayment', e.target.value)}  />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.dueDateLabel')}</span>
-              <input type="date" value={form.dueDate} onChange={(e) => updateField('dueDate', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              <Input type="date" value={form.dueDate} onChange={(e) => updateField('dueDate', e.target.value)}  />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.typeLabel')}</span>
-              <select value={form.debtType} onChange={(e) => updateField('debtType', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
+              <select value={form.debtType} onChange={(e) => updateField('debtType', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
                 {debtTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
               </select>
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.priorityLabel')}</span>
-              <select value={form.priority} onChange={(e) => updateField('priority', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
+              <select value={form.priority} onChange={(e) => updateField('priority', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
                 {debtPriorities.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
               </select>
             </label>
             <label className="space-y-2 md:col-span-2 xl:col-span-1">
               <span className="text-sm text-zx-text-soft">{t('common.note')}</span>
-              <input value={form.note} onChange={(e) => updateField('note', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              <Input value={form.note} onChange={(e) => updateField('note', e.target.value)}  />
             </label>
           </div>
-          {error && <p className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
+          {error && <p id="debt-error" role="alert" className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
           <Button type="submit" disabled={saving} className="bg-zx-accent text-zx-on-accent hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60">
             {saving ? t('common.saving') : editingId ? t('debts.form.saveButton') : t('debts.form.addButton')}
           </Button>
@@ -337,3 +338,6 @@ export default function DebtControl() {
       </main>
   );
 }
+
+
+

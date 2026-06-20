@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { CheckCircle, LayoutTemplate, X } from 'lucide-react';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
@@ -235,7 +235,7 @@ export default function BudgetTemplates() {
         <p className="text-sm text-zx-text-soft">{t('budgetTemplates.subtitle')}</p>
       </div>
 
-      {error && <div className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>}
+      {error && <div className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</div>}
 
       {applied && (
         <div className="flex items-center gap-2 rounded-zx border border-emerald-800 bg-emerald-950/30 px-4 py-3 text-sm text-emerald-200">
@@ -347,3 +347,4 @@ export default function BudgetTemplates() {
     </main>
   );
 }
+

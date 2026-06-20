@@ -1,4 +1,4 @@
-import { useAuth } from '../auth/useAuth';
+﻿import { useAuth } from '../auth/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { AlertTriangle, Zap } from 'lucide-react';
@@ -25,7 +25,7 @@ export default function LatteFactor() {
         </div>
 
         {error && (
-          <div className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>
+          <div className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</div>
         )}
 
         <Card>
@@ -78,3 +78,5 @@ export default function LatteFactor() {
       </main>
   );
 }
+
+

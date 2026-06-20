@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BarChart3, Brain, CheckCircle2, Lock, Loader2, Sparkles, Target, Zap } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
@@ -119,7 +119,7 @@ export default function Upgrade() {
         </div>
       )}
 
-      {error && <div className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>}
+      {error && <div className="rounded border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</div>}
 
       {/* Plan comparison */}
       <section className="lg:grid lg:grid-cols-2 lg:gap-6 space-y-4 lg:space-y-0">
@@ -282,3 +282,4 @@ export default function Upgrade() {
     </main>
   );
 }
+

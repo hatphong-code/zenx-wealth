@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { doc, serverTimestamp, setDoc, Timestamp } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
 import { useI18n } from '../i18n/useI18n';
@@ -334,7 +334,7 @@ export default function WeeklyReview() {
                 </div>
               )}
 
-              {error && <p className="text-sm text-red-400">{error}</p>}
+              {error && <p className="text-sm text-zx-negative">{error}</p>}
 
               <div className="flex gap-2">
                 <button onClick={() => setStep(1)} className="px-4 py-3 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition">← {t('common.back')}</button>
@@ -372,3 +372,5 @@ export default function WeeklyReview() {
     </div>
   );
 }
+
+

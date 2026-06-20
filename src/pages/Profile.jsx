@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { updateProfile } from 'firebase/auth';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
@@ -281,7 +281,7 @@ export default function Profile() {
             </div>
           </section>
 
-          {error && <p className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
+          {error && <p className="rounded border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
           {message && <p className="rounded border border-green-900 bg-green-950/40 p-3 text-sm text-zx-positive">{message}</p>}
 
           <Button
@@ -296,6 +296,7 @@ export default function Profile() {
       </main>
   );
 }
+
 
 
 

@@ -238,6 +238,7 @@ export default function AddTransaction() {
                 type="number" min="1" step="any" value={form.amount}
                 onChange={e => updateField('amount', e.target.value)}
                 placeholder="0"
+                aria-describedby={error ? 'addtx-error' : undefined}
                 className="font-zx-display text-2xl font-bold"
                 required
               />
@@ -337,7 +338,7 @@ export default function AddTransaction() {
                 rows={2} placeholder={t('addTransaction.addNotePlaceholder')} />
             </div>
 
-            {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
+            {error && <p id="addtx-error" role="alert" className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
 
             <div className="flex gap-2">
               <button type="submit" disabled={saving}

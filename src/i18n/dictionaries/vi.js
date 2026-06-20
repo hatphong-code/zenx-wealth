@@ -351,6 +351,7 @@ export default {
     themeLabel: 'Giao diện',
     quickAdd: 'Thêm giao dịch nhanh',
     defaultName: 'bạn',
+    skipToContent: 'Bỏ qua điều hướng, đến nội dung chính',
   },
   addTransaction: {
     addTitle: 'Thêm giao dịch',
@@ -602,6 +603,7 @@ export default {
   reports: {
     noChartData: 'Chưa có dữ liệu',
     noChartDataHint: 'Thêm giao dịch để xem biểu đồ xuất hiện ở đây.',
+    exportPdf: 'Xuất PDF',
     badge: 'Báo cáo nâng cao',
     title: 'Báo cáo tài chính',
     subtitle: 'Đọc hệ thống từ ba góc: bảng cân đối hiện tại, độ vận hành 6 tháng gần nhất, và nơi rủi ro hoặc rò rỉ vẫn đang làm méo quá trình tích sản.',

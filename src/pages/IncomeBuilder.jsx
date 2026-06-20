@@ -1,7 +1,8 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Pencil, Trash2, TrendingUp } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/Input';
 import { formatMoney } from '../utils/formatters';
 import {
   createIncomeSource,
@@ -141,7 +142,7 @@ export default function IncomeBuilder() {
           </div>
         </div>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('income.stats.current')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(summary.currentMonthlyIncome, currency)}</p>
@@ -172,38 +173,38 @@ export default function IncomeBuilder() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.nameLabel')}</span>
-              <input value={form.sourceName} onChange={(e) => updateField('sourceName', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" required />
+              <Input value={form.sourceName} onChange={(e) => updateField('sourceName', e.target.value)}  required />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.typeLabel')}</span>
-              <select value={form.sourceType} onChange={(e) => updateField('sourceType', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
+              <select value={form.sourceType} onChange={(e) => updateField('sourceType', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
                 {incomeTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
               </select>
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.stageLabel')}</span>
-              <select value={form.stage} onChange={(e) => updateField('stage', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
+              <select value={form.stage} onChange={(e) => updateField('stage', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
                 {incomeStages.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.currentLabel')}</span>
-              <input type="number" min="0" step="any" value={form.currentMonthlyIncome} onChange={(e) => updateField('currentMonthlyIncome', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              <Input type="number" min="0" step="any" value={form.currentMonthlyIncome} onChange={(e) => updateField('currentMonthlyIncome', e.target.value)}  />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.targetLabel')}</span>
-              <input type="number" min="0" step="any" value={form.targetMonthlyIncome} onChange={(e) => updateField('targetMonthlyIncome', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              <Input type="number" min="0" step="any" value={form.targetMonthlyIncome} onChange={(e) => updateField('targetMonthlyIncome', e.target.value)}  />
             </label>
             <label className="space-y-2 md:col-span-2 xl:col-span-1">
               <span className="text-sm text-zx-text-soft">{t('income.form.nextActionLabel')}</span>
-              <input value={form.nextAction} onChange={(e) => updateField('nextAction', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              <Input value={form.nextAction} onChange={(e) => updateField('nextAction', e.target.value)}  />
             </label>
           </div>
           <label className="space-y-2 block">
             <span className="text-sm text-zx-text-soft">{t('common.note')}</span>
-            <input value={form.note} onChange={(e) => updateField('note', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+            <Input value={form.note} onChange={(e) => updateField('note', e.target.value)}  />
           </label>
-          {error && <p className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
+          {error && <p className="rounded border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
           <Button type="submit" disabled={saving} className="bg-zx-accent text-zx-on-accent hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60">
             {saving ? t('common.saving') : editingId ? t('income.form.saveButton') : t('income.form.addButton')}
           </Button>
@@ -246,3 +247,7 @@ export default function IncomeBuilder() {
       </main>
   );
 }
+
+
+
+

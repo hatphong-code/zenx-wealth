@@ -1,4 +1,4 @@
-import { Activity } from 'lucide-react';
+﻿import { Activity } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { useI18n } from '../i18n/useI18n';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -102,7 +102,7 @@ export default function HealthScore() {
         {refreshing && <p className="text-xs text-zx-accent">{t('common.loading')}</p>}
       </div>
 
-      {error && <div className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>}
+      {error && <div className="rounded border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</div>}
 
       <div className="grid gap-5 md:grid-cols-[auto_1fr]">
         <Card className="flex flex-col items-center justify-center p-6 min-w-[180px]">
@@ -159,3 +159,4 @@ export default function HealthScore() {
     </main>
   );
 }
+

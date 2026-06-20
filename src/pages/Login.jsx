@@ -202,6 +202,7 @@ export default function Login() {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   className="w-full bg-transparent py-3 text-zx-text outline-none"
+                  aria-describedby={error ? 'login-error' : undefined}
                   required
                 />
               </div>
@@ -215,12 +216,13 @@ export default function Login() {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent"
+                aria-describedby={error ? 'login-error' : undefined}
                 required
               />
             </label>
 
             {error && (
-              <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>
+              <p id="login-error" role="alert" className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>
             )}
 
             <button

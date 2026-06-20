@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { AlertTriangle, BarChart3, Save, TrendingUp } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { invalidateReportsCache } from '../services/reportsService';
 import { formatDate, formatMoney, formatNumber, formatPercent } from '../utils/formatters';
@@ -157,10 +158,10 @@ export default function TradingRisk() {
           </div>
         </section>
 
-        {error && <div className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>}
+        {error && <div className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</div>}
         {message && <div className="rounded-zx-sm border border-green-900 bg-green-950/40 p-3 text-sm text-zx-positive">{message}</div>}
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <Card>
             <CardHeader>
               <CardTitle>{t('trading.cards.capital')}</CardTitle>
@@ -398,5 +399,8 @@ export default function TradingRisk() {
       </main>
   );
 }
+
+
+
 
 

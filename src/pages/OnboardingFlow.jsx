@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
@@ -202,7 +202,7 @@ export default function OnboardingFlow() {
               </label>
             </div>
 
-            {error && <p className="rounded-zx-sm bg-red-950/40 border border-red-900 p-3 text-sm text-red-300">{error}</p>}
+            {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
 
             <div className="space-y-2">
               <button onClick={() => { setError(''); if (!Number.isFinite(Number(monthlyExpense)) || Number(monthlyExpense) <= 0) { setError(t('onboarding.errorExpense')); return; } setStep(3); }}
@@ -244,7 +244,7 @@ export default function OnboardingFlow() {
               ))}
             </div>
 
-            {error && <p className="rounded-zx-sm bg-red-950/40 border border-red-900 p-3 text-sm text-red-300">{error}</p>}
+            {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
 
             <div className="space-y-2">
               <button onClick={() => handleFinish(false)} disabled={saving}
@@ -267,3 +267,4 @@ export default function OnboardingFlow() {
     </div>
   );
 }
+

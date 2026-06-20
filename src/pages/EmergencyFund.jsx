@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import {
   addDoc,
   collection,
@@ -11,6 +11,7 @@ import {
 import { useAuth } from '../auth/useAuth';
 import { Pencil, Plus, Shield, Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/Input';
 import { db } from '../services/firebaseDb';
 import { formatDate, formatMoney, formatNumber } from '../utils/formatters';
 import { invalidateDashboardStatsCache } from '../services/dashboardService';
@@ -103,7 +104,6 @@ export default function EmergencyFund() {
     } catch (err) { setError(err.message); }
   };
 
-  const inputCls = 'w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent';
 
   return (
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
@@ -151,23 +151,23 @@ export default function EmergencyFund() {
           <div className="grid gap-4 md:grid-cols-[1fr_180px]">
             <label className="block space-y-2">
               <span className="text-sm text-zx-text-soft">{t('common.amount')}</span>
-              <input type="number" min="1" step="any" value={form.amount}
-                onChange={(e) => updateField('amount', e.target.value)} className={inputCls} required />
+              <Input type="number" min="1" step="any" value={form.amount}
+                onChange={(e) => updateField('amount', e.target.value)}  required />
               <span className="text-xs text-zx-text-soft">
                 {form.amount ? `~ ${formatMoney(form.amount, settings.currency)}` : t('emergency.form.amountHint')}
               </span>
             </label>
             <label className="block space-y-2">
               <span className="text-sm text-zx-text-soft">{t('common.date')}</span>
-              <input type="date" value={form.date} onChange={(e) => updateField('date', e.target.value)} className={inputCls} required />
+              <Input type="date" value={form.date} onChange={(e) => updateField('date', e.target.value)}  required />
             </label>
           </div>
           <label className="block space-y-2">
             <span className="text-sm text-zx-text-soft">{t('common.note')}</span>
-            <input type="text" value={form.note} onChange={(e) => updateField('note', e.target.value)}
-              placeholder={t('emergency.form.notePlaceholder')} className={inputCls} />
+            <Input type="text" value={form.note} onChange={(e) => updateField('note', e.target.value)}
+              placeholder={t('emergency.form.notePlaceholder')}  />
           </label>
-          {error && <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
+          {error && <p id="emergency-error" role="alert" className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
           <Button type="submit" disabled={saving}
             className="inline-flex w-full items-center justify-center gap-2 bg-zx-accent text-zx-on-accent hover:opacity-90 disabled:cursor-not-allowed md:w-auto">
             <Plus className="h-4 w-4" />
@@ -250,3 +250,4 @@ export default function EmergencyFund() {
       </main>
   );
 }
+

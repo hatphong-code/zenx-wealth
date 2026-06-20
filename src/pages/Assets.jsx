@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Landmark, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { Button } from '../components/ui/button';
@@ -132,7 +132,7 @@ export default function Assets() {
           </div>
         </div>
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <Card>
             <CardHeader><CardTitle>{t('assets.stats.total')}</CardTitle></CardHeader>
             <CardContent><p className="font-zx-head text-2xl font-bold text-zx-text">{formatMoney(summary.totalAssets, currency)}</p></CardContent>
@@ -182,7 +182,7 @@ export default function Assets() {
               <input type="number" min="0" step="any" value={form.balance} onChange={(e) => updateField('balance', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
             </label>
           </div>
-          {error && <p className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
+          {error && <p className="rounded border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
           <Button type="submit" disabled={saving} className="bg-emerald-600 text-zx-text hover:bg-emerald-700">
             <Plus className="mr-2 h-4 w-4" /> {saving ? t('common.saving') : editingId ? t('assets.form.saveButton') : t('assets.form.addButton')}
           </Button>
@@ -222,3 +222,5 @@ export default function Assets() {
       </main>
   );
 }
+
+

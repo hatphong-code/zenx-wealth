@@ -98,7 +98,7 @@ export default function AICoach() {
           <div className="mt-4 flex flex-wrap gap-4 text-sm">
             {loading && <p className="text-zx-text-soft">{t('coach.loading')}</p>}
             {refreshing && <p className="text-zx-accent">{t('coach.refreshing')}</p>}
-            {error && <p className="text-red-300">{error}</p>}
+            {error && <p className="text-zx-negative">{error}</p>}
           </div>
         </section>
 
@@ -122,16 +122,18 @@ export default function AICoach() {
               )}
             </button>
           </div>
-          {llmError && <p className="text-sm text-red-300 mb-3">{llmError}</p>}
-          {llmText ? (
-            <div className="rounded-zx-sm border border-zx-line bg-zx-bg p-4">
-              <p className="text-sm leading-7 text-zx-text whitespace-pre-wrap">{llmText}</p>
-            </div>
-          ) : (
-            <p className="text-sm text-zx-text-soft">
-              {t('coach.analyzeHint')}
-            </p>
-          )}
+          {llmError && <p className="text-sm text-zx-negative mb-3">{llmError}</p>}
+          <div aria-live="polite" aria-atomic="true">
+            {llmText ? (
+              <div className="rounded-zx-sm border border-zx-line bg-zx-bg p-4">
+                <p className="text-sm leading-7 text-zx-text whitespace-pre-wrap">{llmText}</p>
+              </div>
+            ) : (
+              <p className="text-sm text-zx-text-soft">
+                {t('coach.analyzeHint')}
+              </p>
+            )}
+          </div>
         </section>
 
         <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">

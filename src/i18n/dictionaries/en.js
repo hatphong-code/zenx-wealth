@@ -347,6 +347,7 @@ export default {
     themeLabel: 'Theme',
     quickAdd: 'Quick add transaction',
     defaultName: 'you',
+    skipToContent: 'Skip navigation, go to main content',
   },
   addTransaction: {
     addTitle: 'Add transaction',
@@ -586,6 +587,7 @@ export default {
   reports: {
     noChartData: 'No data yet',
     noChartDataHint: 'Add transactions to see charts appear here.',
+    exportPdf: 'Export PDF',
     badge: 'Advanced Reports',
     title: 'Financial Reports',
     subtitle: 'Read the system from three angles: current balance sheet, 6-month operating track, and where risk or leakage is still distorting wealth building.',

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { CheckCircle2, Save } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { saveRoadmapPhase, setWealthRoadmapCache } from '../services/wealthRoadmapService';
@@ -94,7 +94,7 @@ export default function WealthRoadmap() {
           </div>
         </section>
 
-        {error && <p className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
+        {error && <p className="rounded border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
 
         <section className="overflow-x-auto pb-1">
           <div className="flex min-w-max gap-3">
@@ -158,5 +158,6 @@ export default function WealthRoadmap() {
       </main>
   );
 }
+
 
 

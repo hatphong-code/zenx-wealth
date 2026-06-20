@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+﻿import { useState, useRef } from 'react';
 import { FileUp, CheckSquare, Square, Upload } from 'lucide-react';
 import { addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
@@ -222,7 +222,7 @@ export default function ImportTransactions() {
           {t('importTransactions.success', { count: importedCount }, `Đã nhập ${importedCount} giao dịch.`)}
         </div>
       )}
-      {error && <div className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>}
+      {error && <div className="rounded border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</div>}
 
       {!rows && (
         <div className="rounded-zx border border-zx-line bg-zx-surface p-6 space-y-4">
@@ -314,7 +314,7 @@ export default function ImportTransactions() {
                     <td className="px-3 py-2.5 text-center text-xs">
                       {row.valid
                         ? <span className="text-zx-positive">{t('importTransactions.statusOk', {}, '✓')}</span>
-                        : <span className="text-red-400" title={row.error}>{t('importTransactions.statusError', {}, '✕')} {row.error}</span>
+                        : <span className="text-zx-negative" title={row.error}>{t('importTransactions.statusError', {}, '✕')} {row.error}</span>
                       }
                     </td>
                   </tr>
@@ -347,3 +347,4 @@ export default function ImportTransactions() {
     </main>
   );
 }
+

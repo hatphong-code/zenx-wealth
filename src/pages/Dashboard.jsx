@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { ArrowRight, Coffee, Lock, PiggyBank, Shield, Wallet } from 'lucide-react';
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useAuth } from '../auth/useAuth';
@@ -338,7 +338,7 @@ export default function Dashboard() {
             {loading ? (
               <p className="text-zx-text-soft text-sm">{t('dashboard.loading')}</p>
             ) : error ? (
-              <p className="text-red-400 text-sm">{error}</p>
+              <p className="text-zx-negative text-sm">{error}</p>
             ) : (
               <div className="flex items-end justify-between gap-6 flex-wrap">
                 <div>
@@ -619,3 +619,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+

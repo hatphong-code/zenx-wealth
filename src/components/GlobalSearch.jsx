@@ -105,7 +105,7 @@ export default function GlobalSearch({ open, onClose }) {
         </div>
 
         {/* Results */}
-        <div className="max-h-[55vh] overflow-y-auto">
+        <div className="max-h-[55vh] overflow-y-auto" aria-live="polite" aria-atomic="false">
           {!hasResults && query.length > 0 && (
             <p className="px-4 py-6 text-center text-sm text-zx-text-soft">{t('search.noResults')}</p>
           )}
