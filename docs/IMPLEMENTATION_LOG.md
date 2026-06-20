@@ -2,6 +2,22 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-20 — v2.1 UI/UX Analysis + Project Documentation
+
+### UI/UX Desktop Analysis
+- Phân tích toàn diện UI/UX phiên bản desktop, tạo `UI_UX_DESKTOP_REPORT.md` (13 mục, scorecard 6.9/10)
+- Nhận diện 3 vấn đề Critical (Toast, base form components, aria-label), 5 High, 5 Medium
+- Xác nhận những gì đang tốt: dual-theme token system, lazy loading, mobile-first layout, feature gating
+
+### Project Documentation
+- Tạo `CLAUDE.md` tại root — project context và quy tắc làm việc cho mọi Claude session
+  - Design system rules (5 quy tắc tuyệt đối), navigation architecture, code conventions
+  - i18n đầy đủ: hook signature, interpolation `{token}`, bảng formatters, quy tắc dictionary
+  - Danh sách tech debt ưu tiên 🔴🟠🟡 từ UI/UX report
+  - Quy tắc cập nhật `PROJECT_STATUS.md` + `IMPLEMENTATION_LOG.md` sau mỗi session
+
+---
+
 ## 2026-06-18 — v2.1 Plan Layout Polish + Budget Templates Overhaul
 
 ### Plan Section — Layout Standardization (6 pages)

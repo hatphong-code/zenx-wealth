@@ -290,9 +290,30 @@ Xem chi tiết tại `UI_UX_DESKTOP_REPORT.md`. Tóm tắt để Claude ưu tiê
 
 ---
 
+## Cập nhật docs sau mỗi session — bắt buộc
+
+Sau khi hoàn thành bất kỳ feature, fix, hoặc thay đổi đáng kể nào, **phải cập nhật hai file sau trước khi kết thúc session:**
+
+### `docs/PROJECT_STATUS.md`
+Cập nhật khi: thêm feature mới, thay đổi architecture, đổi version.
+- Thêm vào mục **Implemented** nếu feature mới hoàn thành
+- Cập nhật **Last updated** và version number (vX.Y)
+- Cập nhật **Desktop Layout** nếu có thay đổi layout standards
+
+### `docs/IMPLEMENTATION_LOG.md`
+Cập nhật sau **mỗi session** có code changes.
+- Ghi ngày, tóm tắt những gì đã làm, files chính đã thay đổi
+- Không cần dài — 3-5 dòng là đủ, miễn là có
+
+> Hai file này là "bộ nhớ dài hạn" của project. CLAUDE.md định nghĩa rules;
+> PROJECT_STATUS + IMPLEMENTATION_LOG ghi lại thực tế. Session sau đọc cả ba.
+
+**Không có automation cho việc này** — đây là trách nhiệm thủ công cuối mỗi session.
+
+---
+
 ## Git & Branch
 
-- Branch đang phát triển: `claude/desktop-ui-ux-analysis-m70gtr`
 - Commit message: tiếng Anh, conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`)
 - Không push thẳng vào `main` — luôn dùng feature branch
 
