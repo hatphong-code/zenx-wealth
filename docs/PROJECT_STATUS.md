@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-21 (v2.7)
+Last updated: 2026-06-21 (v2.8)
 
 ## Current Phase
 
@@ -199,6 +199,13 @@ users/{userId}
 ```
 
 ## Version History
+
+### v2.8 (2026-06-21) — Bug fixes + Full cross-device settings sync
+- **Mobile Sign Out**: BottomSheet (Profile group) shows Sign Out button at bottom
+- **Cross-device settings sync**: UserSettingsSync component reads Firestore on login and applies locale/theme/numberUnit; ThemeToggle + Settings also save theme to Firestore immediately
+- **BudgetTemplates applied state**: appliedTemplateId saved to Firestore, restored on page reload
+- **Settings save frozen bug**: stale setMessage() call outside try block was crashing before finally → stuck in "Đang lưu..."
+- **i18n duplicate key bug**: duplicate reports: key shadowing dateRange* keys — fixed
 
 ### v2.7 (2026-06-21) — Items 8–10 + Dropdown fixes
 - **Chart Brush**: Recharts Brush scrubber on cashFlow BarChart (shown when data > 6 months)
