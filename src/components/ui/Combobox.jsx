@@ -10,6 +10,7 @@ export function Combobox({
   emptyLabel = 'Tất cả',
   emptyValue = '',
   disabled = false,
+  clearable = true,     // false = hide X button (use for required form selects)
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -88,7 +89,7 @@ export function Combobox({
         <span className={`flex-1 truncate ${!value ? 'text-zx-text-soft' : ''}`}>
           {value ? selectedLabel : emptyLabel}
         </span>
-        {value ? (
+        {value && clearable ? (
           <button type="button" onClick={(e) => { e.stopPropagation(); select(emptyValue); }}
             className="shrink-0 text-zx-text-soft hover:text-zx-text" aria-label="Xóa bộ lọc">
             <X className="h-3 w-3" />

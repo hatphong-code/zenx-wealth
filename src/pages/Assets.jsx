@@ -2,6 +2,7 @@
 import { Landmark, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { Button } from '../components/ui/button';
+import { Combobox } from '../components/ui/Combobox';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { formatMoney } from '../utils/formatters';
 import {
@@ -118,6 +119,16 @@ export default function Assets() {
 
   const { currency, accounts, summary } = data;
 
+  const assetTypeKeyMap = {
+    'Cash': 'cash', 'Savings': 'savings', 'Brokerage': 'brokerage', 'Retirement': 'retirement',
+    'Crypto': 'crypto', 'Business': 'business', 'Real Estate': 'realEstate', 'Gold': 'gold', 'Other': 'other',
+  };
+  const purposeKeyMap = {
+    'Daily': 'daily', 'Emergency': 'emergency', 'Long-term': 'longTerm', 'Risk': 'risk', 'Business': 'business',
+  };
+  const accountTypeOptions = accountTypes.map(a => ({ value: a.value, label: t(`assets.typeOptions.${assetTypeKeyMap[a.value]}`, {}, a.label) }));
+  const accountPurposeOptions = accountPurposes.map(p => ({ value: p.value, label: t(`assets.purposeOptions.${purposeKeyMap[p.value]}`, {}, p.label) }));
+
   return (
       <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
         <div className="flex items-center gap-3">
@@ -165,18 +176,14 @@ export default function Assets() {
               <span className="text-sm text-zx-text-soft">{t('assets.form.nameLabel')}</span>
               <input value={form.name} onChange={(e) => updateField('name', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
             </label>
-            <label className="space-y-2">
+            <div className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('assets.form.typeLabel')}</span>
-              <select value={form.type} onChange={(e) => updateField('type', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                {accountTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-              </select>
-            </label>
-            <label className="space-y-2">
+              <Combobox options={accountTypeOptions} value={form.type} onChange={v => updateField('type', v)} clearable={false} emptyLabel={t('assets.form.typeLabel')} />
+            </div>
+            <div className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('assets.form.purposeLabel')}</span>
-              <select value={form.purpose} onChange={(e) => updateField('purpose', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                {accountPurposes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-              </select>
-            </label>
+              <Combobox options={accountPurposeOptions} value={form.purpose} onChange={v => updateField('purpose', v)} clearable={false} emptyLabel={t('assets.form.purposeLabel')} />
+            </div>
             <label className="space-y-2 md:col-span-2 xl:col-span-4">
               <span className="text-sm text-zx-text-soft">{t('assets.form.balanceLabel')}</span>
               <input type="number" min="0" step="any" value={form.balance} onChange={(e) => updateField('balance', e.target.value)} aria-describedby={error ? 'assets-error' : undefined} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />

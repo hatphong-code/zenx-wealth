@@ -3,6 +3,7 @@ import { CreditCard, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/Input';
+import { Combobox } from '../components/ui/Combobox';
 import { formatMoney, formatNumber } from '../utils/formatters';
 import {
   createDebt,
@@ -137,6 +138,13 @@ export default function DebtControl() {
 
   const { currency, debts, summary } = data;
 
+  const debtTypeKeyMap = {
+    'Credit Card': 'creditCard', 'Consumer Loan': 'consumerLoan', 'Personal Loan': 'personalLoan',
+    'Business Loan': 'businessLoan', 'Mortgage': 'mortgage', 'Asset Loan': 'assetLoan', 'Other': 'other',
+  };
+  const debtTypeOptions = debtTypes.map(d => ({ value: d.value, label: t(`debts.typeOptions.${debtTypeKeyMap[d.value]}`, {}, d.label) }));
+  const debtPriorityOptions = debtPriorities.map(p => ({ value: p.value, label: t(`debts.priorityOptions.${p.value.toLowerCase()}`, {}, p.label) }));
+
   return (
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
         <div className="flex items-center gap-3">
@@ -213,18 +221,14 @@ export default function DebtControl() {
               <span className="text-sm text-zx-text-soft">{t('debts.form.dueDateLabel')}</span>
               <Input type="date" value={form.dueDate} onChange={(e) => updateField('dueDate', e.target.value)}  />
             </label>
-            <label className="space-y-2">
+            <div className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.typeLabel')}</span>
-              <select value={form.debtType} onChange={(e) => updateField('debtType', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                {debtTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
-              </select>
-            </label>
-            <label className="space-y-2">
+              <Combobox options={debtTypeOptions} value={form.debtType} onChange={v => updateField('debtType', v)} clearable={false} emptyLabel={t('debts.form.typeLabel')} />
+            </div>
+            <div className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.priorityLabel')}</span>
-              <select value={form.priority} onChange={(e) => updateField('priority', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                {debtPriorities.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-              </select>
-            </label>
+              <Combobox options={debtPriorityOptions} value={form.priority} onChange={v => updateField('priority', v)} clearable={false} emptyLabel={t('debts.form.priorityLabel')} />
+            </div>
             <label className="space-y-2 md:col-span-2 xl:col-span-1">
               <span className="text-sm text-zx-text-soft">{t('common.note')}</span>
               <Input value={form.note} onChange={(e) => updateField('note', e.target.value)}  />

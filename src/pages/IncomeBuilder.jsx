@@ -3,6 +3,7 @@ import { Pencil, Trash2, TrendingUp } from 'lucide-react';
 import { useAuth } from '../auth/useAuth';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/Input';
+import { Combobox } from '../components/ui/Combobox';
 import { formatMoney } from '../utils/formatters';
 import {
   createIncomeSource,
@@ -128,6 +129,18 @@ export default function IncomeBuilder() {
 
   const { currency, incomeSources, summary } = data;
 
+  const incomeTypeKeyMap = {
+    'Main Job': 'mainJob', 'Consulting': 'consulting', 'Freelance': 'freelance',
+    'Trading': 'trading', 'Business': 'business', 'Digital Product': 'digitalProduct',
+    'Investment Income': 'investmentIncome', 'Other': 'other',
+  };
+  const incomeStageKeyMap = {
+    'Idea': 'idea', 'Validation': 'validation', 'First Client': 'firstClient',
+    'Repeatable': 'repeatable', 'Systemized': 'systemized', 'Scaled': 'scaled',
+  };
+  const incomeTypeOptions = incomeTypes.map(t_ => ({ value: t_.value, label: t(`income.typeOptions.${incomeTypeKeyMap[t_.value]}`, {}, t_.label) }));
+  const incomeStageOptions = incomeStages.map(s => ({ value: s.value, label: t(`income.stageOptions.${incomeStageKeyMap[s.value]}`, {}, s.label) }));
+
   return (
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
         <div className="flex items-center gap-3">
@@ -175,18 +188,14 @@ export default function IncomeBuilder() {
               <span className="text-sm text-zx-text-soft">{t('income.form.nameLabel')}</span>
               <Input value={form.sourceName} onChange={(e) => updateField('sourceName', e.target.value)} aria-describedby={error ? 'income-error' : undefined} required />
             </label>
-            <label className="space-y-2">
+            <div className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.typeLabel')}</span>
-              <select value={form.sourceType} onChange={(e) => updateField('sourceType', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                {incomeTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
-              </select>
-            </label>
-            <label className="space-y-2">
+              <Combobox options={incomeTypeOptions} value={form.sourceType} onChange={v => updateField('sourceType', v)} clearable={false} emptyLabel={t('income.form.typeLabel')} />
+            </div>
+            <div className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.stageLabel')}</span>
-              <select value={form.stage} onChange={(e) => updateField('stage', e.target.value)} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
-                {incomeStages.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
-            </label>
+              <Combobox options={incomeStageOptions} value={form.stage} onChange={v => updateField('stage', v)} clearable={false} emptyLabel={t('income.form.stageLabel')} />
+            </div>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.currentLabel')}</span>
               <Input type="number" min="0" step="any" value={form.currentMonthlyIncome} onChange={(e) => updateField('currentMonthlyIncome', e.target.value)}  />

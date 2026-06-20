@@ -797,6 +797,8 @@ export default {
     empty: 'No asset accounts yet.',
     confirmDelete: 'Delete this asset account?',
     errors: { invalidForm: 'Account name and balance must be valid.' },
+    typeOptions: { cash: 'Cash', savings: 'Savings', brokerage: 'Brokerage', retirement: 'Retirement / Long-term', crypto: 'Crypto', business: 'Business capital', realEstate: 'Real estate', gold: 'Gold', other: 'Other' },
+    purposeOptions: { daily: 'Daily living', emergency: 'Emergency', longTerm: 'Long-term', risk: 'Risk / Trading', business: 'Business' },
   },
   debts: {
     title: 'Debt Control',
@@ -813,6 +815,8 @@ export default {
     empty: 'No debt records yet.',
     confirmDelete: 'Delete this debt record?',
     errors: { invalidForm: 'Debt name, total amount and remaining must be valid.' },
+    typeOptions: { creditCard: 'Credit Card', consumerLoan: 'Consumer Loan', personalLoan: 'Personal Loan', businessLoan: 'Business Loan', mortgage: 'Mortgage', assetLoan: 'Asset Loan', other: 'Other' },
+    priorityOptions: { high: 'High', medium: 'Medium', low: 'Low' },
   },
   income: {
     title: 'Income Builder',
@@ -827,6 +831,8 @@ export default {
     currentVsTarget: 'Current {current} / Target {target}',
     confirmDelete: 'Delete this income source?',
     errors: { invalidForm: 'Income source name and amounts must be valid.' },
+    typeOptions: { mainJob: 'Main Job', consulting: 'Consulting', freelance: 'Freelance', trading: 'Trading', business: 'Business', digitalProduct: 'Digital Product', investmentIncome: 'Investment Income', other: 'Other' },
+    stageOptions: { idea: 'Idea', validation: 'Validation', firstClient: 'First Client', repeatable: 'Repeatable', systemized: 'Systemized', scaled: 'Scaled' },
   },
   trading: {
     badge: 'High Risk Module',
