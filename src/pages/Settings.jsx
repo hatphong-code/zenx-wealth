@@ -129,7 +129,7 @@ export default function Settings() {
       Object.entries(form.allocationRule).map(([key, value]) => [key, Number(value || 0)])
     );
     if (allocationTotal !== 100) { setError(t('settings.allocationError')); return; }
-    setSaving(true); setError(''); setMessage('');
+    setSaving(true); setError('');
     try {
       const existingProfile = await getUserProfile(user.uid);
       const nextProfile = {
