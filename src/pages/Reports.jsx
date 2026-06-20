@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { BarChart3, ShieldAlert, Sparkles, TrendingUp, Wallet } from 'lucide-react';
 import {
   Bar,
@@ -28,12 +29,37 @@ function ChartShell({ title, subtitle, children }) {
   );
 }
 
+const DATE_RANGES = ['3m', '6m', 'ytd', 'all'];
+
+function sliceTrend(arr, range) {
+  if (!arr?.length) return arr;
+  if (range === 'all') return arr;
+  if (range === '3m') return arr.slice(-3);
+  if (range === '6m') return arr.slice(-6);
+  if (range === 'ytd') return arr.slice(-(new Date().getMonth() + 1));
+  return arr;
+}
+
 export default function Reports() {
   const { user } = useAuth();
   const { t } = useI18n();
   const { data, loading, refreshing, error } = useReportsData(user?.uid);
   const tradingStatusLabel = (s) => t(`trading.status.${s}`, {}, s);
   const currency = data.currency || 'VND';
+  const [dateRange, setDateRange] = useState('6m');
+
+  const trends = useMemo(() => ({
+    cashFlow: sliceTrend(data.trends.cashFlow, dateRange),
+    netWorthEstimate: sliceTrend(data.trends.netWorthEstimate, dateRange),
+    emergencyCoverage: sliceTrend(data.trends.emergencyCoverage, dateRange),
+  }), [data.trends, dateRange]);
+
+  const dateRangeOptions = [
+    { key: '3m',  label: t('reports.dateRange3m') },
+    { key: '6m',  label: t('reports.dateRange6m') },
+    { key: 'ytd', label: t('reports.dateRangeYtd') },
+    { key: 'all', label: t('reports.dateRangeAll') },
+  ];
 
   return (
       <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
@@ -47,10 +73,18 @@ export default function Reports() {
             <p className="max-w-3xl text-sm leading-6 text-zx-text-soft">
               {t('reports.subtitle')}
             </p>
-            <div className="flex flex-wrap gap-4 text-sm">
+            <div className="flex flex-wrap items-center gap-3 text-sm">
               {loading && <p className="text-zx-text-soft">{t('reports.loading')}</p>}
               {refreshing && <p className="text-zx-accent">{t('reports.refreshing')}</p>}
-              {error && <p className="text-red-300">{error}</p>}
+              {error && <p className="text-zx-negative">{error}</p>}
+              <div className="flex rounded-zx-sm border border-zx-line overflow-hidden text-xs ml-auto">
+                {dateRangeOptions.map(opt => (
+                  <button key={opt.key} onClick={() => setDateRange(opt.key)}
+                    className={`px-3 py-1.5 transition ${dateRange === opt.key ? 'bg-zx-accent text-zx-on-accent font-medium' : 'text-zx-text-soft hover:text-zx-text'}`}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -81,7 +115,7 @@ export default function Reports() {
           >
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.trends.cashFlow}>
+                <BarChart data={trends.cashFlow}>
                   <CartesianGrid stroke="#1F2937" vertical={false} />
                   <XAxis dataKey="label" tick={{ fill: '#9CA3AF', fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis hide />
@@ -131,7 +165,7 @@ export default function Reports() {
           >
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data.trends.netWorthEstimate}>
+                <LineChart data={trends.netWorthEstimate}>
                   <CartesianGrid stroke="#1F2937" vertical={false} />
                   <XAxis dataKey="label" tick={{ fill: '#9CA3AF', fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis hide />
@@ -151,7 +185,7 @@ export default function Reports() {
           >
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data.trends.emergencyCoverage}>
+                <LineChart data={trends.emergencyCoverage}>
                   <CartesianGrid stroke="#1F2937" vertical={false} />
                   <XAxis dataKey="label" tick={{ fill: '#9CA3AF', fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis hide />

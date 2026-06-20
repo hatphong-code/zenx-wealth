@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { deleteDoc, doc } from 'firebase/firestore/lite';
+import { deleteDoc, doc, writeBatch } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
 import { useI18n } from '../i18n/useI18n';
-import { ArrowUpDown, Filter, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { ArrowUpDown, Download, Filter, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useToast } from '../components/ui/Toast';
 import { SkeletonRow } from '../components/ui/Skeleton';
@@ -53,6 +53,8 @@ export default function Transactions() {
   const [filterRecurring, setFilterRecurring] = useState(false);
   const [sortBy, setSortBy] = useState('date_desc');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   const monthOptions = useMemo(() => getMonthOptions(transactions), [transactions]);
   const categoryOptions = useMemo(() => getCategoryOptions(transactions), [transactions]);
@@ -149,6 +151,91 @@ export default function Transactions() {
     }
   };
 
+  const exportCsv = () => {
+    const headers = [
+      t('transactions.table.date'),
+      t('transactions.table.category'),
+      t('transactions.table.type'),
+      t('transactions.table.amount'),
+      'Currency',
+      t('transactions.table.note'),
+      'Latte Factor',
+      t('common.recurring'),
+    ];
+    const rows = filtered.map(tx => {
+      const d = tx.date?.toDate ? tx.date.toDate() : new Date(tx.date);
+      return [
+        d.toLocaleDateString('vi-VN'),
+        tx.category,
+        tx.type === 'income' ? t('common.income') : t('common.expense'),
+        tx.amount,
+        tx.currency || currency,
+        tx.note || '',
+        tx.isLatteFactor ? 'Yes' : 'No',
+        tx.isRecurring ? 'Yes' : 'No',
+      ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+    });
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${t('transactions.exportFilename')}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const toggleSelectionMode = () => {
+    setSelectionMode(v => !v);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every(tx => selectedIds.has(tx.id));
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(tx => tx.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!user || selectedIds.size === 0) return;
+    const count = selectedIds.size;
+    if (!window.confirm(t('transactions.confirmBulkDelete', { count }))) return;
+    try {
+      const batch = writeBatch(db);
+      [...selectedIds].forEach(id => batch.delete(doc(db, 'users', user.uid, 'transactions', id)));
+      await batch.commit();
+      const nextTxs = transactions.filter(tx => !selectedIds.has(tx.id));
+      const nextData = { ...data, transactions: nextTxs };
+      setData(nextData);
+      setTransactionsCache(user.uid, nextData);
+      invalidateDashboardStatsCache(user.uid);
+      invalidateLatteFactorCache(user.uid);
+      invalidatePayYourselfFirstCache(user.uid);
+      invalidateReportsCache(user.uid);
+      invalidateAICoachCache(user.uid);
+      invalidateWeeklyReviewCache(user.uid, getCurrentWeekMeta().weekKey);
+      invalidateWealthRoadmapCache(user.uid);
+      setSelectedIds(new Set());
+      setSelectionMode(false);
+      toast({ title: t('toast.txBulkDeleted', { count }), variant: 'success' });
+    } catch (err) {
+      setError(err.message);
+      toast({ title: err.message, variant: 'error' });
+    }
+  };
+
   return (
     <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
       {/* Header */}
@@ -160,14 +247,47 @@ export default function Transactions() {
           {refreshing && <p className="text-sm text-zx-accent">{t('transactions.refreshing')}</p>}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Link to="/import"
-            className="inline-flex items-center justify-center gap-2 rounded border border-zx-line px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text">
-            CSV
-          </Link>
-          <Link to="/transactions/new"
-            className="inline-flex items-center justify-center gap-2 rounded bg-zx-accent px-4 py-2 text-sm font-medium text-zx-text transition hover:opacity-90">
-            <Plus className="h-4 w-4" /> {t('transactions.addButton')}
-          </Link>
+          {!selectionMode && (
+            <>
+              <Link to="/import"
+                className="inline-flex items-center justify-center gap-2 rounded-zx-sm border border-zx-line px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text">
+                {t('nav.items.import_transactions', {}, 'Nhập CSV')}
+              </Link>
+              {filtered.length > 0 && (
+                <button onClick={exportCsv}
+                  className="inline-flex items-center gap-1.5 rounded-zx-sm border border-zx-line px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text">
+                  <Download className="h-3.5 w-3.5" />
+                  {t('transactions.exportCsv')}
+                </button>
+              )}
+              {transactions.length > 0 && (
+                <button onClick={toggleSelectionMode}
+                  className="inline-flex items-center gap-1.5 rounded-zx-sm border border-zx-line px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text">
+                  {t('transactions.bulkSelect')}
+                </button>
+              )}
+              <Link to="/transactions/new"
+                className="inline-flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent px-4 py-2 text-sm font-medium text-zx-on-accent transition hover:opacity-90">
+                <Plus className="h-4 w-4" /> {t('transactions.addButton')}
+              </Link>
+            </>
+          )}
+          {selectionMode && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-zx-text-soft">{t('transactions.bulkSelected', { count: selectedIds.size })}</span>
+              {selectedIds.size > 0 && (
+                <button onClick={handleBulkDelete}
+                  className="inline-flex items-center gap-1.5 rounded-zx-sm bg-zx-negative/10 border border-zx-negative/40 px-3 py-2 text-sm font-medium text-zx-negative transition hover:bg-zx-negative/20">
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {t('transactions.bulkDeleteBtn', { count: selectedIds.size })}
+                </button>
+              )}
+              <button onClick={toggleSelectionMode}
+                className="inline-flex items-center gap-1.5 rounded-zx-sm border border-zx-line px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text">
+                {t('transactions.bulkCancel')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -305,7 +425,12 @@ export default function Transactions() {
               {filtered.map((transaction) => (
                 <article key={transaction.id} className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
+                    {selectionMode && (
+                      <input type="checkbox" checked={selectedIds.has(transaction.id)}
+                        onChange={() => toggleSelect(transaction.id)}
+                        className="mt-1 h-4 w-4 flex-shrink-0 rounded accent-zx-accent" />
+                    )}
+                    <div className="space-y-1 flex-1 min-w-0">
                       <p className="text-sm text-zx-text-soft">{formatDate(transaction.date)}</p>
                       <h3 className="font-semibold text-zx-text">{transaction.category}</h3>
                     </div>
@@ -332,16 +457,18 @@ export default function Transactions() {
                     <p className="text-sm text-zx-text-soft">{transaction.note}</p>
                   )}
 
-                  <div className="flex gap-2">
-                    <Link to={`/transactions/${transaction.id}/edit`}
-                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-zx-bg px-3 py-2 text-sm text-zx-accent transition hover:bg-zx-surface-2">
-                      <Pencil className="h-4 w-4" /> {t('common.edit')}
-                    </Link>
-                    <Button type="button" onClick={() => handleDelete(transaction.id)}
-                      className="flex-1 bg-red-950 px-3 py-2 text-red-300 hover:bg-red-900">
-                      <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
-                    </Button>
-                  </div>
+                  {!selectionMode && (
+                    <div className="flex gap-2">
+                      <Link to={`/transactions/${transaction.id}/edit`}
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-zx-sm bg-zx-bg px-3 py-2 text-sm text-zx-accent transition hover:bg-zx-surface-2">
+                        <Pencil className="h-4 w-4" /> {t('common.edit')}
+                      </Link>
+                      <Button type="button" onClick={() => handleDelete(transaction.id)}
+                        className="flex-1 bg-zx-negative/10 border border-zx-negative/30 px-3 py-2 text-zx-negative hover:bg-zx-negative/20">
+                        <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
+                      </Button>
+                    </div>
+                  )}
                 </article>
               ))}
             </div>
@@ -351,18 +478,34 @@ export default function Transactions() {
               <table className="w-full min-w-[760px] border-collapse text-left text-sm">
                 <thead className="bg-zx-bg text-xs uppercase tracking-wide text-zx-text-soft">
                   <tr>
+                    {selectionMode && (
+                      <th className="px-4 py-3 w-10">
+                        <input type="checkbox" checked={allFilteredSelected} onChange={toggleSelectAll}
+                          className="h-4 w-4 rounded accent-zx-accent" aria-label={allFilteredSelected ? t('transactions.bulkDeselectAll') : t('transactions.bulkSelectAll')} />
+                      </th>
+                    )}
                     <th className="px-4 py-3">{t('transactions.table.date')}</th>
                     <th className="px-4 py-3">{t('transactions.table.category')}</th>
                     <th className="px-4 py-3">{t('transactions.table.type')}</th>
                     <th className="px-4 py-3 text-right">{t('transactions.table.amount')}</th>
                     <th className="px-4 py-3">{t('transactions.table.flags')}</th>
                     <th className="px-4 py-3">{t('transactions.table.note')}</th>
-                    <th className="px-4 py-3 text-right">{t('transactions.table.action')}</th>
+                    {!selectionMode && <th className="px-4 py-3 text-right">{t('transactions.table.action')}</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.map((transaction) => (
-                    <tr key={transaction.id} className="border-t border-zx-line hover:bg-zx-surface-2/40 transition">
+                    <tr key={transaction.id}
+                      onClick={selectionMode ? () => toggleSelect(transaction.id) : undefined}
+                      className={`border-t border-zx-line transition ${selectionMode ? 'cursor-pointer hover:bg-zx-accent/5' : 'hover:bg-zx-surface-2/40'} ${selectedIds.has(transaction.id) ? 'bg-zx-accent/8' : ''}`}>
+                      {selectionMode && (
+                        <td className="px-4 py-3">
+                          <input type="checkbox" checked={selectedIds.has(transaction.id)}
+                            onChange={() => toggleSelect(transaction.id)}
+                            onClick={e => e.stopPropagation()}
+                            className="h-4 w-4 rounded accent-zx-accent" />
+                        </td>
+                      )}
                       <td className="px-4 py-3 text-zx-text-soft whitespace-nowrap">{formatDate(transaction.date)}</td>
                       <td className="px-4 py-3 font-medium">{transaction.category}</td>
                       <td className="px-4 py-3">
@@ -389,18 +532,20 @@ export default function Transactions() {
                         </div>
                       </td>
                       <td className="max-w-[220px] truncate px-4 py-3 text-zx-text-soft">{transaction.note || '-'}</td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end gap-2">
-                          <Link to={`/transactions/${transaction.id}/edit`}
-                            className="inline-flex items-center gap-2 rounded bg-zx-bg px-3 py-2 text-zx-accent transition hover:bg-zx-surface-2">
-                            <Pencil className="h-4 w-4" /> {t('common.edit')}
-                          </Link>
-                          <Button type="button" onClick={() => handleDelete(transaction.id)}
-                            className="inline-flex items-center gap-2 bg-red-950 px-3 py-2 text-red-300 hover:bg-red-900">
-                            <Trash2 className="h-4 w-4" /> {t('common.delete')}
-                          </Button>
-                        </div>
-                      </td>
+                      {!selectionMode && (
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end gap-2">
+                            <Link to={`/transactions/${transaction.id}/edit`}
+                              className="inline-flex items-center gap-2 rounded-zx-sm bg-zx-bg px-3 py-2 text-zx-accent transition hover:bg-zx-surface-2">
+                              <Pencil className="h-4 w-4" /> {t('common.edit')}
+                            </Link>
+                            <Button type="button" onClick={() => handleDelete(transaction.id)}
+                              className="inline-flex items-center gap-2 bg-zx-negative/10 border border-zx-negative/30 px-3 py-2 text-zx-negative hover:bg-zx-negative/20">
+                              <Trash2 className="h-4 w-4" /> {t('common.delete')}
+                            </Button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

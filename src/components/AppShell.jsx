@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import {
-  ChevronRight, ClipboardCheck, Compass, Home, LogOut, Plus, SlidersHorizontal, UserCircle, Wallet, X,
+  ChevronRight, ClipboardCheck, Compass, Home, LogOut, Plus, Search, SlidersHorizontal, UserCircle, Wallet, X,
 } from 'lucide-react';
+import GlobalSearch from './GlobalSearch';
 import { useAuth } from '../auth/useAuth';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useI18n } from '../i18n/useI18n';
@@ -339,7 +340,9 @@ function getTimeGreeting(t, name) {
   return t('dashboard.greetingEvening', { name });
 }
 
-function TopBar({ activeGroup, activeItem }) {
+const GROUP_HUB_ROUTES = { track: '/track', plan: '/plan', review: '/review' };
+
+function TopBar({ activeGroup, activeItem, onSearchOpen }) {
   const { user } = useAuth();
   const { t } = useI18n();
   const firstName = user?.displayName?.split(' ').pop() || user?.email?.split('@')[0] || t('appShell.defaultName');
@@ -348,13 +351,35 @@ function TopBar({ activeGroup, activeItem }) {
     ? t(`nav.items.${activeItem.navKey || activeItem.featureKey}`, {}, activeItem.navKey || activeItem.featureKey)
     : activeGroup ? t(`nav.groups.${activeGroup.id}`, {}, activeGroup.label) : '';
 
+  const isHubPage = !activeItem || (activeItem.navKey || '').endsWith('_hub') || activeGroup?.id === 'home';
+  const showBreadcrumb = !isHubPage && activeGroup && activeGroup.id !== 'home';
+  const groupLabel = activeGroup ? t(`nav.groups.${activeGroup.id}`, {}, activeGroup.label) : '';
+  const hubRoute = activeGroup ? GROUP_HUB_ROUTES[activeGroup.id] : null;
+
   return (
-    <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-zx-line flex-shrink-0 zx-transition">
+    <div className="flex items-center justify-between gap-4 px-6 py-3 border-b border-zx-line flex-shrink-0 zx-transition">
       <div className="min-w-0">
-        <p className="text-xs text-zx-text-soft">{greeting}</p>
-        <h1 className="font-zx-head text-xl font-semibold text-zx-text leading-tight mt-0.5">{pageLabel}</h1>
+        {showBreadcrumb ? (
+          <nav aria-label="breadcrumb" className="flex items-center gap-1 text-xs text-zx-text-soft mb-0.5">
+            {hubRoute
+              ? <Link to={hubRoute} className="hover:text-zx-text transition">{groupLabel}</Link>
+              : <span>{groupLabel}</span>
+            }
+            <ChevronRight className="h-3 w-3 flex-shrink-0" />
+            <span className="text-zx-text truncate">{pageLabel}</span>
+          </nav>
+        ) : (
+          <p className="text-xs text-zx-text-soft">{greeting}</p>
+        )}
+        <h1 className="font-zx-head text-xl font-semibold text-zx-text leading-tight">{pageLabel}</h1>
       </div>
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <button onClick={onSearchOpen}
+          className="hidden md:inline-flex items-center gap-2 rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text"
+          aria-label={t('search.hint')}>
+          <Search className="h-3.5 w-3.5" />
+          <span className="text-xs">{t('search.hint')}</span>
+        </button>
         <Link to="/transactions/new"
           className="inline-flex items-center gap-2 rounded-zx-sm bg-zx-accent px-3 py-2 text-sm font-medium text-zx-on-accent hover:opacity-90 transition">
           <Plus className="h-4 w-4" />
@@ -470,6 +495,7 @@ export default function AppShell({ children }) {
   const { visibleGroups, activeGroup, activeItem } = useNav();
   const [expandedGroups, setExpandedGroups] = useState(() => new Set());
   const [bottomSheet, setBottomSheet] = useState(null);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   // Auto-expand active group
   useEffect(() => {
@@ -477,6 +503,19 @@ export default function AppShell({ children }) {
       setExpandedGroups(prev => new Set([...prev, activeGroup.id]));
     }
   }, [activeGroup?.id]);
+
+  // Keyboard shortcut: Ctrl+K / Cmd+K
+  const openSearch = useCallback(() => setSearchOpen(true), []);
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
 
   const navigate_ = (path) => { navigate(path); setBottomSheet(null); };
 
@@ -523,7 +562,7 @@ export default function AppShell({ children }) {
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Desktop top bar */}
         <div className="hidden md:block">
-          <TopBar activeGroup={activeGroup} activeItem={activeItem} />
+          <TopBar activeGroup={activeGroup} activeItem={activeItem} onSearchOpen={openSearch} />
         </div>
 
         {/* Mobile top bar */}
@@ -561,6 +600,9 @@ export default function AppShell({ children }) {
         onItemClick={navigate_}
         t={t}
       />
+
+      {/* Global Search */}
+      <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }
