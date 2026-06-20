@@ -2,6 +2,32 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-20 — v2.4 Priority 3 UI/UX Improvements
+
+### prefers-reduced-motion
+- `@media (prefers-reduced-motion: reduce)` trong `index.css` — tắt mọi transition/animation khi OS yêu cầu. Áp dụng cho `*`, `.zx-transition`, `.progress-fill`.
+
+### Chart Empty States (Reports)
+- `EmptyChart` component hiển thị icon + "Chưa có dữ liệu" + hint khi trends rỗng.
+- `isEmptyTrend()` helper kiểm tra array rỗng hoặc tất cả values = 0.
+- Wire vào 3 ChartShell: cashFlow, netWorthEstimate, emergencyCoverage.
+
+### Weekly Review Auto-save
+- Debounced `useEffect` 30s: khi `dirty && !saving`, tự save Firestore (merge: true).
+- Header hiện "Đang lưu..." khi saving, "Đã lưu tự động HH:MM" sau khi xong.
+- Silent fail — user vẫn có thể bấm "Lưu" thủ công.
+
+### Focus Trap (BottomSheet)
+- `src/hooks/useFocusTrap.js` — trap Tab/Shift+Tab trong container, restore focus khi đóng.
+- Wire vào `BottomSheet` trong `AppShell.jsx` với `useRef`.
+- Thêm `role="dialog" aria-modal="true"` cho ARIA compliance.
+
+### Combobox (Transactions filter)
+- `src/components/ui/Combobox.jsx` — searchable dropdown: inline search input, clear button, click-outside close.
+- Replace `<select>` tháng và danh mục trong Transactions.jsx advanced filter panel.
+
+---
+
 ## 2026-06-20 — v2.3 Priority 2 UI/UX Improvements
 
 ### Export CSV (Transactions)

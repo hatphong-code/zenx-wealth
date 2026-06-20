@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-20 (v2.3)
+Last updated: 2026-06-20 (v2.4)
 
 ## Current Phase
 
@@ -199,6 +199,13 @@ users/{userId}
 ```
 
 ## Version History
+
+### v2.4 (2026-06-20) — Priority 3 UI/UX Polish
+- **prefers-reduced-motion**: `@media` query in `index.css` respects OS accessibility preference
+- **Chart Empty States**: `EmptyChart` component in Reports — shown when trend data is empty
+- **Weekly Review Auto-save**: debounced 30s save to Firestore, "Đã lưu tự động" indicator
+- **Focus Trap**: `useFocusTrap` hook + wired into BottomSheet (modal) in AppShell
+- **Combobox**: `Combobox.jsx` searchable dropdown, replaces `<select>` in Transactions filters
 
 ### v2.3 (2026-06-20) — Priority 2 UI/UX Improvements
 - **Export CSV**: Transactions → "Xuất CSV" exports filtered list, Excel-safe BOM
