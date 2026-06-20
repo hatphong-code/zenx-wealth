@@ -28,7 +28,9 @@ export function Combobox({
     : normalized;
 
   // All items including the "empty" option at index 0
-  const allItems = [{ value: emptyValue, label: emptyLabel }, ...filtered];
+  const allItems = clearable
+    ? [{ value: emptyValue, label: emptyLabel }, ...filtered]
+    : filtered;
 
   const selectedLabel = normalized.find(o => o.value === value)?.label ?? '';
 
