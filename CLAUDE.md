@@ -1,0 +1,246 @@
+# CLAUDE.md — ZenX Wealth
+
+Personal Finance Operating System cho người khởi đầu muộn. Vietnamese-first, VND.
+Production: **https://wealth.zenx.asia** · Firebase project: `zenx-wealth`
+
+---
+
+## Đọc trước khi làm bất cứ điều gì
+
+| Tài liệu | Nội dung |
+|----------|----------|
+| `ZenXWealthUI/readme.md` | **Nguồn sự thật về design** — dual-theme, token, typography, content rules |
+| `docs/DEVELOPMENT_WORKFLOW.md` | Conventions, page pattern, definition of done |
+| `docs/ZenX_Wealth_Web_App_Roadmap.md` | Feature roadmap và vị trí của từng module |
+| `docs/PROJECT_STATUS.md` | Trạng thái implementation hiện tại |
+| `docs/IMPLEMENTATION_LOG.md` | Log các thay đổi theo thời gian |
+
+---
+
+## Tech Stack
+
+- **React 18** + **Vite** — route-level lazy loading với `Suspense`
+- **Tailwind CSS 3.4** — extended với `zx-*` utilities từ design tokens
+- **Firebase** Auth + Firestore Lite + Cloud Functions (Node 22)
+- **Recharts** — data visualization
+- **Lucide React** — icons (line, 1.7 stroke, rounded)
+- **Zustand** — global state
+- **i18n** — `useI18n()` hook, `t()` function, VI default / EN ready
+
+---
+
+## Design System — Quy tắc tuyệt đối
+
+> Design system đầy đủ ở `ZenXWealthUI/readme.md`. Đây là các quy tắc **không được vi phạm**.
+
+### 1. Không dùng hex màu cứng trong page/component files
+
+```jsx
+// ❌ SAI
+<div style={{ color: '#C8643C' }} />
+<div className="text-red-300 border-red-900 bg-red-950" />
+
+// ✅ ĐÚNG
+<div className="text-zx-accent" />
+<div className="text-zx-negative border-zx-negative/40 bg-zx-negative/10" />
+```
+
+Mọi màu đi qua `ZenXWealthUI/tokens/colors.css`. Error state dùng token `--zx-negative`, không dùng Tailwind `red-*` thuần.
+
+### 2. Không dùng `rounded-lg` hay Tailwind radius cứng
+
+```jsx
+// ❌ SAI
+<div className="rounded-lg" />
+<div className="rounded-2xl" />
+
+// ✅ ĐÚNG
+<div className="rounded-zx" />      // card/section level
+<div className="rounded-zx-sm" />   // inline element level
+<div className="rounded-zx-pill" /> // badge/pill
+```
+
+### 3. Hai theme — một codebase
+
+Theme switch qua `data-theme="young"` (Ấm, light) hoặc `data-theme="mid"` (Tư gia, dark) trên `document.documentElement`. Hook: `src/hooks/useTheme.jsx`. Không hardcode màu riêng cho từng theme trong component.
+
+### 4. Ít khung (open/airy) — layout mặc định
+
+Dùng hairline `h-px bg-zx-line` để phân vùng, KHÔNG bọc thêm Card wrapper cho top-level sections. Xem pattern đầy đủ trong `docs/DEVELOPMENT_WORKFLOW.md` → mục "Ít Khung Page Pattern".
+
+### 5. Typography đi qua font utilities
+
+```jsx
+font-zx-display  // hero numbers (40px / 66px desktop)
+font-zx-head     // headings
+font-zx-body     // body text (mặc định, không cần khai báo)
+```
+
+Eyebrow label: `text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft`
+
+---
+
+## Navigation Architecture
+
+```
+Desktop:  Sidebar (w-56) + TopBar (greeting + page title + QuickAdd)
+Mobile:   Bottom tabs (5 groups) + MobileTopBar + FAB (QuickAdd)
+
+Hub pages (entry points on mobile):
+  /         Dashboard
+  /track    TrackHub
+  /plan     PlanHub
+  /review   ReviewHub
+  /settings Settings
+```
+
+Route definitions + feature gating: `src/App.jsx`
+Shell: `src/components/AppShell.jsx` — không tạo thêm nav wrapper trong pages.
+
+---
+
+## Code Conventions
+
+### Files & Folders
+- Pages: `src/pages/`
+- Shared components: `src/components/`
+- Base UI primitives: `src/components/ui/`
+- Services (Firestore logic): `src/services/`
+- Hooks: `src/hooks/`
+- Utils: `src/utils/`
+
+### Data
+- Money: lưu dưới dạng `number`, hiển thị qua `src/utils/formatters.js`
+  - `fmtShort(n)` → `"12,5 tr"` — dùng trên hub/dashboard
+  - `formatMoney(n)` → `"12.500.000 ₫"` — dùng trên detail pages
+- Dates: Firestore `Timestamp`, không lưu string
+- Firestore path: `users/{userId}/...`
+
+### i18n
+- Mọi chuỗi hiển thị dùng `t('key')` — không hardcode tiếng Việt hay tiếng Anh trong JSX
+- Không dùng `console.log` với nội dung tiếng Việt trong production code
+
+### Styling
+- Mobile-first: viết style mặc định cho mobile, thêm `md:` / `lg:` / `xl:` cho desktop
+- Container chuẩn: `max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8`
+- `pb-24 md:pb-8`: pb-24 cho mobile (tránh bottom tabs), pb-8 cho desktop
+
+---
+
+## Component Rules
+
+### Luôn dùng base components khi có
+
+| Dùng | Thay vì |
+|------|---------|
+| `<Card>` từ `src/components/ui/card.jsx` | `<div className="rounded-zx border ...">` inline |
+| `<Button>` từ `src/components/ui/button.jsx` | `<button className="...">` inline |
+
+> **Tech debt đang tồn tại:** `<Input>`, `<Select>`, `<Textarea>` chưa có base component. Khi tạo mới, hãy tạo component trong `src/components/ui/` trước rồi dùng, không inline Tailwind vào page.
+
+### Form inputs — pattern chuẩn (đến khi có base component)
+
+```jsx
+// Input text
+<input className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-3 text-zx-text placeholder:text-zx-text-soft focus:outline-none focus:ring-2 focus:ring-zx-accent" />
+
+// Error state — KHÔNG dùng red-* Tailwind thuần
+<p className="mt-1 text-[12.5px] text-zx-negative">{error}</p>
+```
+
+### Accessibility — không bỏ qua
+
+```jsx
+// Icon-only buttons PHẢI có aria-label
+<button aria-label="Chỉnh sửa giao dịch"><PencilIcon /></button>
+<button aria-label="Xóa giao dịch"><TrashIcon /></button>
+
+// Form inputs PHẢI có label tường minh (không chỉ dựa vào placeholder)
+<label htmlFor="amount" className="...">Số tiền</label>
+<input id="amount" ... />
+
+// Error messages liên kết với input
+<input aria-describedby="amount-error" ... />
+<p id="amount-error" ...>{error}</p>
+```
+
+### Feedback sau actions — bắt buộc
+
+Mọi action thành công (thêm/sửa/xóa giao dịch, lưu settings, v.v.) PHẢI có feedback rõ ràng cho user. Hiện tại chưa có Toast system — dùng state inline hoặc navigate với success param cho đến khi có.
+
+> **Việc cần làm:** Implement `useToast()` hook + `<Toast>` component tại `src/components/ui/`.
+
+---
+
+## Desktop Layout Standards
+
+Theo `docs/PROJECT_STATUS.md` (v2.1):
+
+| Trang | Max-width |
+|-------|-----------|
+| Hub pages, forms chuẩn | `max-w-5xl` |
+| Data-heavy (Assets, TradingRisk, BudgetTemplates) | `max-w-6xl` |
+| Reports, AI Coach | `max-w-7xl` |
+
+**2-column desktop pattern** (`lg:grid`):
+- TrackHub: cashflow + latte trái / recurring + recent + actions phải
+- WeeklyReview: wizard trái / sticky summary panel phải
+- AddTransaction: form trái / today's entries phải
+
+Stats grid: `sm:grid-cols-2 xl:grid-cols-4`
+
+---
+
+## Các vấn đề đã nhận diện (từ UI/UX Report)
+
+Xem chi tiết tại `UI_UX_DESKTOP_REPORT.md`. Tóm tắt để Claude ưu tiên đúng:
+
+### 🔴 Chưa implement — Critical
+- **Toast/Notification system** sau actions — user không có feedback rõ
+- **Base form components** (`<Input>`, `<Select>`, `<Textarea>`) — hiện inconsistent giữa các pages
+- **`aria-label` trên icon-only buttons** — không accessible
+
+### 🟠 Chưa implement — High priority
+- **Global search** (`Cmd+K`) across transactions và features
+- **Breadcrumb navigation** cho sub-pages
+- **Export** transactions (CSV) và reports (PDF)
+- **Bulk actions** cho transaction list (chọn nhiều → xóa/re-categorize)
+- **Skeleton loading** thay vì text "Đang tải..." (tránh layout shift)
+
+### 🟡 Chưa implement — Medium
+- **Searchable `<Select>`** cho category picker (thay `<select>` HTML thuần)
+- **Date range picker** cho Reports
+- **Auto-save** trong Weekly Review (multi-step form dài)
+- **`prefers-reduced-motion`** media query cho animations
+- **Empty states** cho Charts khi chưa có data
+
+### ✅ Đang tốt — Không thay đổi
+- Dual-theme token system
+- Lazy loading + code splitting
+- Mobile-first responsive layout
+- Feature gating + LockedFeature UX
+- StatTile, ProgressBar, Tone system components
+- Focus rings trên tất cả buttons
+- i18n + number formatting
+
+---
+
+## Git & Branch
+
+- Branch đang phát triển: `claude/desktop-ui-ux-analysis-m70gtr`
+- Commit message: tiếng Anh, conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`)
+- Không push thẳng vào `main` — luôn dùng feature branch
+
+## Build & Deploy
+
+```bash
+npm run build          # Kiểm tra trước khi commit
+npm test               # Unit tests (Vitest)
+firebase deploy --only hosting --project zenx-wealth
+```
+
+Cloud Functions:
+```bash
+cd functions && npm install && cd ..
+npx firebase deploy --only functions --project zenx-wealth
+```
