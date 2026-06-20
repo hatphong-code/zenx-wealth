@@ -5,6 +5,7 @@ import { featureCatalogByKey } from './data/accessControl';
 import { useFeatureAccess } from './hooks/useFeatureAccess';
 import { useI18n } from './i18n/useI18n';
 import AppShell from './components/AppShell';
+import { UserSettingsSync } from './components/UserSettingsSync';
 import { getCachedUserProfile, getUserProfile } from './services/userService';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -121,6 +122,7 @@ function routeElement(element) {
 export default function App() {
   return (
     <BrowserRouter>
+      <UserSettingsSync />
       <Routes>
         <Route path="/login" element={routeElement(<Login />)} />
         <Route path="/onboarding" element={routeElement(<OnboardingFlow />)} />

@@ -131,14 +131,26 @@ function Avatar({ size = 34 }) {
 function ThemeToggle({ compact = false }) {
   const { theme, setTheme } = useTheme();
   const { t } = useI18n();
+  const { user } = useAuth();
   const themeOptions = [
     { v: 'young', l: t('settings.themeYoungStyle') },
     { v: 'mid', l: t('settings.themeMidStyle') },
   ];
+
+  const changeTheme = async (next) => {
+    setTheme(next);
+    if (!user) return;
+    try {
+      const cached = getCachedUserProfile(user.uid);
+      if (cached) setUserProfileCache(user.uid, { ...cached, settings: { ...(cached.settings || {}), theme: next } });
+      await setDoc(doc(db, 'users', user.uid), { settings: { theme: next }, updatedAt: serverTimestamp() }, { merge: true });
+    } catch {}
+  };
+
   if (compact) {
     const current = themeOptions.find(o => o.v === theme) || themeOptions[0];
     return (
-      <button onClick={() => setTheme(theme === 'mid' ? 'young' : 'mid')}
+      <button onClick={() => changeTheme(theme === 'mid' ? 'young' : 'mid')}
         title={t('appShell.themeLabel')}
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-zx-sm border border-zx-line text-xs font-medium text-zx-text-soft hover:text-zx-text hover:border-zx-accent transition">
         <span className="w-2 h-2 rounded-full flex-shrink-0"
@@ -150,7 +162,7 @@ function ThemeToggle({ compact = false }) {
   return (
     <div className="p-1 rounded-zx-sm bg-zx-surface-2 flex gap-1">
       {themeOptions.map(o => (
-        <button key={o.v} onClick={() => setTheme(o.v)}
+        <button key={o.v} onClick={() => changeTheme(o.v)}
           className={`flex-1 text-xs font-medium py-1.5 rounded transition ${
             theme === o.v ? 'bg-zx-accent text-zx-on-accent' : 'text-zx-text-soft hover:text-zx-text'
           }`}>{o.l}</button>

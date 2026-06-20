@@ -57,6 +57,14 @@ export default function Settings() {
   const { theme, setTheme } = useTheme();
   const { unit, setUnit } = useNumberFormat();
 
+  const changeTheme = async (key) => {
+    setTheme(key);
+    if (!user) return;
+    try {
+      await setDoc(doc(db, 'users', user.uid), { settings: { theme: key }, updatedAt: serverTimestamp() }, { merge: true });
+    } catch {}
+  };
+
   const themeOptions = [
     {
       key: 'young',
@@ -131,6 +139,7 @@ export default function Settings() {
           ...(existingProfile.settings || {}),
           allocationRule,
           numberUnit: unit,
+          theme,
           customCategories: {
             income: sanitizeCategories(form.incomeCategories),
             expense: sanitizeCategories(form.expenseCategories),
@@ -179,7 +188,7 @@ export default function Settings() {
                 <button
                   key={opt.key}
                   type="button"
-                  onClick={() => setTheme(opt.key)}
+                  onClick={() => changeTheme(opt.key)}
                   className={`rounded-zx-sm border p-4 text-left transition hover:shadow-zx ${
                     active
                       ? 'border-zx-accent bg-zx-accent-soft'
