@@ -181,7 +181,10 @@ export default function BudgetTemplates() {
 
   useEffect(() => {
     if (!user) return;
-    getUserProfile(user.uid).then(p => setCurrentSettings(p.settings || {})).catch(() => {});
+    getUserProfile(user.uid).then(p => {
+      setCurrentSettings(p.settings || {});
+      if (p.appliedTemplateId) setApplied(p.appliedTemplateId);
+    }).catch(() => {});
     getBudgetTemplates().then(setTemplates).finally(() => setLoadingTemplates(false));
   }, [user]);
 
@@ -205,7 +208,7 @@ export default function BudgetTemplates() {
         },
         emergencyFundTargetMonths: template.emergencyTargetMonths,
       };
-      await setDoc(doc(db, 'users', user.uid), { settings: nextSettings, updatedAt: serverTimestamp() }, { merge: true });
+      await setDoc(doc(db, 'users', user.uid), { settings: nextSettings, appliedTemplateId: template.id, updatedAt: serverTimestamp() }, { merge: true });
       setUserProfileCache(user.uid, { ...profile, settings: nextSettings });
       setCurrentSettings(nextSettings);
       invalidateDashboardStatsCache(user.uid);

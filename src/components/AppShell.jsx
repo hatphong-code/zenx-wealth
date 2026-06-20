@@ -440,7 +440,7 @@ function BottomTabs({ visibleGroups, activeGroup, onTabClick }) {
 
 /* ─────────────── mobile bottom sheet ─────────────── */
 
-function BottomSheet({ group, activeItem, onClose, onItemClick, t }) {
+function BottomSheet({ group, activeItem, onClose, onItemClick, onSignOut, t }) {
   const location = useLocation();
   const sheetRef = useRef(null);
   useFocusTrap(sheetRef, Boolean(group));
@@ -484,6 +484,18 @@ function BottomSheet({ group, activeItem, onClose, onItemClick, t }) {
               </div>
             );
           })}
+
+          {/* Sign Out — profile group only */}
+          {group.id === 'profile' && (
+            <>
+              <div className="h-px bg-zx-line" />
+              <button onClick={() => { onSignOut(); onClose(); }}
+                className="w-full flex items-center py-4 text-sm text-left text-zx-text-soft transition hover:text-zx-negative">
+                <LogOut className="h-4 w-4 mr-2 shrink-0" />
+                {t('nav.signOut')}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -507,6 +519,8 @@ export default function AppShell({ children }) {
       setExpandedGroups(prev => new Set([...prev, activeGroup.id]));
     }
   }, [activeGroup?.id]);
+
+  const handleSignOut = useCallback(async () => { await signOut(auth); navigate('/login'); }, [navigate]);
 
   // Keyboard shortcut: Ctrl+K / Cmd+K
   const openSearch = useCallback(() => setSearchOpen(true), []);
@@ -608,6 +622,7 @@ export default function AppShell({ children }) {
         activeItem={activeItem}
         onClose={() => setBottomSheet(null)}
         onItemClick={navigate_}
+        onSignOut={handleSignOut}
         t={t}
       />
 

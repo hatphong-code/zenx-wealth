@@ -83,7 +83,14 @@ export default function Settings() {
     if (!user) return;
     let active = true;
     getUserProfile(user.uid, { forceFresh: true })
-      .then((profile) => { if (!active) return; setForm(toForm(profile)); setError(''); })
+      .then((profile) => {
+        if (!active) return;
+        setForm(toForm(profile));
+        setError('');
+        // Sync number unit from Firestore to local state
+        const savedUnit = profile?.settings?.numberUnit;
+        if (savedUnit && savedUnit !== unit) setUnit(savedUnit);
+      })
       .catch((err) => { if (!active) return; setError(err.message || 'Failed to load settings.'); })
       .finally(() => { if (!active) return; setLoading(false); });
     return () => { active = false; };
@@ -123,6 +130,7 @@ export default function Settings() {
         settings: {
           ...(existingProfile.settings || {}),
           allocationRule,
+          numberUnit: unit,
           customCategories: {
             income: sanitizeCategories(form.incomeCategories),
             expense: sanitizeCategories(form.expenseCategories),
