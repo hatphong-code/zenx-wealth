@@ -1,8 +1,10 @@
 ﻿import { useMemo, useState } from 'react';
 import { BarChart3, Printer, ShieldAlert, Sparkles, TrendingUp, Wallet } from 'lucide-react';
+import { DateRangePicker } from '../components/ui/DateRangePicker';
 import {
   Bar,
   BarChart,
+  Brush,
   CartesianGrid,
   Line,
   LineChart,
@@ -46,14 +48,24 @@ function isEmptyTrend(arr) {
   return !arr?.length || arr.every(d => !d.income && !d.expense && !d.value && !d.netWorth && !d.estimated);
 }
 
-const DATE_RANGES = ['3m', '6m', 'ytd', 'all'];
-
-function sliceTrend(arr, range) {
+function sliceTrend(arr, preset, customRange) {
   if (!arr?.length) return arr;
-  if (range === 'all') return arr;
-  if (range === '3m') return arr.slice(-3);
-  if (range === '6m') return arr.slice(-6);
-  if (range === 'ytd') return arr.slice(-(new Date().getMonth() + 1));
+  // Custom date range takes priority
+  if (customRange?.from && customRange?.to) {
+    const today = new Date();
+    today.setDate(1);
+    return arr.filter((_, i) => {
+      const monthsAgo = arr.length - 1 - i;
+      const d = new Date(today.getFullYear(), today.getMonth() - monthsAgo, 1);
+      const from = new Date(customRange.from.getFullYear(), customRange.from.getMonth(), 1);
+      const to = new Date(customRange.to.getFullYear(), customRange.to.getMonth(), 1);
+      return d >= from && d <= to;
+    });
+  }
+  if (preset === 'all') return arr;
+  if (preset === '3m') return arr.slice(-3);
+  if (preset === '6m') return arr.slice(-6);
+  if (preset === 'ytd') return arr.slice(-(new Date().getMonth() + 1));
   return arr;
 }
 
@@ -63,19 +75,40 @@ export default function Reports() {
   const { data, loading, refreshing, error } = useReportsData(user?.uid);
   const tradingStatusLabel = (s) => t(`trading.status.${s}`, {}, s);
   const currency = data.currency || 'VND';
-  const [dateRange, setDateRange] = useState('6m');
+  const [datePreset, setDatePreset] = useState('6m');
+  const [customRange, setCustomRange] = useState({ from: undefined, to: undefined });
+
+  const handleCustomRange = (range) => {
+    setCustomRange(range);
+    if (range?.from && range?.to) setDatePreset('');
+    else setDatePreset('6m');
+  };
+
+  const handlePreset = (key) => {
+    setDatePreset(key);
+    setCustomRange({ from: undefined, to: undefined });
+  };
 
   const trends = useMemo(() => ({
-    cashFlow: sliceTrend(data.trends.cashFlow, dateRange),
-    netWorthEstimate: sliceTrend(data.trends.netWorthEstimate, dateRange),
-    emergencyCoverage: sliceTrend(data.trends.emergencyCoverage, dateRange),
-  }), [data.trends, dateRange]);
+    cashFlow: sliceTrend(data.trends.cashFlow, datePreset, customRange),
+    netWorthEstimate: sliceTrend(data.trends.netWorthEstimate, datePreset, customRange),
+    emergencyCoverage: sliceTrend(data.trends.emergencyCoverage, datePreset, customRange),
+  }), [data.trends, datePreset, customRange]);
 
-  const dateRangeOptions = [
+  const datePresetOptions = [
     { key: '3m',  label: t('reports.dateRange3m') },
     { key: '6m',  label: t('reports.dateRange6m') },
     { key: 'ytd', label: t('reports.dateRangeYtd') },
     { key: 'all', label: t('reports.dateRangeAll') },
+  ];
+
+  const now = new Date();
+  const reportPresets = [
+    { label: t('dateRange.thisMonth'), range: { from: new Date(now.getFullYear(), now.getMonth(), 1), to: new Date(now.getFullYear(), now.getMonth() + 1, 0) } },
+    { label: t('dateRange.lastMonth'), range: { from: new Date(now.getFullYear(), now.getMonth() - 1, 1), to: new Date(now.getFullYear(), now.getMonth(), 0) } },
+    { label: t('dateRange.last3Months'), range: { from: new Date(now.getFullYear(), now.getMonth() - 2, 1), to: new Date(now.getFullYear(), now.getMonth() + 1, 0) } },
+    { label: t('dateRange.last6Months'), range: { from: new Date(now.getFullYear(), now.getMonth() - 5, 1), to: new Date(now.getFullYear(), now.getMonth() + 1, 0) } },
+    { label: t('dateRange.thisYear'), range: { from: new Date(now.getFullYear(), 0, 1), to: new Date(now.getFullYear(), 11, 31) } },
   ];
 
   return (
@@ -94,20 +127,28 @@ export default function Reports() {
               {loading && <p className="text-zx-text-soft">{t('reports.loading')}</p>}
               {refreshing && <p className="text-zx-accent">{t('reports.refreshing')}</p>}
               {error && <p className="text-zx-negative">{error}</p>}
-              <div className="flex items-center gap-2 ml-auto print:hidden">
+              <div className="flex items-center gap-2 ml-auto print:hidden flex-wrap">
+                {/* Quick presets */}
+                <div className="flex rounded-zx-sm border border-zx-line overflow-hidden text-xs">
+                  {datePresetOptions.map(opt => (
+                    <button key={opt.key} onClick={() => handlePreset(opt.key)}
+                      className={`px-3 py-1.5 transition ${datePreset === opt.key && !customRange?.from ? 'bg-zx-accent text-zx-on-accent font-medium' : 'text-zx-text-soft hover:text-zx-text'}`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                {/* Custom date range */}
+                <DateRangePicker
+                  value={customRange?.from ? customRange : undefined}
+                  onChange={handleCustomRange}
+                  placeholder={t('dateRange.placeholder')}
+                  presets={reportPresets}
+                />
                 <button onClick={() => window.print()}
                   className="inline-flex items-center gap-1.5 rounded-zx-sm border border-zx-line px-3 py-1.5 text-xs text-zx-text-soft transition hover:text-zx-text">
                   <Printer className="h-3.5 w-3.5" />
                   {t('reports.exportPdf')}
                 </button>
-              </div>
-              <div className="flex rounded-zx-sm border border-zx-line overflow-hidden text-xs">
-                {dateRangeOptions.map(opt => (
-                  <button key={opt.key} onClick={() => setDateRange(opt.key)}
-                    className={`px-3 py-1.5 transition ${dateRange === opt.key ? 'bg-zx-accent text-zx-on-accent font-medium' : 'text-zx-text-soft hover:text-zx-text'}`}>
-                    {opt.label}
-                  </button>
-                ))}
               </div>
             </div>
           </div>
@@ -151,6 +192,10 @@ export default function Reports() {
                   />
                   <Bar dataKey="income" fill="#10B981" radius={[8, 8, 0, 0]} />
                   <Bar dataKey="expense" fill="#F97316" radius={[8, 8, 0, 0]} />
+                  {trends.cashFlow.length > 6 && (
+                    <Brush dataKey="label" height={22} stroke="var(--zx-line)" fill="var(--zx-surface-2)"
+                      travellerWidth={8} tickFormatter={() => ''} />
+                  )}
                 </BarChart>
               </ResponsiveContainer>
             </div>

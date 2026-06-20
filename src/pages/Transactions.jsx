@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { deleteDoc, doc, writeBatch } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
@@ -8,6 +8,7 @@ import { Button } from '../components/ui/button';
 import { useToast } from '../components/ui/Toast';
 import { SkeletonRow } from '../components/ui/Skeleton';
 import { Combobox } from '../components/ui/Combobox';
+import { DateRangePicker } from '../components/ui/DateRangePicker';
 import { formatDate, formatMoney } from '../utils/formatters';
 import { db } from '../services/firebaseDb';
 import { useNumberFormat } from '../hooks/useNumberFormat';
@@ -54,9 +55,11 @@ export default function Transactions() {
   const [filterRecurring, setFilterRecurring] = useState(false);
   const [sortBy, setSortBy] = useState('date_desc');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [filterDateRange, setFilterDateRange] = useState({ from: undefined, to: undefined });
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [recatCategory, setRecatCategory] = useState('');
+  const [page, setPage] = useState(1);
 
   const monthOptions = useMemo(() => getMonthOptions(transactions), [transactions]);
   const categoryOptions = useMemo(() => getCategoryOptions(transactions), [transactions]);
@@ -71,6 +74,10 @@ export default function Transactions() {
         if (m !== filterMonth) return false;
       }
       if (filterCategory && tx.category !== filterCategory) return false;
+      if (filterDateRange?.from && filterDateRange?.to) {
+        const d = tx.date?.toDate ? tx.date.toDate() : new Date(tx.date);
+        if (d < filterDateRange.from || d > filterDateRange.to) return false;
+      }
       if (filterLatte && !tx.isLatteFactor) return false;
       if (filterRecurring && !tx.isRecurring) return false;
       if (q) {
@@ -93,7 +100,7 @@ export default function Transactions() {
     });
 
     return result;
-  }, [transactions, search, filterType, filterMonth, filterCategory, filterLatte, filterRecurring, sortBy]);
+  }, [transactions, search, filterType, filterMonth, filterCategory, filterDateRange, filterLatte, filterRecurring, sortBy]);
 
   const totals = useMemo(() => {
     const income = filtered.filter(tx => tx.type === 'income').reduce((s, tx) => s + Number(tx.amount), 0);
@@ -101,13 +108,22 @@ export default function Transactions() {
     return { income, expense, net: income - expense };
   }, [filtered]);
 
-  const hasFilter = search || filterType !== 'all' || filterMonth || filterCategory || filterLatte || filterRecurring;
+  const hasFilter = search || filterType !== 'all' || filterMonth || filterCategory || filterDateRange?.from || filterLatte || filterRecurring;
+
+  const ITEMS_PER_PAGE = 50;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+
+  // Reset to page 1 when filters change
+  useEffect(() => { setPage(1); }, [search, filterType, filterMonth, filterCategory, filterLatte, filterRecurring, sortBy]);
+
+  const paged = selectionMode ? filtered : filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   const clearFilters = () => {
     setSearch('');
     setFilterType('all');
     setFilterMonth('');
     setFilterCategory('');
+    setFilterDateRange({ from: undefined, to: undefined });
     setFilterLatte(false);
     setFilterRecurring(false);
     setSortBy('date_desc');
@@ -401,6 +417,21 @@ export default function Transactions() {
             )}
           </div>
 
+          {/* Date range */}
+          <div>
+            <DateRangePicker
+              value={filterDateRange?.from ? filterDateRange : undefined}
+              onChange={r => setFilterDateRange(r ?? { from: undefined, to: undefined })}
+              placeholder={t('dateRange.placeholder')}
+              presets={[
+                { label: t('dateRange.thisMonth'), range: { from: new Date(new Date().getFullYear(), new Date().getMonth(), 1), to: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0) } },
+                { label: t('dateRange.lastMonth'), range: { from: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1), to: new Date(new Date().getFullYear(), new Date().getMonth(), 0) } },
+                { label: t('dateRange.last3Months'), range: { from: new Date(new Date().getFullYear(), new Date().getMonth() - 2, 1), to: new Date() } },
+                { label: t('dateRange.thisYear'), range: { from: new Date(new Date().getFullYear(), 0, 1), to: new Date() } },
+              ]}
+            />
+          </div>
+
           {/* Flag toggles */}
           <div className="flex flex-wrap gap-2">
             <button onClick={() => setFilterLatte(v => !v)}
@@ -471,7 +502,7 @@ export default function Transactions() {
           <>
             {/* Mobile cards */}
             <div className="divide-y divide-zx-line md:hidden">
-              {filtered.map((transaction) => (
+              {paged.map((transaction) => (
                 <article key={transaction.id} className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">
                     {selectionMode && (
@@ -543,7 +574,7 @@ export default function Transactions() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((transaction) => (
+                  {paged.map((transaction) => (
                     <tr key={transaction.id}
                       onClick={selectionMode ? () => toggleSelect(transaction.id) : undefined}
                       className={`border-t border-zx-line transition ${selectionMode ? 'cursor-pointer hover:bg-zx-accent/5' : 'hover:bg-zx-surface-2/40'} ${selectedIds.has(transaction.id) ? 'bg-zx-accent/8' : ''}`}>
@@ -622,6 +653,35 @@ export default function Transactions() {
           </>
         )}
       </section>
+
+      {/* Pagination */}
+      {!selectionMode && totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-3 border-t border-zx-line text-sm">
+          <span className="text-zx-text-soft">
+            {t('transactions.page', { page, total: totalPages })}
+          </span>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+              className="rounded-zx-sm border border-zx-line px-3 py-1.5 text-xs text-zx-text-soft transition hover:text-zx-text disabled:opacity-40 disabled:cursor-not-allowed">
+              ← {t('transactions.prevPage')}
+            </button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const start = Math.max(1, Math.min(page - 2, totalPages - 4));
+              const p = start + i;
+              return p <= totalPages ? (
+                <button key={p} onClick={() => setPage(p)}
+                  className={`rounded-zx-sm px-3 py-1.5 text-xs transition ${p === page ? 'bg-zx-accent text-zx-on-accent font-medium' : 'border border-zx-line text-zx-text-soft hover:text-zx-text'}`}>
+                  {p}
+                </button>
+              ) : null;
+            })}
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+              className="rounded-zx-sm border border-zx-line px-3 py-1.5 text-xs text-zx-text-soft transition hover:text-zx-text disabled:opacity-40 disabled:cursor-not-allowed">
+              {t('transactions.nextPage')} →
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
