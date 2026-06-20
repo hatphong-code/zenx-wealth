@@ -25,7 +25,7 @@ Production: **https://wealth.zenx.asia** · Firebase project: `zenx-wealth`
 - **Recharts** — data visualization
 - **Lucide React** — icons (line, 1.7 stroke, rounded)
 - **Zustand** — global state
-- **i18n** — `useI18n()` hook, `t()` function, VI default / EN ready
+- **i18n** — `src/i18n/` · hook `useI18n()` · dictionary keys dot-notation · VI default / EN ready
 
 ---
 
@@ -116,9 +116,74 @@ Shell: `src/components/AppShell.jsx` — không tạo thêm nav wrapper trong pa
 - Dates: Firestore `Timestamp`, không lưu string
 - Firestore path: `users/{userId}/...`
 
-### i18n
-- Mọi chuỗi hiển thị dùng `t('key')` — không hardcode tiếng Việt hay tiếng Anh trong JSX
-- Không dùng `console.log` với nội dung tiếng Việt trong production code
+### i18n — Quy tắc & cách dùng
+
+**Files:**
+- `src/i18n/I18nProvider.jsx` — Provider bọc toàn bộ app
+- `src/i18n/useI18n.js` — Hook truy cập context
+- `src/i18n/dictionaries/vi.js` — Tiếng Việt (mặc định)
+- `src/i18n/dictionaries/en.js` — Tiếng Anh (đầy đủ)
+
+Locale được lưu trong `localStorage` với key `'zx-locale'`. Supported: `['vi', 'en']`.
+
+**Hook:**
+```jsx
+const { t, locale, setLocale } = useI18n();
+```
+
+**Hàm `t(key, params?, fallback?)`:**
+```jsx
+// Key đơn giản
+t('common.save')                         // → "Lưu"
+
+// Interpolation với {token}
+t('dashboard.greetingMorning', { name: 'Phong' })  // → "Chào buổi sáng, Phong"
+t('onboarding.summaryMonths', { n: 6 })             // → "6 tháng"
+t('transactions.amountLabel', { symbol: '₫' })      // → "Số tiền (₫)"
+
+// Fallback nếu key không tồn tại
+t('missing.key', {}, 'Default text')                // → "Default text"
+
+// t() có thể trả về array (khi value trong dictionary là mảng)
+const items = t('someKey.list');  // → string[]
+```
+
+**Quy tắc bắt buộc:**
+- **Không hardcode chuỗi UI trong JSX** — kể cả tiếng Việt lẫn tiếng Anh
+- Khi thêm tính năng mới, thêm key vào **cả hai** file `vi.js` và `en.js`
+- Thứ tự key trong dictionary theo cấu trúc: `module.section.element`
+- `{symbol}` dùng cho đơn vị tiền tệ (lấy từ user settings, không hardcode `₫`)
+
+**Khi nào KHÔNG dùng `t()`:**
+- Brand terms giữ nguyên: `ZenX Wealth`, `Latte Factor`, `Pay Yourself First`
+- Số liệu tài chính (số tiền, phần trăm) — dùng formatters thay vì t()
+
+---
+
+### Formatters — Số tiền & ngày tháng
+
+**File:** `src/utils/formatters.js`
+
+| Hàm | Dùng khi | Ví dụ output |
+|-----|----------|-------------|
+| `fmtShort(n)` | Hub, dashboard, sidebar stats | `"12,5 tr"` · `"500k"` · `"1,2 tỷ"` |
+| `formatMoney(value, currency)` | Detail pages, form labels | `"12.500.000 ₫"` · `"$12.50"` |
+| `formatNumber(value, options?)` | Số không có đơn vị tiền | `"12.500"` |
+| `formatPercent(value, options?)` | Phần trăm | `"75%"` |
+| `formatDate(firestoreTimestamp)` | Ngày tháng từ Firestore | `"20/06/2026"` |
+
+```jsx
+// ❌ SAI — không dùng toLocaleString() inline
+<span>{amount.toLocaleString()} ₫</span>
+
+// ✅ ĐÚNG
+import { fmtShort, formatMoney, formatDate } from '../utils/formatters';
+<span>{fmtShort(amount)}</span>           // dashboard
+<span>{formatMoney(amount, currency)}</span>  // detail page
+<span>{formatDate(transaction.date)}</span>   // Firestore Timestamp
+```
+
+`currency` lấy từ user settings (`user.currency`), không hardcode `'VND'` trong components.
 
 ### Styling
 - Mobile-first: viết style mặc định cho mobile, thêm `md:` / `lg:` / `xl:` cho desktop
