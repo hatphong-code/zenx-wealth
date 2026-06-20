@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-21 (v2.6)
+Last updated: 2026-06-21 (v2.7)
 
 ## Current Phase
 
@@ -199,6 +199,16 @@ users/{userId}
 ```
 
 ## Version History
+
+### v2.7 (2026-06-21) — Items 8–10 + Dropdown fixes
+- **Chart Brush**: Recharts Brush scrubber on cashFlow BarChart (shown when data > 6 months)
+- **Pagination**: Transactions — 50 items/page, smart page buttons, resets on filter change
+- **DateRangePicker**: react-day-picker v10, 2-month calendar, preset shortcuts, locale VI/EN
+  - Reports: alongside preset tabs, filters trend arrays by computed month date
+  - Transactions: in advanced filter panel, filters by exact tx.date
+- **Dropdown i18n**: debtTypes, debtPriorities, incomeTypes, incomeStages, accountTypes, accountPurposes — all keys in vi.js + en.js, translated at runtime
+- **Combobox**: replaced native `<select>` in DebtControl, IncomeBuilder, Assets (styling bug fix)
+- **Bug fix**: duplicate `reports:` key in i18n caused dateRange* keys to be shadowed
 
 ### v2.6 (2026-06-21) — Remaining UX Polish (items 1–7)
 - **AICoach hero**: Compact row layout — saves ~40% vertical space, badge+title inline, focus box conditional
