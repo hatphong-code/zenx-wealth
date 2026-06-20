@@ -2,6 +2,29 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-20 — v2.3 Priority 2 UI/UX Improvements
+
+### Export CSV (Transactions)
+- Nút "Xuất CSV" trong header Transactions, chỉ hiện khi có data. Export danh sách đang filter ra `.csv` có BOM (Excel-safe), filename `giao-dich-YYYY-MM-DD.csv`.
+
+### Breadcrumb Navigation
+- Desktop TopBar hiển thị `"Group › Page"` trên sub-pages; hub pages vẫn hiện greeting.
+- Group label link về hub route (/track, /plan, /review). Profile/Admin group hiện text không có link.
+
+### Date Range Presets (Reports)
+- Toggle 4 preset: 3T / 6T / Năm nay / Tất cả — filter các trend arrays (cashFlow, netWorthEstimate, emergencyCoverage) bằng slice, default 6T.
+
+### Bulk Actions (Transactions)
+- Nút "Chọn" toggle selection mode. Desktop: checkbox column + click-row-to-toggle. Mobile: checkbox per card.
+- "Chọn tất cả" trong thead. Action bar: "Xóa N mục" → `writeBatch` Firestore delete + toast + invalidate caches.
+
+### Global Search (Ctrl+K)
+- `GlobalSearch.jsx`: overlay mở bằng Ctrl/Cmd+K hoặc click nút hint trong TopBar. Đóng bằng Escape/click backdrop.
+- Tìm trong featureCatalog (static, all features) + cached transactions (category + note). Highlight match.
+- Navigate đến page khi chọn. Transaction results navigate về /transactions.
+
+---
+
 ## 2026-06-20 — v2.2 Priority 1 UI/UX Improvements
 
 ### Toast/Notification System

@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-20 (v2.2)
+Last updated: 2026-06-20 (v2.3)
 
 ## Current Phase
 
@@ -199,6 +199,13 @@ users/{userId}
 ```
 
 ## Version History
+
+### v2.3 (2026-06-20) — Priority 2 UI/UX Improvements
+- **Export CSV**: Transactions → "Xuất CSV" exports filtered list, Excel-safe BOM
+- **Breadcrumb**: Desktop TopBar shows "Group › Page" on sub-pages, links to hub
+- **Date Range Presets**: Reports page — 3M/6M/YTD/All toggle filters trend charts
+- **Bulk Actions**: Transactions selection mode → checkbox → batch delete via writeBatch
+- **Global Search**: Ctrl+K overlay — searches pages + cached transactions, navigate on select
 
 ### v2.2 (2026-06-20) — Priority 1 UI/UX Improvements
 - **Toast system**: `ToastProvider` + `useToast()` wired app-wide; replaces inline success messages
