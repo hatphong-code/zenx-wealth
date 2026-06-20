@@ -32,18 +32,32 @@ Production: **https://wealth.zenx.asia** · Firebase project: `zenx-wealth`
 
 ### Quy trình cho Feature / Fix có code changes
 
-**1. Đọc context trước khi code**
-- `docs/PROJECT_STATUS.md` — feature đã có chưa, đang ở phase nào
-- File(s) liên quan trực tiếp đến yêu cầu
-- Nếu có UI: `ZenXWealthUI/readme.md` → đúng pattern và token
+**1. Nghiên cứu & phân tích**
+- Đọc `docs/PROJECT_STATUS.md` — feature đã có chưa, scope thực sự là gì
+- Đọc file(s) liên quan trực tiếp để hiểu code hiện tại trước khi đề xuất
+- Nếu có UI: đọc `ZenXWealthUI/readme.md` để nắm đúng pattern và token
+- Xác định dependencies, side effects, và những gì có thể bị ảnh hưởng
 
-**2. Thiết kế trước khi viết JSX**
-- Mobile-first: layout mobile trước, desktop sau (`md:`, `lg:`)
-- Xác định max-width container (`max-w-5xl` / `max-w-6xl` / `max-w-7xl`)
-- Dùng "Ít khung" (hairline + whitespace), không thêm Card wrapper thừa
-- Nếu cần route mới: thêm vào `src/App.jsx` với lazy import + feature key
+**2. Đề xuất giải pháp — TRƯỚC KHI CODE**
 
-**3. Implement — checklist khi viết code**
+Trình bày ngắn gọn:
+- Các phương án khả thi (nếu có nhiều cách)
+- Phân tích trade-off của từng phương án (complexity, risk, thời gian)
+- **Khuyến nghị rõ phương án tối ưu** và lý do tại sao
+
+Ví dụ format:
+```
+Phương án A: ... → Ưu: ... / Nhược: ...
+Phương án B: ... → Ưu: ... / Nhược: ...
+→ Khuyến nghị: Phương án A vì [lý do cụ thể]
+```
+
+**3. Chờ xác nhận trước khi thực hiện**
+
+Không bắt đầu viết code cho đến khi người dùng xác nhận phương án.
+Ngoại lệ duy nhất: yêu cầu rõ ràng, chỉ có một cách làm, không có risk — có thể hỏi nhanh "tiến hành luôn?" thay vì trình bày phương án.
+
+**4. Implement — checklist khi viết code**
 - [ ] Màu qua `zx-*` token — không hex, không `red-*` Tailwind thuần
 - [ ] Radius qua `rounded-zx` / `rounded-zx-sm` — không `rounded-lg`
 - [ ] Mọi chuỗi UI qua `t('key')` — thêm vào **cả** `vi.js` và `en.js`
@@ -51,19 +65,23 @@ Production: **https://wealth.zenx.asia** · Firebase project: `zenx-wealth`
 - [ ] Icon-only buttons có `aria-label`
 - [ ] Form inputs có `<label htmlFor>` tường minh
 - [ ] Feedback sau action (inline state cho đến khi có Toast system)
+- [ ] Mobile-first: style mặc định cho mobile, `md:`/`lg:` cho desktop
 
-**4. Kiểm tra trước khi commit**
+**5. Kiểm tra trước khi commit**
 ```bash
 npm run build   # bắt buộc — không commit nếu build lỗi
 npm test        # chạy nếu có thay đổi logic tài chính hoặc services
 ```
 
-**5. Commit & push**
+**6. Commit & push**
 - Conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `style:`
 - Mỗi commit một việc — không gộp feature + style + bug fix vào một commit
 - Push lên feature branch, không push thẳng `main`
 
-**6. Cập nhật docs — bắt buộc cuối session**
+**7. Báo cáo kết quả**
+Sau khi push, tóm tắt ngắn: những gì đã làm, file nào thay đổi, điểm nào cần người dùng chú ý hoặc test thêm.
+
+**8. Cập nhật docs — bắt buộc cuối session**
 - `docs/IMPLEMENTATION_LOG.md` — ghi ngắn gọn những gì đã làm
 - `docs/PROJECT_STATUS.md` — nếu có feature mới hoàn thành hoặc đổi version
 
