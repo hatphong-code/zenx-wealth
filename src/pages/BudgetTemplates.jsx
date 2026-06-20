@@ -94,7 +94,7 @@ function ApplyModal({ template, currentSettings, onConfirm, onCancel, applying, 
       <div className="w-full max-w-md rounded-zx border border-zx-line bg-zx-surface shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-zx-line">
           <h2 className="font-zx-head text-base font-bold text-zx-text">{t('budgetTemplates.previewTitle', { name })}</h2>
-          <button onClick={onCancel} className="text-zx-text-soft hover:text-zx-text transition">
+          <button onClick={onCancel} aria-label={t('common.close')} className="text-zx-text-soft hover:text-zx-text transition">
             <X className="h-5 w-5" />
           </button>
         </div>

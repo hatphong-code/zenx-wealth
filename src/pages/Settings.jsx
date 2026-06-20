@@ -3,6 +3,9 @@ import { Save, Settings2, Target, Tags } from 'lucide-react';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/Input';
+import { Textarea } from '../components/ui/Textarea';
+import { useToast } from '../components/ui/Toast';
 import { useTheme } from '../hooks/useTheme';
 import { useNumberFormat } from '../hooks/useNumberFormat';
 import { defaultExpenseCategories, defaultIncomeCategories } from '../data/categories';
@@ -47,7 +50,6 @@ function sanitizeCategories(items) {
   return [...new Set(items.map((item) => item.trim()).filter(Boolean))];
 }
 
-const inputCls = 'w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent';
 
 export default function Settings() {
   const { user } = useAuth();
@@ -71,11 +73,11 @@ export default function Settings() {
       swatches: ['#0C1420', '#C9A24B', '#ECE5D6'],
     },
   ];
+  const { toast } = useToast();
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -133,8 +135,11 @@ export default function Settings() {
       invalidateReportsCache(user.uid);
       invalidateAICoachCache(user.uid);
       invalidateWealthRoadmapCache(user.uid);
-      setMessage(t('settings.saveSuccess'));
-    } catch (err) { setError(err.message); }
+      toast({ title: t('toast.settingsSaved'), variant: 'success' });
+    } catch (err) {
+      setError(err.message);
+      toast({ title: err.message, variant: 'error' });
+    }
     finally { setSaving(false); }
   };
 
@@ -231,12 +236,11 @@ export default function Settings() {
                 <p className="text-sm text-zx-text-soft">{t('settings.goalSubtitle')}</p>
               </div>
             </div>
-            <textarea
+            <Textarea
               value={form.goal12Month}
               onChange={(e) => updateField('goal12Month', e.target.value)}
               rows={4}
               placeholder={t('settings.goalPlaceholder')}
-              className={inputCls}
             />
           </section>
 
@@ -265,8 +269,8 @@ export default function Settings() {
                   ))}
                 </div>
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                  <input value={form[section.inputField]} onChange={(e) => updateField(section.inputField, e.target.value)}
-                    placeholder={section.placeholder} className={`flex-1 ${inputCls}`} />
+                  <Input value={form[section.inputField]} onChange={(e) => updateField(section.inputField, e.target.value)}
+                    placeholder={section.placeholder} className="flex-1 py-2.5 px-3" />
                   <Button type="button" onClick={() => addCategory(section.field, section.inputField)}
                     className="bg-zx-surface-2 text-zx-text hover:bg-zx-line">
                     {t('settings.addCategory')}
@@ -307,15 +311,14 @@ export default function Settings() {
               ].map(([key, label]) => (
                 <label key={key} className="space-y-2">
                   <span className="text-sm text-zx-text-soft">{label}</span>
-                  <input type="number" min="0" max="100" step="1" value={form.allocationRule[key]}
-                    onChange={(e) => updateAllocation(key, e.target.value)} className={inputCls} />
+                  <Input type="number" min="0" max="100" step="1" value={form.allocationRule[key]}
+                    onChange={(e) => updateAllocation(key, e.target.value)} className="py-2.5" />
                 </label>
               ))}
             </div>
           </section>
 
-          {error && <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
-          {message && <p className="rounded-zx-sm border border-green-900 bg-green-950/40 p-3 text-sm text-green-300">{message}</p>}
+          {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
 
           <Button type="submit" disabled={saving}
             className="w-full bg-zx-accent text-zx-on-accent hover:opacity-90 md:w-auto">

@@ -225,6 +225,7 @@ export default function AppNav() {
               <button
                 type="button"
                 onClick={() => setIsMenuOpen(true)}
+                aria-label={t('nav.openMenu', {}, 'Mở menu')}
                 className="inline-flex rounded-zx-sm border border-zx-line bg-zx-surface-2 p-2 text-zx-text-soft transition hover:text-zx-text md:hidden"
               >
                 <Menu className="h-5 w-5" />
@@ -321,6 +322,7 @@ export default function AppNav() {
               <button
                 type="button"
                 onClick={() => setIsMenuOpen(false)}
+                aria-label={t('common.close')}
                 className="rounded-zx-sm border border-zx-line bg-zx-surface-2 p-2 text-zx-text-soft"
               >
                 <X className="h-5 w-5" />

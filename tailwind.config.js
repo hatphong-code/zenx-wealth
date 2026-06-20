@@ -37,6 +37,15 @@ export default {
       ringOffsetColor: {
         'zx-bg': 'var(--zx-bg)',
       },
+      keyframes: {
+        slideInRight: {
+          from: { opacity: '0', transform: 'translateX(1rem)' },
+          to:   { opacity: '1', transform: 'translateX(0)' },
+        },
+      },
+      animation: {
+        'slideInRight': 'slideInRight 0.2s ease-out',
+      },
     },
   },
   plugins: [],

@@ -5,6 +5,11 @@ import { useAuth } from '../auth/useAuth';
 import { db } from '../services/firebaseDb';
 import { formatMoney, formatDate } from '../utils/formatters';
 import { useI18n } from '../i18n/useI18n';
+import { useToast } from '../components/ui/Toast';
+import { Input } from '../components/ui/Input';
+import { Textarea } from '../components/ui/Textarea';
+import { Select } from '../components/ui/Select';
+import { Skeleton } from '../components/ui/Skeleton';
 import { useNumberFormat } from '../hooks/useNumberFormat';
 import { invalidateDashboardStatsCache } from '../services/dashboardService';
 import { invalidateLatteFactorCache } from '../services/latteFactorService';
@@ -53,11 +58,11 @@ export default function AddTransaction() {
   const isEditing = Boolean(transactionId);
   const amountRef = useRef(null);
 
+  const { toast } = useToast();
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [savedFlash, setSavedFlash] = useState(false);
   const [currency, setCurrency] = useState('VND');
   const [customCategories, setCustomCategories] = useState({ income: [], expense: [] });
   const [todayTxs, setTodayTxs] = useState([]);
@@ -141,6 +146,7 @@ export default function AddTransaction() {
         invalidateAICoachCache(user.uid);
         invalidateWeeklyReviewCache(user.uid, getCurrentWeekMeta().weekKey);
         invalidateWealthRoadmapCache(user.uid);
+        toast({ title: t('toast.txUpdated'), variant: 'success' });
         navigate('/transactions');
         return;
       }
@@ -162,15 +168,22 @@ export default function AddTransaction() {
 
       // Clear form, keep type + date for quick re-entry
       setForm(prev => ({ ...emptyForm, type: prev.type, date: prev.date }));
-      setSavedFlash(true);
-      setTimeout(() => setSavedFlash(false), 2000);
+      toast({ title: t('toast.txAdded'), variant: 'success' });
       amountRef.current?.focus();
 
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
   };
 
-  if (loading) return <div className="p-10 text-center text-zx-text-soft">{t('common.loading')}</div>;
+  if (loading) return (
+    <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-8 space-y-6">
+      <Skeleton className="h-7 w-48" />
+      <Skeleton className="h-11 w-full" />
+      <Skeleton className="h-11 w-full" />
+      <Skeleton className="h-11 w-full" />
+      <Skeleton className="h-24 w-full" />
+    </div>
+  );
 
   const defaultExpenseCategories = t('addTransaction.expenseCategories');
   const defaultIncomeCategories = t('addTransaction.incomeCategories');
@@ -179,7 +192,6 @@ export default function AddTransaction() {
     : [...new Set([...customCategories.income, ...defaultIncomeCategories])];
   const chipCategories = form.type === 'expense' ? defaultExpenseCategories : defaultIncomeCategories;
 
-  const inputCls = 'w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent transition';
 
   const panelTxs = todayTxs;
   const panelIncome = panelTxs.filter(tx => tx.type === 'income').reduce((s, tx) => s + Number(tx.amount), 0);
@@ -191,13 +203,10 @@ export default function AddTransaction() {
 
         {/* ── LEFT: Form ── */}
         <div className="max-w-2xl">
-          <div className="flex items-center justify-between mb-6">
+          <div className="mb-6">
             <h1 className="font-zx-head text-xl font-bold text-zx-text">
               {isEditing ? t('addTransaction.editTitle') : t('addTransaction.addTitle')}
             </h1>
-            {savedFlash && (
-              <span className="text-sm font-medium text-zx-positive">{t('addTransaction.savedSuccess')}</span>
-            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -224,12 +233,12 @@ export default function AddTransaction() {
               <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
                 {t('addTransaction.amountLabel', { symbol: currency === 'USD' ? '$' : '₫' })}
               </label>
-              <input
+              <Input
                 ref={amountRef}
                 type="number" min="1" step="any" value={form.amount}
                 onChange={e => updateField('amount', e.target.value)}
                 placeholder="0"
-                className={`${inputCls} font-zx-display text-2xl font-bold`}
+                className="font-zx-display text-2xl font-bold"
                 required
               />
               {form.amount && (
@@ -244,13 +253,12 @@ export default function AddTransaction() {
               <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
                 {t('addTransaction.categoryLabel')}
               </label>
-              <input
+              <Input
                 type="text"
                 list={`cats-${form.type}`}
                 value={form.category}
                 onChange={e => updateField('category', e.target.value)}
                 placeholder={form.type === 'expense' ? t('addTransaction.expensePlaceholder') : t('addTransaction.incomePlaceholder')}
-                className={inputCls}
                 required
               />
               <datalist id={`cats-${form.type}`}>
@@ -275,8 +283,7 @@ export default function AddTransaction() {
               <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
                 {t('common.date')}
               </label>
-              <input type="date" value={form.date} onChange={e => updateField('date', e.target.value)}
-                className={inputCls} required />
+              <Input type="date" value={form.date} onChange={e => updateField('date', e.target.value)} required />
             </div>
 
             {/* Flags */}
@@ -326,11 +333,11 @@ export default function AddTransaction() {
               <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
                 {t('common.noteOptional')}
               </label>
-              <textarea value={form.note} onChange={e => updateField('note', e.target.value)}
-                rows={2} placeholder={t('addTransaction.addNotePlaceholder')} className={inputCls} />
+              <Textarea value={form.note} onChange={e => updateField('note', e.target.value)}
+                rows={2} placeholder={t('addTransaction.addNotePlaceholder')} />
             </div>
 
-            {error && <p className="rounded-zx-sm bg-red-950/40 border border-red-900 p-3 text-sm text-red-300">{error}</p>}
+            {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
 
             <div className="flex gap-2">
               <button type="submit" disabled={saving}

@@ -29,6 +29,13 @@ export default {
     errorExpense: 'Please enter a valid monthly expense (greater than 0).',
     saving: 'Saving...',
   },
+  toast: {
+    txAdded: 'Transaction added',
+    txUpdated: 'Transaction updated',
+    txDeleted: 'Transaction deleted',
+    settingsSaved: 'Settings saved',
+    dismissLabel: 'Dismiss notification',
+  },
   common: {
     appName: 'ZenX Wealth',
     loading: 'Loading...',
@@ -100,6 +107,7 @@ export default {
     },
     add: 'Add',
     signOut: 'Sign out',
+    openMenu: 'Open navigation menu',
     allModules: 'All features',
     allModulesHint: 'Grouped by job to be done, not by number of routes.',
     freeTierBadge: 'Free plan',

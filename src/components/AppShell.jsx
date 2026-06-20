@@ -433,7 +433,7 @@ function BottomSheet({ group, activeItem, onClose, onItemClick, t }) {
               {t(`nav.groups.${group.id}`, {}, group.label)}
             </p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-zx-surface-2 transition text-zx-text-soft">
+          <button onClick={onClose} aria-label={t('common.close')} className="p-1.5 rounded-full hover:bg-zx-surface-2 transition text-zx-text-soft">
             <X className="h-4 w-4" />
           </button>
         </div>

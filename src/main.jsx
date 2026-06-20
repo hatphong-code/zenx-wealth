@@ -5,6 +5,7 @@ import { AuthProvider } from './auth/AuthProvider';
 import { I18nProvider } from './i18n/I18nProvider';
 import { ThemeProvider } from './hooks/useTheme';
 import { NumberFormatProvider } from './hooks/useNumberFormat';
+import { ToastProvider } from './components/ui/Toast';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <NumberFormatProvider>
         <I18nProvider>
           <AuthProvider>
-            <App />
+            <ToastProvider>
+              <App />
+            </ToastProvider>
           </AuthProvider>
         </I18nProvider>
       </NumberFormatProvider>

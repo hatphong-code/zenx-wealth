@@ -5,6 +5,8 @@ import { useAuth } from '../auth/useAuth';
 import { useI18n } from '../i18n/useI18n';
 import { ArrowUpDown, Filter, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { useToast } from '../components/ui/Toast';
+import { SkeletonRow } from '../components/ui/Skeleton';
 import { formatDate, formatMoney } from '../utils/formatters';
 import { db } from '../services/firebaseDb';
 import { useNumberFormat } from '../hooks/useNumberFormat';
@@ -39,6 +41,7 @@ export default function Transactions() {
   const { user } = useAuth();
   const { t } = useI18n();
   const { fmt } = useNumberFormat();
+  const { toast } = useToast();
   const { data, setData, loading, refreshing, error, setError } = useTransactionsData(user?.uid);
   const { transactions, currency } = data;
 
@@ -139,8 +142,10 @@ export default function Transactions() {
       const weekMeta = getCurrentWeekMeta();
       invalidateWeeklyReviewCache(user.uid, weekMeta.weekKey);
       invalidateWealthRoadmapCache(user.uid);
+      toast({ title: t('toast.txDeleted'), variant: 'success' });
     } catch (err) {
       setError(err.message);
+      toast({ title: t('toast.error', {}, 'Có lỗi xảy ra'), description: err.message, variant: 'error' });
     }
   };
 
@@ -273,15 +278,21 @@ export default function Transactions() {
         </div>
       )}
 
-      {error && <div className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300 mb-3">{error}</div>}
+      {error && <div className="rounded border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative mb-3">{error}</div>}
 
       <section className="overflow-hidden">
-        {filtered.length === 0 ? (
+        {loading && transactions.length === 0 ? (
+          <div className="divide-y divide-zx-line px-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonRow key={i} columns={4} />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="space-y-4 p-6 text-center">
             <p className="text-zx-text-soft">
-              {loading ? t('transactions.loading') : hasFilter ? t('transactions.noResults') : t('transactions.empty')}
+              {hasFilter ? t('transactions.noResults') : t('transactions.empty')}
             </p>
-            {!loading && !hasFilter && (
+            {!hasFilter && (
               <Link to="/transactions/new" className="text-sm font-medium text-zx-accent hover:opacity-80">
                 {t('transactions.addFirst')}
               </Link>

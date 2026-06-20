@@ -29,6 +29,13 @@ export default {
     errorExpense: 'Vui lòng nhập chi phí sống hợp lệ (lớn hơn 0).',
     saving: 'Đang lưu...',
   },
+  toast: {
+    txAdded: 'Đã thêm giao dịch',
+    txUpdated: 'Đã cập nhật giao dịch',
+    txDeleted: 'Đã xóa giao dịch',
+    settingsSaved: 'Đã lưu thiết lập',
+    dismissLabel: 'Đóng thông báo',
+  },
   common: {
     appName: 'ZenX Wealth',
     loading: 'Đang tải...',
@@ -100,6 +107,7 @@ export default {
     },
     add: 'Thêm',
     signOut: 'Đăng xuất',
+    openMenu: 'Mở menu điều hướng',
     allModules: 'Toàn bộ tính năng',
     allModulesHint: 'Nhóm theo công việc cần làm, không theo số lượng route.',
     freeTierBadge: 'Gói Miễn phí',
