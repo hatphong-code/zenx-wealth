@@ -139,9 +139,18 @@ export default function AddTransaction() {
         return;
       }
 
-      // Check if this is the first transaction for celebration
-      const allTxs = await getTransactions(user.uid);
-      const isFirstTransaction = (allTxs.transactions || []).length === 0;
+      // Check if this is the first transaction for celebration (skip if offline)
+      let isFirstTransaction = false;
+      if (navigator.onLine) {
+        try {
+          const allTxs = await getTransactions(user.uid);
+          isFirstTransaction = (allTxs.transactions || []).length === 0;
+        } catch (err) {
+          // If read fails, assume not first transaction
+          console.warn('Could not check first transaction status:', err);
+          isFirstTransaction = false;
+        }
+      }
 
       const result = await createTransaction(user.uid, payload);
       invalidateAfterTransactionWrite(user.uid, getCurrentWeekMeta().weekKey);
