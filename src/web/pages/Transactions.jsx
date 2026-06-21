@@ -1,26 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { deleteDoc, doc, writeBatch } from 'firebase/firestore/lite';
-import { useAuth } from '../../core/auth/useAuth';
-import { useI18n } from '../../core/i18n/useI18n';
-import { ArrowUpDown, Download, Filter, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
-import { Button } from '../../core/../web/components/ui/button';
-import { useToast } from '../../core/../web/components/ui/Toast';
-import { SkeletonRow } from '../../core/../web/components/ui/Skeleton';
-import { Combobox } from '../../core/../web/components/ui/Combobox';
-import { DateRangePicker } from '../../core/../web/components/ui/DateRangePicker';
-import { formatDate, formatMoney } from '../../core/utils/formatters';
-import { db } from '../../core/services/firebaseDb';
-import { useNumberFormat } from '../../core/hooks/useNumberFormat';
-import { invalidateDashboardStatsCache } from '../../core/services/dashboardService';
-import { invalidateLatteFactorCache } from '../../core/services/latteFactorService';
-import { invalidatePayYourselfFirstCache } from '../../core/services/payYourselfFirstService';
-import { invalidateReportsCache } from '../../core/services/reportsService';
-import { setTransactionsCache } from '../../core/services/transactionService';
-import { useTransactionsData } from '../../core/hooks/useTransactionsData';
-import { getCurrentWeekMeta, invalidateWeeklyReviewCache } from '../../core/services/weeklyReviewService';
-import { invalidateWealthRoadmapCache } from '../../core/services/wealthRoadmapService';
-import { invalidateAICoachCache } from '../../core/services/aiCoachService';
+import { deleteDoc, doc } from 'firebase/firestore/lite';
+import { useAuth } from '../auth/useAuth';
+import { useI18n } from '../i18n/useI18n';
+import ConfirmDialog from '../components/ConfirmDialog';
+import NumericInput from '../components/ui/NumericInput';
+import { ArrowUpDown, Filter, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { formatDate, formatMoney } from '../utils/formatters';
+import { db } from '../services/firebaseDb';
+import { useNumberFormat } from '../hooks/useNumberFormat';
+import { invalidateDashboardStatsCache } from '../services/dashboardService';
+import { invalidateLatteFactorCache } from '../services/latteFactorService';
+import { invalidatePayYourselfFirstCache } from '../services/payYourselfFirstService';
+import { invalidateReportsCache } from '../services/reportsService';
+import { setTransactionsCache } from '../services/transactionService';
+import { useTransactionsData } from '../hooks/useTransactionsData';
+import { getCurrentWeekMeta, invalidateWeeklyReviewCache } from '../services/weeklyReviewService';
+import { invalidateWealthRoadmapCache } from '../services/wealthRoadmapService';
+import { invalidateAICoachCache } from '../services/aiCoachService';
 
 function getMonthOptions(transactions) {
   const months = new Set();
@@ -43,7 +41,6 @@ export default function Transactions() {
   const { user } = useAuth();
   const { t } = useI18n();
   const { fmt } = useNumberFormat();
-  const { toast } = useToast();
   const { data, setData, loading, refreshing, error, setError } = useTransactionsData(user?.uid);
   const { transactions, currency } = data;
 
@@ -55,11 +52,7 @@ export default function Transactions() {
   const [filterRecurring, setFilterRecurring] = useState(false);
   const [sortBy, setSortBy] = useState('date_desc');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [filterDateRange, setFilterDateRange] = useState({ from: undefined, to: undefined });
-  const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState(new Set());
-  const [recatCategory, setRecatCategory] = useState('');
-  const [page, setPage] = useState(1);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const monthOptions = useMemo(() => getMonthOptions(transactions), [transactions]);
   const categoryOptions = useMemo(() => getCategoryOptions(transactions), [transactions]);
@@ -74,10 +67,6 @@ export default function Transactions() {
         if (m !== filterMonth) return false;
       }
       if (filterCategory && tx.category !== filterCategory) return false;
-      if (filterDateRange?.from && filterDateRange?.to) {
-        const d = tx.date?.toDate ? tx.date.toDate() : new Date(tx.date);
-        if (d < filterDateRange.from || d > filterDateRange.to) return false;
-      }
       if (filterLatte && !tx.isLatteFactor) return false;
       if (filterRecurring && !tx.isRecurring) return false;
       if (q) {
@@ -100,7 +89,7 @@ export default function Transactions() {
     });
 
     return result;
-  }, [transactions, search, filterType, filterMonth, filterCategory, filterDateRange, filterLatte, filterRecurring, sortBy]);
+  }, [transactions, search, filterType, filterMonth, filterCategory, filterLatte, filterRecurring, sortBy]);
 
   const totals = useMemo(() => {
     const income = filtered.filter(tx => tx.type === 'income').reduce((s, tx) => s + Number(tx.amount), 0);
@@ -108,22 +97,13 @@ export default function Transactions() {
     return { income, expense, net: income - expense };
   }, [filtered]);
 
-  const hasFilter = search || filterType !== 'all' || filterMonth || filterCategory || filterDateRange?.from || filterLatte || filterRecurring;
-
-  const ITEMS_PER_PAGE = 50;
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
-
-  // Reset to page 1 when filters change
-  useEffect(() => { setPage(1); }, [search, filterType, filterMonth, filterCategory, filterLatte, filterRecurring, sortBy]);
-
-  const paged = selectionMode ? filtered : filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const hasFilter = search || filterType !== 'all' || filterMonth || filterCategory || filterLatte || filterRecurring;
 
   const clearFilters = () => {
     setSearch('');
     setFilterType('all');
     setFilterMonth('');
     setFilterCategory('');
-    setFilterDateRange({ from: undefined, to: undefined });
     setFilterLatte(false);
     setFilterRecurring(false);
     setSortBy('date_desc');
@@ -143,8 +123,6 @@ export default function Transactions() {
 
   const handleDelete = async (transactionId) => {
     if (!user) return;
-    const shouldDelete = window.confirm(t('transactions.confirmDelete'));
-    if (!shouldDelete) return;
 
     try {
       await deleteDoc(doc(db, 'users', user.uid, 'transactions', transactionId));
@@ -162,119 +140,15 @@ export default function Transactions() {
       const weekMeta = getCurrentWeekMeta();
       invalidateWeeklyReviewCache(user.uid, weekMeta.weekKey);
       invalidateWealthRoadmapCache(user.uid);
-      toast({ title: t('toast.txDeleted'), variant: 'success' });
     } catch (err) {
       setError(err.message);
-      toast({ title: t('toast.error', {}, 'Có lỗi xảy ra'), description: err.message, variant: 'error' });
     }
   };
 
-  const exportCsv = () => {
-    const headers = [
-      t('transactions.table.date'),
-      t('transactions.table.category'),
-      t('transactions.table.type'),
-      t('transactions.table.amount'),
-      'Currency',
-      t('transactions.table.note'),
-      'Latte Factor',
-      t('common.recurring'),
-    ];
-    const rows = filtered.map(tx => {
-      const d = tx.date?.toDate ? tx.date.toDate() : new Date(tx.date);
-      return [
-        d.toLocaleDateString('vi-VN'),
-        tx.category,
-        tx.type === 'income' ? t('common.income') : t('common.expense'),
-        tx.amount,
-        tx.currency || currency,
-        tx.note || '',
-        tx.isLatteFactor ? 'Yes' : 'No',
-        tx.isRecurring ? 'Yes' : 'No',
-      ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
-    });
-    const csv = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${t('transactions.exportFilename')}-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const toggleSelectionMode = () => {
-    setSelectionMode(v => !v);
-    setSelectedIds(new Set());
-  };
-
-  const toggleSelect = (id) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
-  const allFilteredSelected = filtered.length > 0 && filtered.every(tx => selectedIds.has(tx.id));
-
-  const toggleSelectAll = () => {
-    if (allFilteredSelected) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filtered.map(tx => tx.id)));
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    if (!user || selectedIds.size === 0) return;
-    const count = selectedIds.size;
-    if (!window.confirm(t('transactions.confirmBulkDelete', { count }))) return;
-    try {
-      const batch = writeBatch(db);
-      [...selectedIds].forEach(id => batch.delete(doc(db, 'users', user.uid, 'transactions', id)));
-      await batch.commit();
-      const nextTxs = transactions.filter(tx => !selectedIds.has(tx.id));
-      const nextData = { ...data, transactions: nextTxs };
-      setData(nextData);
-      setTransactionsCache(user.uid, nextData);
-      invalidateDashboardStatsCache(user.uid);
-      invalidateLatteFactorCache(user.uid);
-      invalidatePayYourselfFirstCache(user.uid);
-      invalidateReportsCache(user.uid);
-      invalidateAICoachCache(user.uid);
-      invalidateWeeklyReviewCache(user.uid, getCurrentWeekMeta().weekKey);
-      invalidateWealthRoadmapCache(user.uid);
-      setSelectedIds(new Set());
-      setSelectionMode(false);
-      toast({ title: t('toast.txBulkDeleted', { count }), variant: 'success' });
-    } catch (err) {
-      setError(err.message);
-      toast({ title: err.message, variant: 'error' });
-    }
-  };
-
-  const handleBulkRecategorize = async () => {
-    if (!user || selectedIds.size === 0 || !recatCategory.trim()) return;
-    const count = selectedIds.size;
-    try {
-      const batch = writeBatch(db);
-      [...selectedIds].forEach(id => batch.update(doc(db, 'users', user.uid, 'transactions', id), { category: recatCategory.trim() }));
-      await batch.commit();
-      const nextTxs = transactions.map(tx => selectedIds.has(tx.id) ? { ...tx, category: recatCategory.trim() } : tx);
-      const nextData = { ...data, transactions: nextTxs };
-      setData(nextData);
-      setTransactionsCache(user.uid, nextData);
-      invalidateReportsCache(user.uid);
-      invalidateAICoachCache(user.uid);
-      setSelectedIds(new Set());
-      setSelectionMode(false);
-      setRecatCategory('');
-      toast({ title: t('toast.txBulkRecategorized', {}, `Đã đổi danh mục ${count} giao dịch`).replace('{count}', count), variant: 'success' });
-    } catch (err) {
-      setError(err.message);
-      toast({ title: err.message, variant: 'error' });
-    }
+  const confirmDelete = () => {
+    const id = pendingDeleteId;
+    setPendingDeleteId(null);
+    if (id) handleDelete(id);
   };
 
   return (
@@ -288,67 +162,14 @@ export default function Transactions() {
           {refreshing && <p className="text-sm text-zx-accent">{t('transactions.refreshing')}</p>}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          {!selectionMode && (
-            <>
-              <Link to="/import"
-                className="inline-flex items-center justify-center gap-2 rounded-zx-sm border border-zx-line px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text">
-                {t('nav.items.import_transactions', {}, 'Nhập CSV')}
-              </Link>
-              {filtered.length > 0 && (
-                <button onClick={exportCsv}
-                  className="inline-flex items-center gap-1.5 rounded-zx-sm border border-zx-line px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text">
-                  <Download className="h-3.5 w-3.5" />
-                  {t('transactions.exportCsv')}
-                </button>
-              )}
-              {transactions.length > 0 && (
-                <button onClick={toggleSelectionMode}
-                  className="inline-flex items-center gap-1.5 rounded-zx-sm border border-zx-line px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text">
-                  {t('transactions.bulkSelect')}
-                </button>
-              )}
-              <Link to="/transactions/new"
-                className="inline-flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent px-4 py-2 text-sm font-medium text-zx-on-accent transition hover:opacity-90">
-                <Plus className="h-4 w-4" /> {t('transactions.addButton')}
-              </Link>
-            </>
-          )}
-          {selectionMode && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-zx-text-soft shrink-0">{t('transactions.bulkSelected', { count: selectedIds.size })}</span>
-              {selectedIds.size > 0 && (
-                <>
-                  {/* Re-categorize */}
-                  <div className="flex items-center gap-1">
-                    <input
-                      value={recatCategory}
-                      onChange={e => setRecatCategory(e.target.value)}
-                      placeholder={t('transactions.bulkRecategorizePlaceholder')}
-                      list="recat-options"
-                      className="rounded-zx-sm border border-zx-line bg-zx-surface-2 px-2 py-1.5 text-sm text-zx-text outline-none focus:ring-2 focus:ring-zx-accent w-36"
-                    />
-                    <datalist id="recat-options">
-                      {categoryOptions.map(c => <option key={c} value={c} />)}
-                    </datalist>
-                    <button onClick={handleBulkRecategorize} disabled={!recatCategory.trim()}
-                      className="rounded-zx-sm border border-zx-line bg-zx-surface-2 px-2.5 py-1.5 text-sm text-zx-text-soft transition hover:text-zx-text disabled:opacity-40">
-                      {t('transactions.bulkRecategorizeBtn')}
-                    </button>
-                  </div>
-                  {/* Delete */}
-                  <button onClick={handleBulkDelete}
-                    className="inline-flex items-center gap-1.5 rounded-zx-sm bg-zx-negative/10 border border-zx-negative/40 px-3 py-1.5 text-sm font-medium text-zx-negative transition hover:bg-zx-negative/20">
-                    <Trash2 className="h-3.5 w-3.5" />
-                    {t('transactions.bulkDeleteBtn', { count: selectedIds.size })}
-                  </button>
-                </>
-              )}
-              <button onClick={toggleSelectionMode}
-                className="inline-flex items-center gap-1.5 rounded-zx-sm border border-zx-line px-3 py-1.5 text-sm text-zx-text-soft transition hover:text-zx-text">
-                {t('transactions.bulkCancel')}
-              </button>
-            </div>
-          )}
+          <Link to="/import"
+            className="inline-flex items-center justify-center gap-2 rounded border border-zx-line px-3 py-2 text-sm text-zx-text-soft transition hover:text-zx-text">
+            CSV
+          </Link>
+          <Link to="/transactions/new"
+            className="inline-flex items-center justify-center gap-2 rounded bg-zx-accent px-4 py-2 text-sm font-medium text-zx-text transition hover:opacity-90">
+            <Plus className="h-4 w-4" /> {t('transactions.addButton')}
+          </Link>
         </div>
       </div>
 
@@ -396,40 +217,21 @@ export default function Transactions() {
 
             {/* Month */}
             {monthOptions.length > 0 && (
-              <Combobox
-                options={monthOptions}
-                value={filterMonth}
-                onChange={setFilterMonth}
-                emptyLabel={t('transactions.allMonths')}
-                className="min-w-[120px]"
-              />
+              <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
+                className="rounded-zx-sm border border-zx-line bg-zx-bg px-2 py-1.5 text-sm text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
+                <option value="">{t('transactions.allMonths')}</option>
+                {monthOptions.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
             )}
 
             {/* Category */}
             {categoryOptions.length > 0 && (
-              <Combobox
-                options={categoryOptions}
-                value={filterCategory}
-                onChange={setFilterCategory}
-                emptyLabel={t('transactions.allCategories')}
-                className="min-w-[140px]"
-              />
+              <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
+                className="rounded-zx-sm border border-zx-line bg-zx-bg px-2 py-1.5 text-sm text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
+                <option value="">{t('transactions.allCategories')}</option>
+                {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
             )}
-          </div>
-
-          {/* Date range */}
-          <div>
-            <DateRangePicker
-              value={filterDateRange?.from ? filterDateRange : undefined}
-              onChange={r => setFilterDateRange(r ?? { from: undefined, to: undefined })}
-              placeholder={t('dateRange.placeholder')}
-              presets={[
-                { label: t('dateRange.thisMonth'), range: { from: new Date(new Date().getFullYear(), new Date().getMonth(), 1), to: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0) } },
-                { label: t('dateRange.lastMonth'), range: { from: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1), to: new Date(new Date().getFullYear(), new Date().getMonth(), 0) } },
-                { label: t('dateRange.last3Months'), range: { from: new Date(new Date().getFullYear(), new Date().getMonth() - 2, 1), to: new Date() } },
-                { label: t('dateRange.thisYear'), range: { from: new Date(new Date().getFullYear(), 0, 1), to: new Date() } },
-              ]}
-            />
           </div>
 
           {/* Flag toggles */}
@@ -478,21 +280,15 @@ export default function Transactions() {
         </div>
       )}
 
-      {error && <div className="rounded border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative mb-3">{error}</div>}
+      {error && <div className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300 mb-3">{error}</div>}
 
       <section className="overflow-hidden">
-        {loading && transactions.length === 0 ? (
-          <div className="divide-y divide-zx-line px-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <SkeletonRow key={i} columns={4} />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="space-y-4 p-6 text-center">
             <p className="text-zx-text-soft">
-              {hasFilter ? t('transactions.noResults') : t('transactions.empty')}
+              {loading ? t('transactions.loading') : hasFilter ? t('transactions.noResults') : t('transactions.empty')}
             </p>
-            {!hasFilter && (
+            {!loading && !hasFilter && (
               <Link to="/transactions/new" className="text-sm font-medium text-zx-accent hover:opacity-80">
                 {t('transactions.addFirst')}
               </Link>
@@ -502,15 +298,10 @@ export default function Transactions() {
           <>
             {/* Mobile cards */}
             <div className="divide-y divide-zx-line md:hidden">
-              {paged.map((transaction) => (
+              {filtered.map((transaction) => (
                 <article key={transaction.id} className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">
-                    {selectionMode && (
-                      <input type="checkbox" checked={selectedIds.has(transaction.id)}
-                        onChange={() => toggleSelect(transaction.id)}
-                        className="mt-1 h-4 w-4 flex-shrink-0 rounded accent-zx-accent" />
-                    )}
-                    <div className="space-y-1 flex-1 min-w-0">
+                    <div className="space-y-1">
                       <p className="text-sm text-zx-text-soft">{formatDate(transaction.date)}</p>
                       <h3 className="font-semibold text-zx-text">{transaction.category}</h3>
                     </div>
@@ -537,18 +328,16 @@ export default function Transactions() {
                     <p className="text-sm text-zx-text-soft">{transaction.note}</p>
                   )}
 
-                  {!selectionMode && (
-                    <div className="flex gap-2">
-                      <Link to={`/transactions/${transaction.id}/edit`}
-                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-zx-sm bg-zx-bg px-3 py-2 text-sm text-zx-accent transition hover:bg-zx-surface-2">
-                        <Pencil className="h-4 w-4" /> {t('common.edit')}
-                      </Link>
-                      <Button type="button" onClick={() => handleDelete(transaction.id)}
-                        className="flex-1 bg-zx-negative/10 border border-zx-negative/30 px-3 py-2 text-zx-negative hover:bg-zx-negative/20">
-                        <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex gap-2">
+                    <Link to={`/transactions/${transaction.id}/edit`}
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-zx-bg px-3 py-2 text-sm text-zx-accent transition hover:bg-zx-surface-2">
+                      <Pencil className="h-4 w-4" /> {t('common.edit')}
+                    </Link>
+                    <Button type="button" onClick={() => setPendingDeleteId(transaction.id)}
+                      className="flex-1 bg-zx-negative/10 border border-zx-negative/30 px-3 py-2 text-zx-negative hover:bg-zx-negative/20">
+                      <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
+                    </Button>
+                  </div>
                 </article>
               ))}
             </div>
@@ -558,34 +347,18 @@ export default function Transactions() {
               <table className="w-full min-w-[760px] border-collapse text-left text-sm">
                 <thead className="bg-zx-bg text-xs uppercase tracking-wide text-zx-text-soft">
                   <tr>
-                    {selectionMode && (
-                      <th className="px-4 py-3 w-10">
-                        <input type="checkbox" checked={allFilteredSelected} onChange={toggleSelectAll}
-                          className="h-4 w-4 rounded accent-zx-accent" aria-label={allFilteredSelected ? t('transactions.bulkDeselectAll') : t('transactions.bulkSelectAll')} />
-                      </th>
-                    )}
                     <th className="px-4 py-3">{t('transactions.table.date')}</th>
                     <th className="px-4 py-3">{t('transactions.table.category')}</th>
                     <th className="px-4 py-3">{t('transactions.table.type')}</th>
                     <th className="px-4 py-3 text-right">{t('transactions.table.amount')}</th>
                     <th className="px-4 py-3">{t('transactions.table.flags')}</th>
                     <th className="px-4 py-3">{t('transactions.table.note')}</th>
-                    {!selectionMode && <th className="px-4 py-3 text-right">{t('transactions.table.action')}</th>}
+                    <th className="px-4 py-3 text-right">{t('transactions.table.action')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {paged.map((transaction) => (
-                    <tr key={transaction.id}
-                      onClick={selectionMode ? () => toggleSelect(transaction.id) : undefined}
-                      className={`border-t border-zx-line transition ${selectionMode ? 'cursor-pointer hover:bg-zx-accent/5' : 'hover:bg-zx-surface-2/40'} ${selectedIds.has(transaction.id) ? 'bg-zx-accent/8' : ''}`}>
-                      {selectionMode && (
-                        <td className="px-4 py-3">
-                          <input type="checkbox" checked={selectedIds.has(transaction.id)}
-                            onChange={() => toggleSelect(transaction.id)}
-                            onClick={e => e.stopPropagation()}
-                            className="h-4 w-4 rounded accent-zx-accent" />
-                        </td>
-                      )}
+                  {filtered.map((transaction) => (
+                    <tr key={transaction.id} className="border-t border-zx-line hover:bg-zx-surface-2/40 transition">
                       <td className="px-4 py-3 text-zx-text-soft whitespace-nowrap">{formatDate(transaction.date)}</td>
                       <td className="px-4 py-3 font-medium">{transaction.category}</td>
                       <td className="px-4 py-3">
@@ -612,20 +385,18 @@ export default function Transactions() {
                         </div>
                       </td>
                       <td className="max-w-[220px] truncate px-4 py-3 text-zx-text-soft">{transaction.note || '-'}</td>
-                      {!selectionMode && (
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex justify-end gap-2">
-                            <Link to={`/transactions/${transaction.id}/edit`}
-                              className="inline-flex items-center gap-2 rounded-zx-sm bg-zx-bg px-3 py-2 text-zx-accent transition hover:bg-zx-surface-2">
-                              <Pencil className="h-4 w-4" /> {t('common.edit')}
-                            </Link>
-                            <Button type="button" onClick={() => handleDelete(transaction.id)}
-                              className="inline-flex items-center gap-2 bg-zx-negative/10 border border-zx-negative/30 px-3 py-2 text-zx-negative hover:bg-zx-negative/20">
-                              <Trash2 className="h-4 w-4" /> {t('common.delete')}
-                            </Button>
-                          </div>
-                        </td>
-                      )}
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-2">
+                          <Link to={`/transactions/${transaction.id}/edit`}
+                            className="inline-flex items-center gap-2 rounded bg-zx-bg px-3 py-2 text-zx-accent transition hover:bg-zx-surface-2">
+                            <Pencil className="h-4 w-4" /> {t('common.edit')}
+                          </Link>
+                          <Button type="button" onClick={() => setPendingDeleteId(transaction.id)}
+                            className="inline-flex items-center gap-2 bg-zx-negative/10 border border-zx-negative/30 px-3 py-2 text-zx-negative hover:bg-zx-negative/20">
+                            <Trash2 className="h-4 w-4" /> {t('common.delete')}
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -654,34 +425,14 @@ export default function Transactions() {
         )}
       </section>
 
-      {/* Pagination */}
-      {!selectionMode && totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-zx-line text-sm">
-          <span className="text-zx-text-soft">
-            {t('transactions.page', { page, total: totalPages })}
-          </span>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-              className="rounded-zx-sm border border-zx-line px-3 py-1.5 text-xs text-zx-text-soft transition hover:text-zx-text disabled:opacity-40 disabled:cursor-not-allowed">
-              ← {t('transactions.prevPage')}
-            </button>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const start = Math.max(1, Math.min(page - 2, totalPages - 4));
-              const p = start + i;
-              return p <= totalPages ? (
-                <button key={p} onClick={() => setPage(p)}
-                  className={`rounded-zx-sm px-3 py-1.5 text-xs transition ${p === page ? 'bg-zx-accent text-zx-on-accent font-medium' : 'border border-zx-line text-zx-text-soft hover:text-zx-text'}`}>
-                  {p}
-                </button>
-              ) : null;
-            })}
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-              className="rounded-zx-sm border border-zx-line px-3 py-1.5 text-xs text-zx-text-soft transition hover:text-zx-text disabled:opacity-40 disabled:cursor-not-allowed">
-              {t('transactions.nextPage')} →
-            </button>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={!!pendingDeleteId}
+        title={t('transactions.confirmDelete')}
+        description={t('transactions.confirmDeleteDescription', {}, 'Hành động này không thể hoàn tác.')}
+        tone="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </main>
   );
 }

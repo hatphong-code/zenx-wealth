@@ -12,6 +12,8 @@ import { useAuth } from '../../core/auth/useAuth';
 import { Pencil, Plus, Shield, Trash2 } from 'lucide-react';
 import { Button } from '../../core/../web/components/ui/button';
 import { Input } from '../../core/../web/components/ui/Input';
+import ConfirmDialog from '../components/ConfirmDialog';
+import NumericInput from '../components/ui/NumericInput';
 import { db } from '../../core/services/firebaseDb';
 import { formatDate, formatMoney, formatNumber } from '../../core/utils/formatters';
 import { invalidateDashboardStatsCache } from '../../core/services/dashboardService';
@@ -33,6 +35,7 @@ export default function EmergencyFund() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ amount: '', date: today, note: '' });
   const [saving, setSaving] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const activeRecords = useMemo(
     () => records.filter((record) => !record.currency || record.currency === settings.currency),
@@ -91,7 +94,7 @@ export default function EmergencyFund() {
   };
 
   const handleDelete = async (recordId) => {
-    if (!user || !window.confirm(t('emergency.confirmDelete'))) return;
+    if (!user) return;
     try {
       await deleteDoc(doc(db, 'users', user.uid, 'emergencyFund', recordId));
       const nextData = { ...data, records: records.filter((r) => r.id !== recordId) };
@@ -102,6 +105,12 @@ export default function EmergencyFund() {
       invalidateWeeklyReviewCache(user.uid, weekMeta.weekKey);
       invalidateWealthRoadmapCache(user.uid);
     } catch (err) { setError(err.message); }
+  };
+
+  const confirmDelete = () => {
+    const id = pendingDeleteId;
+    setPendingDeleteId(null);
+    if (id) handleDelete(id);
   };
 
 
@@ -151,7 +160,7 @@ export default function EmergencyFund() {
           <div className="grid gap-4 md:grid-cols-[1fr_180px]">
             <label className="block space-y-2">
               <span className="text-sm text-zx-text-soft">{t('common.amount')}</span>
-              <Input type="number" min="1" step="any" value={form.amount}
+              <NumericInput min="1" step="any" value={form.amount}
                 onChange={(e) => updateField('amount', e.target.value)}  required />
               <span className="text-xs text-zx-text-soft">
                 {form.amount ? `~ ${formatMoney(form.amount, settings.currency)}` : t('emergency.form.amountHint')}
@@ -202,8 +211,8 @@ export default function EmergencyFund() {
                         className="flex-1 bg-zx-surface-2 px-3 py-2 text-zx-accent hover:opacity-80">
                         <Pencil className="mr-2 h-4 w-4" /> {t('common.edit')}
                       </Button>
-                      <Button type="button" onClick={() => handleDelete(record.id)}
-                        className="flex-1 bg-red-950 px-3 py-2 text-red-300 hover:bg-red-900">
+                      <Button type="button" onClick={() => setPendingDeleteId(record.id)}
+                        className="flex-1 bg-zx-accent/20 px-3 py-2 text-zx-accent hover:bg-zx-accent/30">
                         <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
                       </Button>
                     </div>
@@ -233,8 +242,8 @@ export default function EmergencyFund() {
                               className="inline-flex items-center gap-2 bg-zx-surface-2 px-3 py-2 text-zx-accent hover:opacity-80">
                               <Pencil className="h-4 w-4" /> {t('common.edit')}
                             </Button>
-                            <Button type="button" onClick={() => handleDelete(record.id)}
-                              className="inline-flex items-center gap-2 bg-red-950 px-3 py-2 text-red-300 hover:bg-red-900">
+                            <Button type="button" onClick={() => setPendingDeleteId(record.id)}
+                              className="inline-flex items-center gap-2 bg-zx-accent/20 px-3 py-2 text-zx-accent hover:bg-zx-accent/30">
                               <Trash2 className="h-4 w-4" /> {t('common.delete')}
                             </Button>
                           </div>
@@ -247,6 +256,15 @@ export default function EmergencyFund() {
             </>
           )}
         </section>
+
+        <ConfirmDialog
+          open={!!pendingDeleteId}
+          title={t('emergency.confirmDelete')}
+          description={t('emergency.confirmDeleteDescription', {}, 'Hành động này không thể hoàn tác.')}
+          tone="danger"
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDeleteId(null)}
+        />
       </main>
   );
 }

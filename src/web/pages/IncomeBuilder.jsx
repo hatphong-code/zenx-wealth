@@ -1,10 +1,10 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Pencil, Trash2, TrendingUp } from 'lucide-react';
-import { useAuth } from '../../core/auth/useAuth';
-import { Button } from '../../core/../web/components/ui/button';
-import { Input } from '../../core/../web/components/ui/Input';
-import { Combobox } from '../../core/../web/components/ui/Combobox';
-import { formatMoney } from '../../core/utils/formatters';
+import { useAuth } from '../auth/useAuth';
+import { Button } from '../components/ui/button';
+import ConfirmDialog from '../components/ConfirmDialog';
+import NumericInput from '../components/ui/NumericInput';
+import { formatMoney } from '../utils/formatters';
 import {
   createIncomeSource,
   incomeStages,
@@ -13,12 +13,12 @@ import {
   removeIncomeSource,
   setIncomeSourceCache,
   updateIncomeSource,
-} from '../../core/services/incomeBuilderService';
-import { useIncomeSourcesData } from '../../core/hooks/useIncomeSourcesData';
-import { invalidateReportsCache } from '../../core/services/reportsService';
-import { invalidateWealthRoadmapCache } from '../../core/services/wealthRoadmapService';
-import { invalidateAICoachCache } from '../../core/services/aiCoachService';
-import { useI18n } from '../../core/i18n/useI18n';
+} from '../services/incomeBuilderService';
+import { useIncomeSourcesData } from '../hooks/useIncomeSourcesData';
+import { invalidateReportsCache } from '../services/reportsService';
+import { invalidateWealthRoadmapCache } from '../services/wealthRoadmapService';
+import { invalidateAICoachCache } from '../services/aiCoachService';
+import { useI18n } from '../i18n/useI18n';
 
 const initialForm = {
   sourceName: '',
@@ -37,6 +37,7 @@ export default function IncomeBuilder() {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(initialForm);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -112,7 +113,6 @@ export default function IncomeBuilder() {
 
   const handleDelete = async (sourceId) => {
     if (!user) return;
-    if (!window.confirm(t('income.confirmDelete'))) return;
 
     try {
       await removeIncomeSource(user.uid, sourceId);
@@ -127,19 +127,13 @@ export default function IncomeBuilder() {
     }
   };
 
-  const { currency, incomeSources, summary } = data;
+  const confirmDelete = () => {
+    const id = pendingDeleteId;
+    setPendingDeleteId(null);
+    if (id) handleDelete(id);
+  };
 
-  const incomeTypeKeyMap = {
-    'Main Job': 'mainJob', 'Consulting': 'consulting', 'Freelance': 'freelance',
-    'Trading': 'trading', 'Business': 'business', 'Digital Product': 'digitalProduct',
-    'Investment Income': 'investmentIncome', 'Other': 'other',
-  };
-  const incomeStageKeyMap = {
-    'Idea': 'idea', 'Validation': 'validation', 'First Client': 'firstClient',
-    'Repeatable': 'repeatable', 'Systemized': 'systemized', 'Scaled': 'scaled',
-  };
-  const incomeTypeOptions = incomeTypes.map(t_ => ({ value: t_.value, label: t(`income.typeOptions.${incomeTypeKeyMap[t_.value]}`, {}, t_.label) }));
-  const incomeStageOptions = incomeStages.map(s => ({ value: s.value, label: t(`income.stageOptions.${incomeStageKeyMap[s.value]}`, {}, s.label) }));
+  const { currency, incomeSources, summary } = data;
 
   return (
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
@@ -155,7 +149,7 @@ export default function IncomeBuilder() {
           </div>
         </div>
 
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-zx border border-zx-line bg-zx-surface p-4">
             <p className="text-sm text-zx-text-soft">{t('income.stats.current')}</p>
             <p className="font-zx-display mt-2 text-2xl font-bold">{formatMoney(summary.currentMonthlyIncome, currency)}</p>
@@ -186,34 +180,38 @@ export default function IncomeBuilder() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.nameLabel')}</span>
-              <Input value={form.sourceName} onChange={(e) => updateField('sourceName', e.target.value)} aria-describedby={error ? 'income-error' : undefined} required />
+              <input value={form.sourceName} onChange={(e) => updateField('sourceName', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" required />
             </label>
-            <div className="space-y-2">
+            <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.typeLabel')}</span>
-              <Combobox options={incomeTypeOptions} value={form.sourceType} onChange={v => updateField('sourceType', v)} clearable={false} emptyLabel={t('income.form.typeLabel')} />
-            </div>
-            <div className="space-y-2">
+              <select value={form.sourceType} onChange={(e) => updateField('sourceType', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
+                {incomeTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+              </select>
+            </label>
+            <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.stageLabel')}</span>
-              <Combobox options={incomeStageOptions} value={form.stage} onChange={v => updateField('stage', v)} clearable={false} emptyLabel={t('income.form.stageLabel')} />
-            </div>
+              <select value={form.stage} onChange={(e) => updateField('stage', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent">
+                {incomeStages.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.currentLabel')}</span>
-              <Input type="number" min="0" step="any" value={form.currentMonthlyIncome} onChange={(e) => updateField('currentMonthlyIncome', e.target.value)}  />
+              <NumericInput min="0" step="any" value={form.currentMonthlyIncome} onChange={(e) => updateField('currentMonthlyIncome', e.target.value)} />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('income.form.targetLabel')}</span>
-              <Input type="number" min="0" step="any" value={form.targetMonthlyIncome} onChange={(e) => updateField('targetMonthlyIncome', e.target.value)}  />
+              <NumericInput min="0" step="any" value={form.targetMonthlyIncome} onChange={(e) => updateField('targetMonthlyIncome', e.target.value)} />
             </label>
             <label className="space-y-2 md:col-span-2 xl:col-span-1">
               <span className="text-sm text-zx-text-soft">{t('income.form.nextActionLabel')}</span>
-              <Input value={form.nextAction} onChange={(e) => updateField('nextAction', e.target.value)}  />
+              <input value={form.nextAction} onChange={(e) => updateField('nextAction', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
             </label>
           </div>
           <label className="space-y-2 block">
             <span className="text-sm text-zx-text-soft">{t('common.note')}</span>
-            <Input value={form.note} onChange={(e) => updateField('note', e.target.value)}  />
+            <input value={form.note} onChange={(e) => updateField('note', e.target.value)} className="w-full rounded border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
           </label>
-          {error && <p id="income-error" role="alert" className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
+          {error && <p className="rounded border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
           <Button type="submit" disabled={saving} className="bg-zx-accent text-zx-on-accent hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60">
             {saving ? t('common.saving') : editingId ? t('income.form.saveButton') : t('income.form.addButton')}
           </Button>
@@ -244,7 +242,7 @@ export default function IncomeBuilder() {
                     <Button type="button" onClick={() => handleEdit(source)} className="inline-flex items-center gap-2 bg-zx-bg px-3 py-2 text-zx-accent hover:bg-zx-surface-2">
                       <Pencil className="h-4 w-4" /> {t('common.edit')}
                     </Button>
-                    <Button type="button" onClick={() => handleDelete(source.id)} className="inline-flex items-center gap-2 bg-red-950 px-3 py-2 text-red-300 hover:bg-red-900">
+                    <Button type="button" onClick={() => setPendingDeleteId(source.id)} className="inline-flex items-center gap-2 bg-zx-accent/20 px-3 py-2 text-zx-accent hover:bg-zx-accent/30">
                       <Trash2 className="h-4 w-4" /> {t('common.delete')}
                     </Button>
                   </div>
@@ -253,10 +251,15 @@ export default function IncomeBuilder() {
             </div>
           )}
         </section>
+
+        <ConfirmDialog
+          open={!!pendingDeleteId}
+          title={t('income.confirmDelete')}
+          description={t('income.confirmDeleteDescription', {}, 'Hành động này không thể hoàn tác.')}
+          tone="danger"
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDeleteId(null)}
+        />
       </main>
   );
 }
-
-
-
-

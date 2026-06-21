@@ -19,6 +19,8 @@ import { invalidateReportsCache } from '../../core/services/reportsService';
 import { invalidateWealthRoadmapCache } from '../../core/services/wealthRoadmapService';
 import { invalidateAICoachCache } from '../../core/services/aiCoachService';
 import { useI18n } from '../../core/i18n/useI18n';
+import ConfirmDialog from '../components/ConfirmDialog';
+import NumericInput from '../components/ui/NumericInput';
 
 const today = new Date().toISOString().slice(0, 10);
 const initialForm = {
@@ -40,6 +42,7 @@ export default function DebtControl() {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(initialForm);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -121,7 +124,6 @@ export default function DebtControl() {
 
   const handleDelete = async (debtId) => {
     if (!user) return;
-    if (!window.confirm(t('debts.confirmDelete'))) return;
 
     try {
       await removeDebt(user.uid, debtId);
@@ -134,6 +136,12 @@ export default function DebtControl() {
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const confirmDelete = () => {
+    const id = pendingDeleteId;
+    setPendingDeleteId(null);
+    if (id) handleDelete(id);
   };
 
   const { currency, debts, summary } = data;
@@ -203,19 +211,19 @@ export default function DebtControl() {
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.totalLabel')}</span>
-              <Input type="number" min="0" step="any" value={form.totalAmount} onChange={(e) => updateField('totalAmount', e.target.value)}  required />
+              <NumericInput min="0" step="any" value={form.totalAmount} onChange={(e) => updateField('totalAmount', e.target.value)}  required />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.remainingLabel')}</span>
-              <Input type="number" min="0" step="any" value={form.remainingAmount} onChange={(e) => updateField('remainingAmount', e.target.value)}  />
+              <NumericInput min="0" step="any" value={form.remainingAmount} onChange={(e) => updateField('remainingAmount', e.target.value)}  />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.interestLabel')}</span>
-              <Input type="number" min="0" step="0.1" value={form.interestRate} onChange={(e) => updateField('interestRate', e.target.value)}  />
+              <NumericInput min="0" step="0.1" value={form.interestRate} onChange={(e) => updateField('interestRate', e.target.value)}  />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.minPaymentLabel')}</span>
-              <Input type="number" min="0" step="any" value={form.minimumPayment} onChange={(e) => updateField('minimumPayment', e.target.value)}  />
+              <NumericInput min="0" step="any" value={form.minimumPayment} onChange={(e) => updateField('minimumPayment', e.target.value)}  />
             </label>
             <label className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('debts.form.dueDateLabel')}</span>
@@ -284,7 +292,7 @@ export default function DebtControl() {
                       <Button type="button" onClick={() => handleEdit(debt)} className="flex-1 bg-zx-bg px-3 py-2 text-zx-accent hover:bg-zx-surface-2">
                         <Pencil className="mr-2 h-4 w-4" /> {t('common.edit')}
                       </Button>
-                      <Button type="button" onClick={() => handleDelete(debt.id)} className="flex-1 bg-red-950 px-3 py-2 text-red-300 hover:bg-red-900">
+                      <Button type="button" onClick={() => setPendingDeleteId(debt.id)} className="flex-1 bg-zx-accent/20 px-3 py-2 text-zx-accent hover:bg-zx-accent/30">
                         <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
                       </Button>
                     </div>
@@ -339,6 +347,15 @@ export default function DebtControl() {
             </>
           )}
         </section>
+
+        <ConfirmDialog
+          open={!!pendingDeleteId}
+          title={t('debts.confirmDelete')}
+          description={t('debts.confirmDeleteDescription', {}, 'Hành động này không thể hoàn tác.')}
+          tone="danger"
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDeleteId(null)}
+        />
       </main>
   );
 }

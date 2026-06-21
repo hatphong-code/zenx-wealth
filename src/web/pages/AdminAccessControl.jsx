@@ -1,23 +1,25 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Crown, Save, Settings2, ShieldCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '../../core/../web/components/ui/button';
-import { useAuth } from '../../core/auth/useAuth';
-import { featureCatalog, featureGroups, SUBSCRIPTION_TIERS } from '../../core/data/accessControl';
-import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
-import { useI18n } from '../../core/i18n/useI18n';
+import { Button } from '../components/ui/button';
+import ConfirmDialog from '../components/ConfirmDialog';
+import NumericInput from '../components/ui/NumericInput';
+import { useAuth } from '../auth/useAuth';
+import { featureCatalog, featureGroups, SUBSCRIPTION_TIERS } from '../data/accessControl';
+import { useFeatureAccess } from '../hooks/useFeatureAccess';
+import { useI18n } from '../i18n/useI18n';
 import {
   getAccessControl,
   normalizeAccessControl,
   saveAccessControl,
   saveUserSubscriptionTier,
-} from '../../core/services/accessControlService';
-import { getApiSettings, saveApiSettings } from '../../core/services/adminSettingsService';
+} from '../services/accessControlService';
+import { getApiSettings, saveApiSettings } from '../services/adminSettingsService';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
-import { db } from '../../core/services/firebaseDb';
-import { DEFAULT_PLAN_TEMPLATES, invalidatePlansCache } from '../../core/services/billingService';
-import { budgetTemplates as HARDCODED_TEMPLATES } from '../../core/data/budgetTemplates';
-import { getBudgetTemplates, saveBudgetTemplates } from '../../core/services/budgetTemplatesService';
+import { db } from '../services/firebaseDb';
+import { DEFAULT_PLAN_TEMPLATES, invalidatePlansCache } from '../services/billingService';
+import { budgetTemplates as HARDCODED_TEMPLATES } from '../data/budgetTemplates';
+import { getBudgetTemplates, saveBudgetTemplates } from '../services/budgetTemplatesService';
 
 /* ── Reusable pieces ── */
 function TierToggle({ checked, onChange }) {
@@ -144,7 +146,7 @@ function FeaturesTab({ form, updateFeature, groupedFeatures, saving, handleSave,
         </div>
       ))}
 
-      {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
+      {error && <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
       {message && <p className="rounded-zx-sm border border-green-900 bg-green-950/40 p-3 text-sm text-zx-positive">{message}</p>}
 
       <Button type="button" onClick={handleSave} disabled={saving}
@@ -266,7 +268,7 @@ function ApiTab({ t }) {
 
       {/* LEFT: Form */}
       <form onSubmit={handleSave} className="space-y-5">
-        {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
+        {error && <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
         {message && <p className="rounded-zx-sm border border-emerald-900 bg-emerald-950/40 p-3 text-sm text-emerald-300">{message}</p>}
 
         {/* Claude section */}
@@ -481,7 +483,7 @@ function PlansTab({ t }) {
 
       {/* LEFT: Form */}
       <form onSubmit={handleSave} className="space-y-5">
-        {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
+        {error && <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
         {message && <p className="rounded-zx-sm border border-emerald-900 bg-emerald-950/40 p-3 text-sm text-emerald-300">{message}</p>}
 
         {/* Monthly */}
@@ -500,11 +502,11 @@ function PlansTab({ t }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>{t('adminPlans.priceLabel')} (VND)</label>
-              <input type="number" min="0" value={form.monthly_amount} onChange={e => set('monthly_amount', e.target.value)} className={inputCls} />
+              <NumericInput min="0" value={form.monthly_amount} onChange={e => set('monthly_amount', e.target.value)} />
             </div>
             <div>
               <label className={labelCls}>{t('adminPlans.daysLabel')}</label>
-              <input type="number" min="1" value={form.monthly_days} onChange={e => set('monthly_days', e.target.value)} className={inputCls} />
+              <NumericInput min="1" value={form.monthly_days} onChange={e => set('monthly_days', e.target.value)} />
             </div>
           </div>
         </div>
@@ -525,11 +527,11 @@ function PlansTab({ t }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>{t('adminPlans.priceLabel')} (VND)</label>
-              <input type="number" min="0" value={form.yearly_amount} onChange={e => set('yearly_amount', e.target.value)} className={inputCls} />
+              <NumericInput min="0" value={form.yearly_amount} onChange={e => set('yearly_amount', e.target.value)} />
             </div>
             <div>
               <label className={labelCls}>{t('adminPlans.daysLabel')}</label>
-              <input type="number" min="1" value={form.yearly_days} onChange={e => set('yearly_days', e.target.value)} className={inputCls} />
+              <NumericInput min="1" value={form.yearly_days} onChange={e => set('yearly_days', e.target.value)} />
             </div>
           </div>
           <div>
@@ -760,7 +762,14 @@ function TemplateEditor({ tmpl, onSave, onDelete, t }) {
   const [form, setForm] = useState(() => templateToForm(tmpl));
   const [dirty, setDirty] = useState(false);
   const [open, setOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const set = (k, v) => { setForm(p => ({ ...p, [k]: v })); setDirty(true); };
+
+  const confirmDelete = () => {
+    const id = pendingDeleteId;
+    setPendingDeleteId(null);
+    if (id) onDelete(id);
+  };
 
   const allocTotal = ALLOC_KEYS.reduce((s, k) => s + (Number(form[`alloc_${k}`]) || 0), 0);
   const inputCls = 'w-full rounded-zx-sm border border-zx-line bg-zx-bg px-3 py-2 text-sm text-zx-text outline-none focus:ring-2 focus:ring-zx-accent';
@@ -806,7 +815,7 @@ function TemplateEditor({ tmpl, onSave, onDelete, t }) {
                 <div key={k}>
                   <div className={`w-full h-1.5 rounded-full ${ALLOC_COLORS[i]} mb-1 opacity-60`} />
                   <label className={labelCls}>{k.replace(/([A-Z])/g, ' $1').trim()}</label>
-                  <input type="number" min="0" max="100" value={form[`alloc_${k}`]}
+                  <NumericInput type="number" min="0" max="100" value={form[`alloc_${k}`]}
                     onChange={e => set(`alloc_${k}`, e.target.value)}
                     className={`${inputCls} text-center`} />
                 </div>
@@ -816,9 +825,9 @@ function TemplateEditor({ tmpl, onSave, onDelete, t }) {
 
           {/* Targets */}
           <div className="grid grid-cols-3 gap-3">
-            <div><label className={labelCls}>Phase</label><input type="number" min="0" value={form.phase} onChange={e => set('phase', e.target.value)} className={inputCls} /></div>
-            <div><label className={labelCls}>{t('budgetTemplates.savingsTarget')} (%)</label><input type="number" min="0" max="100" value={form.savings} onChange={e => set('savings', e.target.value)} className={inputCls} /></div>
-            <div><label className={labelCls}>{t('budgetTemplates.emergencyTarget')} (tháng)</label><input type="number" min="1" value={form.emergency} onChange={e => set('emergency', e.target.value)} className={inputCls} /></div>
+            <div><label className={labelCls}>Phase</label><NumericInput min="0" value={form.phase} onChange={e => set('phase', e.target.value)} className={inputCls} /></div>
+            <div><label className={labelCls}>{t('budgetTemplates.savingsTarget')} (%)</label><NumericInput min="0" max="100" value={form.savings} onChange={e => set('savings', e.target.value)} className={inputCls} /></div>
+            <div><label className={labelCls}>{t('budgetTemplates.emergencyTarget')} (tháng)</label><NumericInput min="1" value={form.emergency} onChange={e => set('emergency', e.target.value)} className={inputCls} /></div>
           </div>
 
           {/* Categories */}
@@ -845,11 +854,19 @@ function TemplateEditor({ tmpl, onSave, onDelete, t }) {
               className="flex items-center gap-1.5 rounded-zx-sm bg-zx-accent px-4 py-2 text-sm font-semibold text-zx-on-accent hover:opacity-90 disabled:opacity-40 transition">
               <Save className="h-3.5 w-3.5" /> {t('common.save')}
             </button>
-            <button onClick={() => { if (window.confirm(t('adminBudgetTemplates.deleteConfirm', { name: displayName }))) onDelete(tmpl.id); }}
+            <button onClick={() => setPendingDeleteId(tmpl.id)}
               className="rounded-zx-sm border border-zx-negative/40 px-4 py-2 text-sm text-zx-negative hover:bg-zx-negative/10 transition">
               {t('common.delete')}
             </button>
           </div>
+          <ConfirmDialog
+            open={!!pendingDeleteId}
+            title={t('adminBudgetTemplates.deleteConfirm', { name: displayName })}
+            description={t('adminBudgetTemplates.deleteConfirmDescription', {}, 'Hành động này không thể hoàn tác.')}
+            tone="danger"
+            onConfirm={confirmDelete}
+            onCancel={() => setPendingDeleteId(null)}
+          />
         </div>
       )}
     </div>
@@ -922,7 +939,7 @@ function BudgetTemplatesTab({ t }) {
         </div>
       </div>
 
-      {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
+      {error && <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
       {message && <p className="rounded-zx-sm border border-emerald-900 bg-emerald-950/40 p-3 text-sm text-emerald-300">{message}</p>}
       {saving && <p className="text-xs text-zx-accent">{t('common.saving')}</p>}
 
@@ -1013,9 +1030,9 @@ export default function AdminAccessControl() {
       </div>
 
       {!isAdmin ? (
-        <div className="rounded-zx border border-zx-negative/30 bg-zx-negative/10 p-5">
-          <h2 className="text-lg font-semibold text-zx-negative">{t('adminAccess.noAccessTitle')}</h2>
-          <p className="mt-2 text-sm text-zx-text-soft">{t('adminAccess.noAccessBody')}</p>
+        <div className="rounded-zx border border-red-900 bg-red-950/30 p-5">
+          <h2 className="text-lg font-semibold text-red-200">{t('adminAccess.noAccessTitle')}</h2>
+          <p className="mt-2 text-sm text-red-100/90">{t('adminAccess.noAccessBody')}</p>
         </div>
       ) : (
         <>
@@ -1068,5 +1085,3 @@ export default function AdminAccessControl() {
     </main>
   );
 }
-
-

@@ -4,6 +4,8 @@ import { useAuth } from '../../core/auth/useAuth';
 import { Button } from '../../core/../web/components/ui/button';
 import { Combobox } from '../../core/../web/components/ui/Combobox';
 import { Card, CardContent, CardHeader, CardTitle } from '../../core/../web/components/ui/card';
+import ConfirmDialog from '../components/ConfirmDialog';
+import NumericInput from '../components/ui/NumericInput';
 import { formatMoney } from '../../core/utils/formatters';
 import {
   accountPurposes,
@@ -34,6 +36,7 @@ export default function Assets() {
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(initialForm);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -102,7 +105,6 @@ export default function Assets() {
 
   const handleDelete = async (accountId) => {
     if (!user) return;
-    if (!window.confirm(t('assets.confirmDelete'))) return;
 
     try {
       await removeAccount(user.uid, accountId);
@@ -115,6 +117,12 @@ export default function Assets() {
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const confirmDelete = () => {
+    const id = pendingDeleteId;
+    setPendingDeleteId(null);
+    if (id) handleDelete(id);
   };
 
   const { currency, accounts, summary } = data;
@@ -186,7 +194,7 @@ export default function Assets() {
             </div>
             <label className="space-y-2 md:col-span-2 xl:col-span-4">
               <span className="text-sm text-zx-text-soft">{t('assets.form.balanceLabel')}</span>
-              <input type="number" min="0" step="any" value={form.balance} onChange={(e) => updateField('balance', e.target.value)} aria-describedby={error ? 'assets-error' : undefined} className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              <NumericInput min="0" step="any" value={form.balance} onChange={(e) => updateField('balance', e.target.value)} aria-describedby={error ? 'assets-error' : undefined} />
             </label>
           </div>
           {error && <p id="assets-error" role="alert" className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
@@ -217,7 +225,7 @@ export default function Assets() {
                     <Button type="button" onClick={() => handleEdit(account)} className="bg-zx-bg px-3 py-2 text-zx-accent hover:bg-zx-surface-2">
                       <Pencil className="mr-2 h-4 w-4" /> {t('common.edit')}
                     </Button>
-                    <Button type="button" onClick={() => handleDelete(account.id)} className="bg-red-950 px-3 py-2 text-red-300 hover:bg-red-900">
+                    <Button type="button" onClick={() => setPendingDeleteId(account.id)} className="bg-zx-accent/20 px-3 py-2 text-zx-accent hover:bg-zx-accent/30">
                       <Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}
                     </Button>
                   </div>
@@ -226,6 +234,15 @@ export default function Assets() {
             </div>
           )}
         </section>
+
+        <ConfirmDialog
+          open={!!pendingDeleteId}
+          title={t('assets.confirmDelete')}
+          description={t('assets.confirmDeleteDescription', {}, 'Hành động này không thể hoàn tác.')}
+          tone="danger"
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDeleteId(null)}
+        />
       </main>
   );
 }
