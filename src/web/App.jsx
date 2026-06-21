@@ -7,6 +7,7 @@ import { useI18n } from '../core/i18n/useI18n';
 import AppShell from './components/AppShell';
 import { UserSettingsSync } from './components/UserSettingsSync';
 import { getCachedUserProfile, getUserProfile } from '../core/services/userService';
+import { useQueueProcessor } from './hooks/useQueueProcessor';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const TrackHub = lazy(() => import('./pages/TrackHub'));
@@ -120,9 +121,15 @@ function routeElement(element) {
   return <Suspense fallback={<PageFallback />}>{element}</Suspense>;
 }
 
+function QueueInitializer() {
+  useQueueProcessor();
+  return null;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
+      <QueueInitializer />
       <UserSettingsSync />
       <Routes>
         <Route path="/login" element={routeElement(<Login />)} />

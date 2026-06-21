@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import GlobalSearch from './GlobalSearch';
 import GestureNavigationWrapper from './GestureNavigationWrapper';
+import SyncStatus from './SyncStatus';
 import { useFocusTrap } from '../../core/hooks/useFocusTrap';
 import { useAuth } from '../../core/auth/useAuth';
 import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
@@ -323,8 +324,9 @@ function Sidebar({ visibleGroups, activeGroup, expandedGroups, onGroupClick, onI
       {/* Mini stats */}
       <SidebarStats userId={userId} />
 
-      {/* Bottom: theme + locale + sign out */}
+      {/* Bottom: theme + locale + sync status + sign out */}
       <div className="p-3 space-y-1.5 flex-shrink-0">
+        <SyncStatus />
         <div className="px-1">
           <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-1.5 px-2">{t('appShell.themeLabel')}</p>
           <ThemeToggle />
