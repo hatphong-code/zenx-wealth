@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-21 (v2.8)
+Last updated: 2026-06-21 (v2.9)
 
 ## Current Phase
 
@@ -45,7 +45,10 @@ Default hosting URL: https://zenx-wealth.web.app
 - Financial Health Score (5-pillar composite metric)
 - Budget Templates (pre-built category structures by life phase)
 - User Profile + Settings
-- Onboarding Flow (language / currency / basic setup for new users)
+- Onboarding Flow (5 steps: theme → language → currency+goal → numbers → summary; saves primaryGoal)
+- Welcome Screen (/welcome) — guided quickstart page after onboarding (3 CTA actions)
+- Dashboard Empty State (when no transactions: centered card + CTA)
+- First Win Celebration (special toast + FAB pulse indicator on first transaction)
 - Import Transactions (CSV bulk import)
 - Upgrade page (MoMo payment, dynamic plans from admin)
 
@@ -130,6 +133,7 @@ Handles: `500 triệu`, `1.5 tỷ`, `1,5 tỷ`, `tỷ rưỡi`, `2 tỷ rưỡi`
 ```text
 /login
 /onboarding
+/welcome               ← Welcome Screen (post-onboarding quickstart)
 /                      ← Dashboard
 /track                 ← TrackHub
 /plan                  ← PlanHub
@@ -188,17 +192,60 @@ users/{userId}
   subscriptionPlan: monthly | yearly | null
   goal12Month: string
   displayName / email / photoURL
+  hasFirstTransaction: boolean ← set on first transaction add (for empty state logic)
+  onboardingCompleted: boolean
   settings.currency: VND | USD
   settings.monthlyEssentialExpense: number
   settings.emergencyFundTargetMonths: number
   settings.payYourselfFirstRate: number
+  settings.primaryGoal: track | emergency | debt | invest ← set during onboarding
+  settings.theme: young | mid ← saved from onboarding + settings toggle
+  settings.locale: vi | en
+  settings.numberUnit: full | compact ← number format display unit
   settings.allocationRule: { living, emergencyFund, longTermAsset, businessLearning, highRiskTrading }
   settings.customCategories: { income: string[], expense: string[] }   ← merged (with locale defaults)
   settings.customCategoriesRaw: { income: string[], expense: string[] } ← user-added only
-  settings.locale: vi | en
 ```
 
 ## Version History
+
+### v2.9 (2026-06-21) — Complete New User Flow (Onboarding Redesign + Welcome + First Win)
+
+**A. Onboarding Redesign (5 steps, theme-first):**
+- Step 1: Theme picker (Young/Classic) with live mini preview — user customizes visual persona immediately
+- Step 2: Language (VI/EN)
+- Step 3: Currency (₫/$) + Primary Goal (track spending, build emergency fund, pay debt, long-term investing)
+- Step 4: Numbers (monthly expense, emergency fund months)
+- Step 5: Summary review + "Start journey" CTA
+- Saves theme + primaryGoal to Firestore (alongside existing currency, locale)
+- Redirect to /welcome (not dashboard) on completion
+
+**B. Welcome Screen (/welcome):**
+- Fullscreen "Where to start?" with 3 prominent CTA cards
+- Primary action: "Add your first transaction" (highlighted)
+- Secondary actions: "View financial roadmap", "Explore Dashboard"
+- Skip link to bypass directly to Dashboard
+- No AppShell — clean, focused entry experience
+
+**C. Dashboard Guided Empty State:**
+- When txData.transactions.length === 0: centered card replaces hero section
+- Title: "Welcome! Start with your first transaction."
+- Buttons: "Add transaction" (primary) + "View roadmap"
+- Mobile FAB (animate-pulse) hints user toward primary action
+
+**D. First Win Celebration:**
+- AddTransaction detects first transaction (check txData before save)
+- On success: special 🎉 toast ("First transaction! You've started your financial journey...")
+- Sets localStorage 'zx-first-tx-done' → FAB stops pulsing
+- Writes hasFirstTransaction=true to Firestore for persistence
+
+**i18n additions:**
+- onboarding: theme selection labels + descriptions, goal options (track/emergency/debt/invest)
+- welcome: intro text + 3 CTA descriptions
+- dashboard: empty state headings + hints
+- toast: first transaction celebration message
+
+**Impact:** New users now experience a cohesive, personalized onboarding journey with clear guidance and celebration of their first action — removing the blank-dashboard friction point.
 
 ### v2.8 (2026-06-21) — Bug fixes + Full cross-device settings sync
 - **Mobile Sign Out**: BottomSheet (Profile group) shows Sign Out button at bottom
