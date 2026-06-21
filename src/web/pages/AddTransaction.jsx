@@ -165,8 +165,16 @@ export default function AddTransaction() {
       amountRef.current?.focus();
 
     } catch (err) {
-      console.error('Transaction save error:', err);
-      setError(err?.message || t('addTransaction.errors.saveFailed'));
+      console.error('Transaction save error:', err, typeof err);
+      let errorMsg = t('addTransaction.errors.saveFailed');
+      if (err instanceof Error) {
+        errorMsg = err.message || errorMsg;
+      } else if (typeof err === 'object' && err?.message) {
+        errorMsg = err.message;
+      } else if (typeof err === 'string') {
+        errorMsg = err;
+      }
+      setError(errorMsg);
     }
     finally { setSaving(false); }
   };

@@ -11,10 +11,11 @@ export default function GestureNavigationWrapper({ children }) {
     <div
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className={`transition-opacity duration-300 ${
+      className={`transition-opacity duration-300 w-full ${
         swipeDirection ? 'opacity-75' : 'opacity-100'
       }`}
       style={{
+        touchAction: 'manipulation',
         transform:
           swipeDirection === 'left'
             ? 'translateX(-8px)'
@@ -22,6 +23,7 @@ export default function GestureNavigationWrapper({ children }) {
             ? 'translateX(8px)'
             : 'translateX(0)',
         transition: 'transform 150ms ease-out, opacity 300ms ease-out',
+        userSelect: 'none',
       }}
     >
       {children}
