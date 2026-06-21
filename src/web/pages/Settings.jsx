@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Save, Settings2, Target, Tags } from 'lucide-react';
+import { Save, Settings2, Target, Tags, Bell } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
 import { Button } from '../../core/../web/components/ui/button';
 import { Input } from '../../core/../web/components/ui/Input';
@@ -11,6 +11,7 @@ import { defaultExpenseCategories, defaultIncomeCategories } from '../../core/da
 import { getUserProfile, setUserProfileCache, updateTheme, updateUserSettings } from '../../core/services/userService';
 import { invalidateAfterSettingsWrite } from '../../core/services/cacheCoordinator';
 import { useI18n } from '../../core/i18n/useI18n';
+import { PushNotificationService } from '../../core/services/pushNotificationService';
 
 const defaultAllocationRule = {
   living: 55,
@@ -51,6 +52,9 @@ export default function Settings() {
   const { t } = useI18n();
   const { theme, setTheme } = useTheme();
   const { unit, setUnit } = useNumberFormat();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    PushNotificationService.isNotificationEnabled()
+  );
 
   const changeTheme = async (key) => {
     setTheme(key);
@@ -58,6 +62,21 @@ export default function Settings() {
     try {
       await updateTheme(user.uid, key);
     } catch {}
+  };
+
+  const handleNotificationsToggle = (enabled) => {
+    setNotificationsEnabled(enabled);
+    PushNotificationService.setNotificationEnabled(enabled);
+    if (enabled && Notification.permission === 'default') {
+      PushNotificationService.requestPermission().then((permitted) => {
+        if (permitted) {
+          PushNotificationService.registerServiceWorker();
+          PushNotificationService.getFCMToken();
+        }
+      });
+    } else if (!enabled) {
+      PushNotificationService.clearFCMToken();
+    }
   };
 
   const themeOptions = [
@@ -230,6 +249,36 @@ export default function Settings() {
                 {o.l}
               </button>
             ))}
+          </div>
+        </section>
+
+        {/* ── Notifications ── */}
+        <section className="rounded-zx border border-zx-line bg-zx-surface p-5 shadow-zx zx-transition">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 rounded-zx-sm bg-zx-icon-bg p-2 text-zx-accent">
+                <Bell className="h-4 w-4" />
+              </div>
+              <div>
+                <h2 className="font-semibold">{t('settings.notificationsTitle')}</h2>
+                <p className="text-sm text-zx-text-soft">{t('settings.notificationsSubtitle')}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleNotificationsToggle(!notificationsEnabled)}
+              className={`flex-shrink-0 rounded-full h-7 w-12 p-1 transition ${
+                notificationsEnabled
+                  ? 'bg-zx-positive'
+                  : 'bg-zx-surface-2'
+              }`}
+            >
+              <div
+                className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  notificationsEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
         </section>
 

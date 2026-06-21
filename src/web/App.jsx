@@ -6,8 +6,10 @@ import { useFeatureAccess } from '../core/hooks/useFeatureAccess';
 import { useI18n } from '../core/i18n/useI18n';
 import AppShell from './components/AppShell';
 import { UserSettingsSync } from './components/UserSettingsSync';
+import PushNotificationPermissionDialog from './components/PushNotificationPermissionDialog';
 import { getCachedUserProfile, getUserProfile } from '../core/services/userService';
 import { useQueueProcessor } from './hooks/useQueueProcessor';
+import { usePushNotification } from './hooks/usePushNotification';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const TrackHub = lazy(() => import('./pages/TrackHub'));
@@ -126,10 +128,23 @@ function QueueInitializer() {
   return null;
 }
 
+function PushNotificationInitializer() {
+  const { showPermissionDialog, setShowPermissionDialog } = usePushNotification();
+  return (
+    <>
+      <PushNotificationPermissionDialog
+        open={showPermissionDialog}
+        onOpenChange={setShowPermissionDialog}
+      />
+    </>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <QueueInitializer />
+      <PushNotificationInitializer />
       <UserSettingsSync />
       <Routes>
         <Route path="/login" element={routeElement(<Login />)} />

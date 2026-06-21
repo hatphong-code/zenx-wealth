@@ -101,6 +101,8 @@ export default {
     delete: 'Xóa',
     cancel: 'Huỷ',
     cancelEdit: 'Hủy sửa',
+    notNow: 'Để sau',
+    processing: 'Đang xử lý...',
     close: 'Đóng',
     back: 'Lại',
     next: 'Tiếp theo',
@@ -780,6 +782,8 @@ export default {
       businessLearning: 'Kinh doanh / học tập',
       highRiskTrading: 'Rủi ro cao',
     },
+    notificationsTitle: 'Thông báo',
+    notificationsSubtitle: 'Nhận cập nhật về giao dịch, mục tiêu và hoạt động hệ thống.',
   },
   goalTracking: {
     title: 'Mục tiêu 12 tháng',
@@ -1249,5 +1253,12 @@ export default {
     insightOperatingBody: 'Tỷ lệ tiết kiệm trung bình gần đây là {rate}%. Đây là chỉ số cho thấy hệ thống còn chỗ thở để tích sản hay không.',
     insightRoadmapTitle: 'Giai đoạn roadmap',
     insightRoadmapFallback: 'Giai đoạn roadmap vẫn đang tải.',
+  },
+  notifications: {
+    permissionDialog: {
+      title: 'Bạn sẽ không bỏ lỡ bất cứ cơ hội nào',
+      description: 'Nhận thông báo về giao dịch, mục tiêu và bản cập nhật hệ thống. Bạn có thể tắt bất cứ lúc nào trong cài đặt.',
+      allowButton: 'Bật thông báo',
+    },
   },
 };

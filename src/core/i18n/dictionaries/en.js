@@ -101,6 +101,8 @@ export default {
     delete: 'Delete',
     cancel: 'Cancel',
     cancelEdit: 'Cancel edit',
+    notNow: 'Not now',
+    processing: 'Processing...',
     close: 'Close',
     back: 'Back',
     next: 'Next',
@@ -735,6 +737,8 @@ export default {
     saveButton: 'Save settings',
     allocationError: 'Allocation rules must sum to exactly 100%.',
     fields: { living: 'Living expenses', emergencyFund: 'Emergency fund', longTermAsset: 'Long-term assets', businessLearning: 'Business / Learning', highRiskTrading: 'High risk' },
+    notificationsTitle: 'Notifications',
+    notificationsSubtitle: 'Get updates about transactions, goals and system activity.',
   },
   goalTracking: {
     title: '12-Month Goal',
@@ -1068,5 +1072,12 @@ export default {
     insightOperatingBody: 'Recent average savings rate is {rate}%. This measures whether wealth building has room to breathe.',
     insightRoadmapTitle: 'Roadmap phase',
     insightRoadmapFallback: 'Roadmap phase still loading.',
+  },
+  notifications: {
+    permissionDialog: {
+      title: 'Never miss an opportunity',
+      description: 'Get notified about transactions, goals, and system updates. You can turn them off anytime in settings.',
+      allowButton: 'Enable notifications',
+    },
   },
 };
