@@ -2,6 +2,22 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-21 — v3.0 Architecture Refactor Complete (Sprints 1-5)
+
+**Sprint 1**: All Firestore writes moved to services. Pages no longer import firebase/firestore. createTransaction, updateTransaction, deleteTransaction, updateUserSettings, updateTheme, updateLocale, createEmergencyFundRecord, saveWeeklyReview — all in service layer.
+
+**Sprint 2**: Cache invalidation centralized via cacheCoordinator.js. 8 individual calls → 1 per operation type (transaction/settings/emergency/review).
+
+**Sprint 3**: Storage abstracted via storageAdapter.js. sessionCache now uses pluggable interface; RN can inject AsyncStorage.
+
+**Sprint 4**: Folder restructure: src/core/ (portable) + src/web/ (web-only). Updated 100+ import paths. Core has zero web dependencies.
+
+**Sprint 5**: Hook factory createDataHook() eliminates 550 lines of boilerplate. 10 data hooks (Assets, Debt, EmergencyFund, IncomeSources, PayYourselfFirst, Reports, TradingRisk, Transactions, WealthRoadmap, WeeklyReview) now share identical implementation.
+
+**Impact**: Core is now truly platform-agnostic and ready for React Native migration.
+
+---
+
 ## 2026-06-20 — v2.4 Priority 3 UI/UX Improvements
 
 ### prefers-reduced-motion

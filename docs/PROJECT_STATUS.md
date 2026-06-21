@@ -232,7 +232,13 @@ users/{userId}
 - Updated 100+ import paths throughout codebase
 - Core is now truly platform-agnostic — zero web dependencies (no Tailwind, react-router, DOM APIs)
 
-**Impact:** All 4 sprints lock in architecture for React Native migration. Code is structured to allow copying src/core/ directly to RN project with minimal changes.
+**E. Hook Factory (Sprint 5):**
+- Created createDataHook() factory function — eliminates ~550 lines of boilerplate
+- Replaced 10 nearly-identical data hooks: useAssetsData, useDebtData, useEmergencyFundData, useIncomeSourcesData, usePayYourselfFirstData, useReportsData, useTradingRiskData, useTransactionsData, useWealthRoadmapData, useWeeklyReviewData
+- All data hooks now share identical loading/refreshing/error state management
+- Reduced maintenance burden — cache + state logic defined once, reused 10 times
+
+**Impact:** Sprints 1-5 complete architecture refactor for React Native readiness. Core is portable, services encapsulate all writes, cache is abstracted, and data hooks are DRY. Sprint 6 (i18n in services) deferred as low-priority optimization.
 
 ### v2.9 (2026-06-21) — Complete New User Flow (Onboarding Redesign + Welcome + First Win)
 
