@@ -59,9 +59,9 @@ export function useSwipeNavigation() {
 
       console.log('[Swipe] TouchEnd - deltaX:', deltaX, 'deltaTime:', deltaTime, 'velocity:', velocity);
 
-      // Threshold: 50px minimum or 0.5px/ms velocity
-      const minDistance = 50;
-      const minVelocity = 0.5;
+      // Threshold: 40px minimum or 0.3px/ms velocity (lowered for easier swipe)
+      const minDistance = 40;
+      const minVelocity = 0.3;
 
       if (Math.abs(deltaX) < minDistance && velocity < minVelocity) {
         console.log('[Swipe] Below threshold, ignoring');

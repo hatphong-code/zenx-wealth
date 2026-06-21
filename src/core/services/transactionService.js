@@ -91,15 +91,30 @@ export async function createTransaction(userId, data) {
     return { id: `pending_${Date.now()}`, ...data };
   }
 
-  const docRef = await addDoc(
-    collection(db, 'users', userId, 'transactions'),
-    {
-      ...data,
-      createdAt: serverTimestamp(),
+  try {
+    const docRef = await addDoc(
+      collection(db, 'users', userId, 'transactions'),
+      {
+        ...data,
+        createdAt: serverTimestamp(),
+      }
+    );
+    invalidateTransactionsCache(userId);
+    return { id: docRef.id, ...data };
+  } catch (err) {
+    // If Firebase error is network-related, queue instead of throwing
+    if (err?.code === 'unavailable' || err?.message?.includes('ERR_INTERNET_DISCONNECTED') || !navigator.onLine) {
+      console.warn('Network error detected, queuing transaction');
+      SyncQueue.addOperation({
+        type: 'createTransaction',
+        userId,
+        data,
+        timestamp: Date.now(),
+      });
+      return { id: `pending_${Date.now()}`, ...data };
     }
-  );
-  invalidateTransactionsCache(userId);
-  return { id: docRef.id, ...data };
+    throw err;
+  }
 }
 
 export async function updateTransaction(userId, id, data) {
@@ -116,12 +131,28 @@ export async function updateTransaction(userId, id, data) {
     return { id, ...data };
   }
 
-  await updateDoc(
-    doc(db, 'users', userId, 'transactions', id),
-    data
-  );
-  invalidateTransactionsCache(userId);
-  return { id, ...data };
+  try {
+    await updateDoc(
+      doc(db, 'users', userId, 'transactions', id),
+      data
+    );
+    invalidateTransactionsCache(userId);
+    return { id, ...data };
+  } catch (err) {
+    // If Firebase error is network-related, queue instead of throwing
+    if (err?.code === 'unavailable' || err?.message?.includes('ERR_INTERNET_DISCONNECTED') || !navigator.onLine) {
+      console.warn('Network error detected, queuing transaction update');
+      SyncQueue.addOperation({
+        type: 'updateTransaction',
+        userId,
+        resourceId: id,
+        data,
+        timestamp: Date.now(),
+      });
+      return { id, ...data };
+    }
+    throw err;
+  }
 }
 
 export async function deleteTransaction(userId, id) {
@@ -137,6 +168,21 @@ export async function deleteTransaction(userId, id) {
     return;
   }
 
-  await deleteDoc(doc(db, 'users', userId, 'transactions', id));
-  invalidateTransactionsCache(userId);
+  try {
+    await deleteDoc(doc(db, 'users', userId, 'transactions', id));
+    invalidateTransactionsCache(userId);
+  } catch (err) {
+    // If Firebase error is network-related, queue instead of throwing
+    if (err?.code === 'unavailable' || err?.message?.includes('ERR_INTERNET_DISCONNECTED') || !navigator.onLine) {
+      console.warn('Network error detected, queuing transaction delete');
+      SyncQueue.addOperation({
+        type: 'deleteTransaction',
+        userId,
+        resourceId: id,
+        timestamp: Date.now(),
+      });
+      return;
+    }
+    throw err;
+  }
 }
