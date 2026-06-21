@@ -2,6 +2,32 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-21 — Phase 1: Mobile Enhancement Infrastructure (1.1 - 1.3)
+
+**Phase 1.1 (Gesture Navigation) - LIVE:**
+- `useSwipeNavigation` hook: Detects left/right swipes on hub pages. Min threshold: 50px distance OR 0.5px/ms velocity. Navigation sequence: Dashboard ↔ TrackHub ↔ PlanHub ↔ ReviewHub.
+- `GestureNavigationWrapper` component: Visual feedback during swipe (transform ±8px, opacity 0.75). Only active on mobile hub pages.
+- Updated `AppShell.jsx` to wrap main content. Deployed.
+
+**Phase 1.2 (Offline-first Sync) - LIVE:**
+- `syncQueue.js`: Queue management with deduplication. Persists to sessionStorage. Auto-processes on connection restored.
+- `useSyncStatus` hook: Tracks online/offline/syncing state. Dispatches custom events for UI updates.
+- `SyncStatus` component: Visual indicator in sidebar (red offline, orange syncing with count, green online).
+- `useQueueProcessor` hook: Global processor initialized in App.jsx. Listens to 'online' event.
+- Operations queued for sync: createTransaction, updateTransaction, deleteTransaction, updateUserSettings, updateTheme, updateLocale, createEmergencyFundRecord, saveWeeklyReview.
+- Deduplication ensures only latest write per resource is queued. Deployed.
+
+**Phase 1.3 (Push Notifications) - LIVE:**
+- `pushNotificationService.js`: FCM integration. requestPermission(), registerServiceWorker(), getFCMToken() (cached), setupMessageListener().
+- `usePushNotification` hook: Initializes on app load. Shows permission dialog on first visit.
+- `PushNotificationPermissionDialog` component: Bottom-sheet on mobile. Allow/Not Now actions.
+- Service Worker (`public/sw.js`): Handles background FCM messages via Firebase SDK (compat mode). Displays notifications, handles clicks.
+- Settings toggle: New notifications section with enable/disable button. Syncs with PushNotificationService.
+- i18n: Added common.notNow, common.processing, notifications.permissionDialog, settings.notificationsTitle/Subtitle.
+- Deployed.
+
+---
+
 ## 2026-06-21 — v3.0 Architecture Refactor Complete (Sprints 1-6)
 
 **Sprint 1**: All Firestore writes moved to services. Pages no longer import firebase/firestore. createTransaction, updateTransaction, deleteTransaction, updateUserSettings, updateTheme, updateLocale, createEmergencyFundRecord, saveWeeklyReview — all in service layer.
