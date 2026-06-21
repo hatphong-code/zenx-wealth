@@ -152,7 +152,9 @@ export default function AddTransaction() {
         }
       }
 
+      console.log('[AddTransaction] Online status:', navigator.onLine);
       const result = await createTransaction(user.uid, payload);
+      console.log('[AddTransaction] Transaction result:', result);
       invalidateAfterTransactionWrite(user.uid, getCurrentWeekMeta().weekKey);
 
       // Append to panel immediately (no extra fetch needed)
@@ -171,6 +173,7 @@ export default function AddTransaction() {
           toast({ title: t('toast.txAdded'), variant: 'success' });
         }
       } else {
+        console.log('[AddTransaction] Offline - showing queued toast');
         toast({ title: t('toast.txQueued'), description: t('toast.txQueuedDesc'), variant: 'info' });
       }
 
@@ -179,15 +182,22 @@ export default function AddTransaction() {
       amountRef.current?.focus();
 
     } catch (err) {
-      console.error('Transaction save error:', err, typeof err);
+      console.error('[AddTransaction] Caught error:', {
+        message: err?.message,
+        code: err?.code,
+        type: typeof err,
+        isError: err instanceof Error,
+        fullError: err,
+      });
       let errorMsg = t('addTransaction.errors.saveFailed');
-      if (err instanceof Error) {
-        errorMsg = err.message || errorMsg;
+      if (err instanceof Error && err.message) {
+        errorMsg = err.message;
       } else if (typeof err === 'object' && err?.message) {
         errorMsg = err.message;
       } else if (typeof err === 'string') {
         errorMsg = err;
       }
+      console.error('[AddTransaction] Final error message:', errorMsg);
       setError(errorMsg);
     }
     finally { setSaving(false); }
