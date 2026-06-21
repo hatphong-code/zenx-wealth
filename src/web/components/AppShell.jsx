@@ -5,6 +5,7 @@ import {
   ChevronRight, ClipboardCheck, Compass, Home, LogOut, Plus, Search, SlidersHorizontal, UserCircle, Wallet, X,
 } from 'lucide-react';
 import GlobalSearch from './GlobalSearch';
+import GestureNavigationWrapper from './GestureNavigationWrapper';
 import { useFocusTrap } from '../../core/hooks/useFocusTrap';
 import { useAuth } from '../../core/auth/useAuth';
 import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
@@ -604,9 +605,11 @@ export default function AppShell({ children }) {
 
         {/* Scrollable content */}
         <main id="main-content" className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
-          <div className="pb-24 md:pb-0">
-            {children}
-          </div>
+          <GestureNavigationWrapper>
+            <div className="pb-24 md:pb-0">
+              {children}
+            </div>
+          </GestureNavigationWrapper>
         </main>
       </div>
 
