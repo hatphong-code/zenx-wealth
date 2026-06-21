@@ -151,13 +151,18 @@ export default function AddTransaction() {
         setTodayTxs(prev => [{ id: result.id, ...payload, date: { toDate: () => new Date(`${form.date}T00:00:00`) } }, ...prev]);
       }
 
-      // First win celebration
-      if (isFirstTransaction) {
-        try { localStorage.setItem('zx-first-tx-done', 'true'); } catch {}
-        try { await updateUserSettings(user.uid, { hasFirstTransaction: true }); } catch {}
-        toast({ title: t('toast.firstTransaction'), description: t('toast.firstTransactionDesc'), variant: 'success' });
+      // Show appropriate toast based on online/offline status
+      if (navigator.onLine) {
+        // First win celebration (only when online)
+        if (isFirstTransaction) {
+          try { localStorage.setItem('zx-first-tx-done', 'true'); } catch {}
+          try { await updateUserSettings(user.uid, { hasFirstTransaction: true }); } catch {}
+          toast({ title: t('toast.firstTransaction'), description: t('toast.firstTransactionDesc'), variant: 'success' });
+        } else {
+          toast({ title: t('toast.txAdded'), variant: 'success' });
+        }
       } else {
-        toast({ title: t('toast.txAdded'), variant: 'success' });
+        toast({ title: t('toast.txQueued'), description: t('toast.txQueuedDesc'), variant: 'info' });
       }
 
       // Clear form, keep type + date for quick re-entry

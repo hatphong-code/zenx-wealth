@@ -66,6 +66,8 @@ export default {
     txDeleted: 'Transaction deleted',
     txBulkDeleted: '{count} transactions deleted',
     txBulkRecategorized: 'Category changed for {count} transactions',
+    txQueued: 'Waiting to sync',
+    txQueuedDesc: 'You are offline. Transactions will sync automatically when connected.',
     firstTransaction: '🎉 First transaction!',
     firstTransactionDesc: "You've started your financial journey. Keep logging consistently!",
     settingsSaved: 'Settings saved',

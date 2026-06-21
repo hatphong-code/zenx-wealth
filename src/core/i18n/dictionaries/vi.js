@@ -66,6 +66,8 @@ export default {
     txDeleted: 'Đã xóa giao dịch',
     txBulkDeleted: 'Đã xóa {count} giao dịch',
     txBulkRecategorized: 'Đã đổi danh mục {count} giao dịch',
+    txQueued: 'Đang chờ đồng bộ',
+    txQueuedDesc: 'Bạn đang offline. Giao dịch sẽ tự động lưu khi có kết nối.',
     firstTransaction: '🎉 Giao dịch đầu tiên!',
     firstTransactionDesc: 'Bạn vừa bắt đầu hành trình tài chính. Tiếp tục ghi chép đều đặn!',
     settingsSaved: 'Đã lưu thiết lập',

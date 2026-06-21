@@ -3,6 +3,7 @@ import { db } from './firebaseDb';
 import { getCachedValue, loadWithCache, removeCachedValue, setCachedValue } from './sessionCache';
 import { getUserProfile } from './userService';
 import { detectRecurringTransactions } from './recurringDetectionService';
+import { SyncQueue } from './syncQueue';
 
 const TRANSACTIONS_CACHE_TTL_MS = 60 * 1000;
 
@@ -77,6 +78,19 @@ export async function getTransaction(userId, id) {
 
 // Write operations
 export async function createTransaction(userId, data) {
+  // Check if online
+  if (!navigator.onLine) {
+    // Queue for later sync
+    SyncQueue.addOperation({
+      type: 'createTransaction',
+      userId,
+      data,
+      timestamp: Date.now(),
+    });
+    // Return optimistic response
+    return { id: `pending_${Date.now()}`, ...data };
+  }
+
   const docRef = await addDoc(
     collection(db, 'users', userId, 'transactions'),
     {
@@ -89,6 +103,19 @@ export async function createTransaction(userId, data) {
 }
 
 export async function updateTransaction(userId, id, data) {
+  // Check if online
+  if (!navigator.onLine) {
+    // Queue for later sync
+    SyncQueue.addOperation({
+      type: 'updateTransaction',
+      userId,
+      resourceId: id,
+      data,
+      timestamp: Date.now(),
+    });
+    return { id, ...data };
+  }
+
   await updateDoc(
     doc(db, 'users', userId, 'transactions', id),
     data
@@ -98,6 +125,18 @@ export async function updateTransaction(userId, id, data) {
 }
 
 export async function deleteTransaction(userId, id) {
+  // Check if online
+  if (!navigator.onLine) {
+    // Queue for later sync
+    SyncQueue.addOperation({
+      type: 'deleteTransaction',
+      userId,
+      resourceId: id,
+      timestamp: Date.now(),
+    });
+    return;
+  }
+
   await deleteDoc(doc(db, 'users', userId, 'transactions', id));
   invalidateTransactionsCache(userId);
 }
