@@ -413,6 +413,7 @@ export default {
     errors: {
       notFound: 'Không tìm thấy giao dịch.',
       amountRequired: 'Số tiền phải lớn hơn 0.',
+      saveFailed: 'Lưu giao dịch thất bại. Vui lòng thử lại.',
     },
     expenseCategories: ['Cà phê & trà sữa', 'Ăn ngoài', 'Mua sắm', 'Đi lại', 'Nhà ở', 'Sức khoẻ', 'Subscription', 'Học tập', 'Gia đình', 'Khác'],
     incomeCategories: ['Lương', 'Freelance', 'Kinh doanh', 'Đầu tư', 'Thưởng', 'Khác'],

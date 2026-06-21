@@ -164,7 +164,10 @@ export default function AddTransaction() {
       setForm(prev => ({ ...emptyForm, type: prev.type, date: prev.date }));
       amountRef.current?.focus();
 
-    } catch (err) { setError(err.message); }
+    } catch (err) {
+      console.error('Transaction save error:', err);
+      setError(err?.message || t('addTransaction.errors.saveFailed'));
+    }
     finally { setSaving(false); }
   };
 

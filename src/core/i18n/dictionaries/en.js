@@ -409,6 +409,7 @@ export default {
     errors: {
       notFound: 'Transaction not found.',
       amountRequired: 'Amount must be greater than 0.',
+      saveFailed: 'Failed to save transaction. Please try again.',
     },
     expenseCategories: ['Coffee & drinks', 'Eating out', 'Shopping', 'Transport', 'Housing', 'Health', 'Subscription', 'Education', 'Family', 'Other'],
     incomeCategories: ['Salary', 'Freelance', 'Business', 'Investment', 'Bonus', 'Other'],
