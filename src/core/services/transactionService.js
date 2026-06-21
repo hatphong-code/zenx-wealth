@@ -78,31 +78,28 @@ export async function getTransaction(userId, id) {
 
 // Write operations
 export async function createTransaction(userId, data) {
-  // ALWAYS check if online FIRST - prevent Firebase call if offline
-  if (!navigator.onLine) {
-    console.log('[Offline] Queuing createTransaction');
-    SyncQueue.addOperation({
-      type: 'createTransaction',
-      userId,
-      data,
-      timestamp: Date.now(),
-    });
-    return { id: `pending_${Date.now()}`, ...data };
-  }
-
   try {
-    const docRef = await addDoc(
-      collection(db, 'users', userId, 'transactions'),
-      {
-        ...data,
-        createdAt: serverTimestamp(),
-      }
-    );
+    const docRef = await Promise.race([
+      addDoc(
+        collection(db, 'users', userId, 'transactions'),
+        {
+          ...data,
+          createdAt: serverTimestamp(),
+        }
+      ),
+      // Timeout after 5 seconds - if still pending, likely offline
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error('Network timeout - likely offline')),
+          5000
+        )
+      ),
+    ]);
     invalidateTransactionsCache(userId);
     return { id: docRef.id, ...data };
   } catch (err) {
-    // Fallback: if Firebase call fails due to network, queue it
-    console.warn('[Fallback] Network error during createTransaction, queuing:', err?.message);
+    // ANY error (network, timeout, etc) → queue the operation
+    console.warn('[createTransaction] Error detected, queuing:', err?.message || err);
     SyncQueue.addOperation({
       type: 'createTransaction',
       userId,
@@ -114,29 +111,25 @@ export async function createTransaction(userId, data) {
 }
 
 export async function updateTransaction(userId, id, data) {
-  // ALWAYS check if online FIRST - prevent Firebase call if offline
-  if (!navigator.onLine) {
-    console.log('[Offline] Queuing updateTransaction');
-    SyncQueue.addOperation({
-      type: 'updateTransaction',
-      userId,
-      resourceId: id,
-      data,
-      timestamp: Date.now(),
-    });
-    return { id, ...data };
-  }
-
   try {
-    await updateDoc(
-      doc(db, 'users', userId, 'transactions', id),
-      data
-    );
+    await Promise.race([
+      updateDoc(
+        doc(db, 'users', userId, 'transactions', id),
+        data
+      ),
+      // Timeout after 5 seconds - if still pending, likely offline
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error('Network timeout - likely offline')),
+          5000
+        )
+      ),
+    ]);
     invalidateTransactionsCache(userId);
     return { id, ...data };
   } catch (err) {
-    // Fallback: if Firebase call fails due to network, queue it
-    console.warn('[Fallback] Network error during updateTransaction, queuing:', err?.message);
+    // ANY error (network, timeout, etc) → queue the operation
+    console.warn('[updateTransaction] Error detected, queuing:', err?.message || err);
     SyncQueue.addOperation({
       type: 'updateTransaction',
       userId,
@@ -149,24 +142,21 @@ export async function updateTransaction(userId, id, data) {
 }
 
 export async function deleteTransaction(userId, id) {
-  // ALWAYS check if online FIRST - prevent Firebase call if offline
-  if (!navigator.onLine) {
-    console.log('[Offline] Queuing deleteTransaction');
-    SyncQueue.addOperation({
-      type: 'deleteTransaction',
-      userId,
-      resourceId: id,
-      timestamp: Date.now(),
-    });
-    return;
-  }
-
   try {
-    await deleteDoc(doc(db, 'users', userId, 'transactions', id));
+    await Promise.race([
+      deleteDoc(doc(db, 'users', userId, 'transactions', id)),
+      // Timeout after 5 seconds - if still pending, likely offline
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error('Network timeout - likely offline')),
+          5000
+        )
+      ),
+    ]);
     invalidateTransactionsCache(userId);
   } catch (err) {
-    // Fallback: if Firebase call fails due to network, queue it
-    console.warn('[Fallback] Network error during deleteTransaction, queuing:', err?.message);
+    // ANY error (network, timeout, etc) → queue the operation
+    console.warn('[deleteTransaction] Error detected, queuing:', err?.message || err);
     SyncQueue.addOperation({
       type: 'deleteTransaction',
       userId,
