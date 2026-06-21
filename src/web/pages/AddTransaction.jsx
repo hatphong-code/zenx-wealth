@@ -75,13 +75,19 @@ export default function AddTransaction() {
         setCustomCategories(profile.settings?.customCategoriesRaw || { income: [], expense: [] });
 
         if (!isEditing) {
-          // Load today's transactions for the right panel
-          const txData = await getTransactions(user.uid);
-          const filtered = (txData.transactions || []).filter(tx => {
-            const d = tx.date?.toDate ? tx.date.toDate().toISOString().slice(0, 10) : '';
-            return d === today;
-          });
-          setTodayTxs(filtered);
+          // Load today's transactions for the right panel (skip if offline)
+          try {
+            const txData = await getTransactions(user.uid);
+            const filtered = (txData.transactions || []).filter(tx => {
+              const d = tx.date?.toDate ? tx.date.toDate().toISOString().slice(0, 10) : '';
+              return d === today;
+            });
+            setTodayTxs(filtered);
+          } catch (readErr) {
+            // If offline, just skip loading today's transactions
+            console.warn('[AddTransaction] Could not load today transactions:', readErr?.message);
+            setTodayTxs([]);
+          }
           return;
         }
 

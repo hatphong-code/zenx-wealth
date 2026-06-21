@@ -87,26 +87,30 @@ export async function createTransaction(userId, data) {
           createdAt: serverTimestamp(),
         }
       ),
-      // Timeout after 5 seconds - if still pending, likely offline
+      // Timeout after 2 seconds - if still pending, likely offline
       new Promise((_, reject) =>
         setTimeout(
-          () => reject(new Error('Network timeout - likely offline')),
-          5000
+          () => reject(new Error('Network timeout')),
+          2000
         )
       ),
     ]);
+    console.log('[createTransaction] Success, saved to Firestore:', docRef.id);
     invalidateTransactionsCache(userId);
     return { id: docRef.id, ...data };
   } catch (err) {
-    // ANY error (network, timeout, etc) → queue the operation
-    console.warn('[createTransaction] Error detected, queuing:', err?.message || err);
+    // ANY error → queue the operation
+    console.log('[createTransaction] Caught error, queuing operation:', err?.message);
+    const queuedId = `pending_${Date.now()}`;
     SyncQueue.addOperation({
       type: 'createTransaction',
       userId,
       data,
       timestamp: Date.now(),
     });
-    return { id: `pending_${Date.now()}`, ...data };
+    console.log('[createTransaction] Operation queued with ID:', queuedId);
+    console.log('[createTransaction] Queue length:', SyncQueue.getQueueLength());
+    return { id: queuedId, ...data };
   }
 }
 
