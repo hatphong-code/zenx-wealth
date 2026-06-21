@@ -238,7 +238,13 @@ users/{userId}
 - All data hooks now share identical loading/refreshing/error state management
 - Reduced maintenance burden — cache + state logic defined once, reused 10 times
 
-**Impact:** Sprints 1-5 complete architecture refactor for React Native readiness. Core is portable, services encapsulate all writes, cache is abstracted, and data hooks are DRY. Sprint 6 (i18n in services) deferred as low-priority optimization.
+**F. Service-Level i18n (Sprint 6):**
+- Created src/core/i18n/getTranslation.js — allows services to access translations without React context
+- Moved 50+ aiCoachService copy strings from inline object to i18n dictionaries (vi.js + en.js under aiCoach.* keys)
+- Updated aiCoachService to use getTranslation() instead of hardcoded coachCopy
+- Services can now scale: future services (monthlyLetterService, etc.) will also use centralized i18n
+
+**Impact:** All 6 sprints complete. Core is fully portable for React Native: zero Firestore imports in pages, abstracted storage, structured folders, DRY hooks, and service-level i18n. Architecture ready for RN project setup.
 
 ### v2.9 (2026-06-21) — Complete New User Flow (Onboarding Redesign + Welcome + First Win)
 

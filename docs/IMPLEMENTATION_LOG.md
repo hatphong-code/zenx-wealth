@@ -2,7 +2,7 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
-## 2026-06-21 — v3.0 Architecture Refactor Complete (Sprints 1-5)
+## 2026-06-21 — v3.0 Architecture Refactor Complete (Sprints 1-6)
 
 **Sprint 1**: All Firestore writes moved to services. Pages no longer import firebase/firestore. createTransaction, updateTransaction, deleteTransaction, updateUserSettings, updateTheme, updateLocale, createEmergencyFundRecord, saveWeeklyReview — all in service layer.
 
@@ -14,7 +14,9 @@ This file records meaningful implementation changes so the project can be follow
 
 **Sprint 5**: Hook factory createDataHook() eliminates 550 lines of boilerplate. 10 data hooks (Assets, Debt, EmergencyFund, IncomeSources, PayYourselfFirst, Reports, TradingRisk, Transactions, WealthRoadmap, WeeklyReview) now share identical implementation.
 
-**Impact**: Core is now truly platform-agnostic and ready for React Native migration.
+**Sprint 6**: Service-level i18n. Created getTranslation.js. Moved 50+ aiCoachService copy strings to vi.js + en.js dictionaries. Services can now access translations without React context dependency.
+
+**Impact**: Core is fully platform-agnostic and ready for React Native migration. All write operations abstracted, cache pluggable, storage abstracted, folders separated, hooks DRY, i18n decoupled from UI layer.
 
 ---
 
