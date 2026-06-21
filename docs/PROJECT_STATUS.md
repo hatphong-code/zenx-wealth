@@ -1,12 +1,17 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-21 (v3.0)
+Last updated: 2026-06-21 (v3.0 + Phase 1 Mobile Enhancement)
 
 ## Current Phase
 
-**Production-ready Personal Finance OS.**
+**Phase 1: Mobile Enhancement Infrastructure (COMPLETE)**
 
-Full feature set live: two-theme design system, i18n VI/EN, desktop 2-column layouts, recurring detection with Firestore persistence, LLM-backed AI Coach, email delivery via Resend, MoMo billing, and a unified Admin panel for all backend configuration.
+Production-ready Personal Finance OS with mobile-first improvements. Full feature set live: two-theme design system, i18n VI/EN, desktop 2-column layouts, recurring detection with Firestore persistence, LLM-backed AI Coach, email delivery via Resend, MoMo billing, and a unified Admin panel for all backend configuration.
+
+Phase 1 deliverables:
+- **1.1 Gesture Navigation** — Swipe left/right between hub pages (Dashboard ↔ Track ↔ Plan ↔ Review) with velocity detection
+- **1.2 Offline-first Sync Infrastructure** — SyncQueue, deduplication, auto-process on connection restore, SyncStatus UI badge
+- **1.3 Push Notifications** — FCM integration, browser permission dialog, notification preferences in Settings, background message handling via Service Worker
 
 ## Firebase Project
 
