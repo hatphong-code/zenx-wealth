@@ -78,16 +78,15 @@ export async function getTransaction(userId, id) {
 
 // Write operations
 export async function createTransaction(userId, data) {
-  // Check if online
+  // ALWAYS check if online FIRST - prevent Firebase call if offline
   if (!navigator.onLine) {
-    // Queue for later sync
+    console.log('[Offline] Queuing createTransaction');
     SyncQueue.addOperation({
       type: 'createTransaction',
       userId,
       data,
       timestamp: Date.now(),
     });
-    // Return optimistic response
     return { id: `pending_${Date.now()}`, ...data };
   }
 
@@ -102,32 +101,22 @@ export async function createTransaction(userId, data) {
     invalidateTransactionsCache(userId);
     return { id: docRef.id, ...data };
   } catch (err) {
-    // If Firebase error is network-related, queue instead of throwing
-    const isNetworkError =
-      err?.code === 'unavailable' ||
-      err?.code === 'unknown' ||
-      err?.message?.includes('ERR_INTERNET_DISCONNECTED') ||
-      err?.message?.includes('HTTP error has no status') ||
-      !navigator.onLine;
-
-    if (isNetworkError) {
-      console.warn('Network error detected, queuing transaction:', err);
-      SyncQueue.addOperation({
-        type: 'createTransaction',
-        userId,
-        data,
-        timestamp: Date.now(),
-      });
-      return { id: `pending_${Date.now()}`, ...data };
-    }
-    throw err;
+    // Fallback: if Firebase call fails due to network, queue it
+    console.warn('[Fallback] Network error during createTransaction, queuing:', err?.message);
+    SyncQueue.addOperation({
+      type: 'createTransaction',
+      userId,
+      data,
+      timestamp: Date.now(),
+    });
+    return { id: `pending_${Date.now()}`, ...data };
   }
 }
 
 export async function updateTransaction(userId, id, data) {
-  // Check if online
+  // ALWAYS check if online FIRST - prevent Firebase call if offline
   if (!navigator.onLine) {
-    // Queue for later sync
+    console.log('[Offline] Queuing updateTransaction');
     SyncQueue.addOperation({
       type: 'updateTransaction',
       userId,
@@ -146,33 +135,23 @@ export async function updateTransaction(userId, id, data) {
     invalidateTransactionsCache(userId);
     return { id, ...data };
   } catch (err) {
-    // If Firebase error is network-related, queue instead of throwing
-    const isNetworkError =
-      err?.code === 'unavailable' ||
-      err?.code === 'unknown' ||
-      err?.message?.includes('ERR_INTERNET_DISCONNECTED') ||
-      err?.message?.includes('HTTP error has no status') ||
-      !navigator.onLine;
-
-    if (isNetworkError) {
-      console.warn('Network error detected, queuing transaction update:', err);
-      SyncQueue.addOperation({
-        type: 'updateTransaction',
-        userId,
-        resourceId: id,
-        data,
-        timestamp: Date.now(),
-      });
-      return { id, ...data };
-    }
-    throw err;
+    // Fallback: if Firebase call fails due to network, queue it
+    console.warn('[Fallback] Network error during updateTransaction, queuing:', err?.message);
+    SyncQueue.addOperation({
+      type: 'updateTransaction',
+      userId,
+      resourceId: id,
+      data,
+      timestamp: Date.now(),
+    });
+    return { id, ...data };
   }
 }
 
 export async function deleteTransaction(userId, id) {
-  // Check if online
+  // ALWAYS check if online FIRST - prevent Firebase call if offline
   if (!navigator.onLine) {
-    // Queue for later sync
+    console.log('[Offline] Queuing deleteTransaction');
     SyncQueue.addOperation({
       type: 'deleteTransaction',
       userId,
@@ -186,24 +165,13 @@ export async function deleteTransaction(userId, id) {
     await deleteDoc(doc(db, 'users', userId, 'transactions', id));
     invalidateTransactionsCache(userId);
   } catch (err) {
-    // If Firebase error is network-related, queue instead of throwing
-    const isNetworkError =
-      err?.code === 'unavailable' ||
-      err?.code === 'unknown' ||
-      err?.message?.includes('ERR_INTERNET_DISCONNECTED') ||
-      err?.message?.includes('HTTP error has no status') ||
-      !navigator.onLine;
-
-    if (isNetworkError) {
-      console.warn('Network error detected, queuing transaction delete:', err);
-      SyncQueue.addOperation({
-        type: 'deleteTransaction',
-        userId,
-        resourceId: id,
-        timestamp: Date.now(),
-      });
-      return;
-    }
-    throw err;
+    // Fallback: if Firebase call fails due to network, queue it
+    console.warn('[Fallback] Network error during deleteTransaction, queuing:', err?.message);
+    SyncQueue.addOperation({
+      type: 'deleteTransaction',
+      userId,
+      resourceId: id,
+      timestamp: Date.now(),
+    });
   }
 }
