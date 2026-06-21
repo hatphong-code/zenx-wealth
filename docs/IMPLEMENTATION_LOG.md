@@ -26,6 +26,8 @@ This file records meaningful implementation changes so the project can be follow
 - i18n: Added common.notNow, common.processing, notifications.permissionDialog, settings.notificationsTitle/Subtitle.
 - Deployed.
 
+**Phase 1 Complete** — All three subphases live at https://wealth.zenx.asia. Gesture navigation works on real Android devices. Offline sync infrastructure ready (write queuing implemented but not integrated into individual services — can be added later if needed). Push notification system ready for FCM backend integration.
+
 ---
 
 ## 2026-06-21 — v3.0 Architecture Refactor Complete (Sprints 1-6)
