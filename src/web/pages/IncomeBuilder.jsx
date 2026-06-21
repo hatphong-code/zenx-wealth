@@ -1,9 +1,9 @@
 ﻿import { useState } from 'react';
 import { Pencil, Trash2, TrendingUp } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/Input';
-import { Combobox } from '../components/ui/Combobox';
+import { Button } from '../../core/../web/components/ui/button';
+import { Input } from '../../core/../web/components/ui/Input';
+import { Combobox } from '../../core/../web/components/ui/Combobox';
 import { formatMoney } from '../../core/utils/formatters';
 import {
   createIncomeSource,

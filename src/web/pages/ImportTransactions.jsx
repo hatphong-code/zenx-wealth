@@ -3,7 +3,7 @@ import { FileUp, CheckSquare, Square, Upload } from 'lucide-react';
 import { addDoc, collection, serverTimestamp, Timestamp } from 'firebase/firestore/lite';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
-import { Button } from '../components/ui/button';
+import { Button } from '../../core/../web/components/ui/button';
 import { db } from '../../core/services/firebaseDb';
 import { invalidateDashboardStatsCache } from '../../core/services/dashboardService';
 import { invalidateLatteFactorCache } from '../../core/services/latteFactorService';

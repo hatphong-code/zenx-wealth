@@ -1,6 +1,6 @@
 ﻿import { useMemo, useState } from 'react';
 import { BarChart3, Printer, ShieldAlert, Sparkles, TrendingUp, Wallet } from 'lucide-react';
-import { DateRangePicker } from '../components/ui/DateRangePicker';
+import { DateRangePicker } from '../../core/../web/components/ui/DateRangePicker';
 import {
   Bar,
   BarChart,
@@ -14,7 +14,7 @@ import {
   YAxis,
 } from 'recharts';
 import { useAuth } from '../../core/auth/useAuth';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../core/../web/components/ui/card';
 import { useReportsData } from '../../core/hooks/useReportsData';
 import { useI18n } from '../../core/i18n/useI18n';
 import { formatMoney, formatNumber, formatPercent } from '../../core/utils/formatters';

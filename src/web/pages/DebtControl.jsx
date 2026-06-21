@@ -1,9 +1,9 @@
 ﻿import { useState } from 'react';
 import { CreditCard, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/Input';
-import { Combobox } from '../components/ui/Combobox';
+import { Button } from '../../core/../web/components/ui/button';
+import { Input } from '../../core/../web/components/ui/Input';
+import { Combobox } from '../../core/../web/components/ui/Combobox';
 import { formatMoney, formatNumber } from '../../core/utils/formatters';
 import {
   createDebt,

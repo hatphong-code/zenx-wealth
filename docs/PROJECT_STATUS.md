@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-21 (v2.9)
+Last updated: 2026-06-21 (v3.0)
 
 ## Current Phase
 
@@ -208,6 +208,31 @@ users/{userId}
 ```
 
 ## Version History
+
+### v3.0 (2026-06-21) — Architecture Refactor (RN-Ready Core)
+
+**A. Complete Service Layer Writes (Sprint 1):**
+- All Firestore write operations moved to services (transactionService, userService, emergencyFundService, weeklyReviewService)
+- Pages no longer import firebase/firestore directly — zero direct Firestore calls in UI
+- Added methods: createTransaction, updateTransaction, deleteTransaction, getTransaction, updateUserSettings, updateTheme, updateLocale, createEmergencyFundRecord, saveWeeklyReview
+
+**B. Cache Invalidation Coordinator (Sprint 2):**
+- Created cacheCoordinator.js to group cache invalidations by operation type
+- Reduced fan-out: 8 individual invalidate*Cache() calls → 1 invalidateAfterTransactionWrite() call
+- Simplified cache management: pages → services → cacheCoordinator
+
+**C. Platform-Abstract Storage Adapter (Sprint 3):**
+- Created storageAdapter.js to abstract sessionStorage access
+- sessionCache.js now uses pluggable storage interface (default: window.sessionStorage)
+- React Native can inject AsyncStorage at startup via setStorageAdapter()
+
+**D. Folder Structure Refactored (Sprint 4):**
+- Created src/core/ (portable logic): auth/, data/, hooks/, i18n/, services/, utils/
+- Created src/web/ (web-specific): components/, pages/, App.jsx, index.css
+- Updated 100+ import paths throughout codebase
+- Core is now truly platform-agnostic — zero web dependencies (no Tailwind, react-router, DOM APIs)
+
+**Impact:** All 4 sprints lock in architecture for React Native migration. Code is structured to allow copying src/core/ directly to RN project with minimal changes.
 
 ### v2.9 (2026-06-21) — Complete New User Flow (Onboarding Redesign + Welcome + First Win)
 

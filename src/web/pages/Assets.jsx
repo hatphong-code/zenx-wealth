@@ -1,9 +1,9 @@
 ﻿import { useState } from 'react';
 import { Landmark, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
-import { Button } from '../components/ui/button';
-import { Combobox } from '../components/ui/Combobox';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../../core/../web/components/ui/button';
+import { Combobox } from '../../core/../web/components/ui/Combobox';
+import { Card, CardContent, CardHeader, CardTitle } from '../../core/../web/components/ui/card';
 import { formatMoney } from '../../core/utils/formatters';
 import {
   accountPurposes,

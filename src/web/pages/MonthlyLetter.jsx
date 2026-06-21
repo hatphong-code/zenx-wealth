@@ -4,7 +4,7 @@ import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { getMonthlyLetter } from '../../core/services/monthlyLetterService';
 import { sendMonthlyLetterEmail } from '../../core/services/emailService';
-import { Button } from '../components/ui/button';
+import { Button } from '../../core/../web/components/ui/button';
 
 export default function MonthlyLetter() {
   const { user } = useAuth();

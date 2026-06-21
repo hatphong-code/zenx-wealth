@@ -10,8 +10,8 @@ import {
 } from 'firebase/firestore/lite';
 import { useAuth } from '../../core/auth/useAuth';
 import { Pencil, Plus, Shield, Trash2 } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/Input';
+import { Button } from '../../core/../web/components/ui/button';
+import { Input } from '../../core/../web/components/ui/Input';
 import { db } from '../../core/services/firebaseDb';
 import { formatDate, formatMoney, formatNumber } from '../../core/utils/formatters';
 import { invalidateDashboardStatsCache } from '../../core/services/dashboardService';

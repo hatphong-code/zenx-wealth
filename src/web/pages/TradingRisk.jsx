@@ -2,9 +2,9 @@
 import { AlertTriangle, BarChart3, Save, TrendingUp } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore/lite';
 import { useAuth } from '../../core/auth/useAuth';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/Input';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../../core/../web/components/ui/button';
+import { Input } from '../../core/../web/components/ui/Input';
+import { Card, CardContent, CardHeader, CardTitle } from '../../core/../web/components/ui/card';
 import { invalidateReportsCache } from '../../core/services/reportsService';
 import { formatDate, formatMoney, formatNumber, formatPercent } from '../../core/utils/formatters';
 import {

@@ -11,7 +11,7 @@ import {
   TriangleAlert,
 } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../core/../web/components/ui/card';
 import { useAICoachData } from '../../core/hooks/useAICoachData';
 import { useReportsData } from '../../core/hooks/useReportsData';
 import { useWealthRoadmapData } from '../../core/hooks/useWealthRoadmapData';

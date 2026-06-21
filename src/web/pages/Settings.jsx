@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Save, Settings2, Target, Tags } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/Input';
-import { Textarea } from '../components/ui/Textarea';
-import { useToast } from '../components/ui/Toast';
+import { Button } from '../../core/../web/components/ui/button';
+import { Input } from '../../core/../web/components/ui/Input';
+import { Textarea } from '../../core/../web/components/ui/Textarea';
+import { useToast } from '../../core/../web/components/ui/Toast';
 import { useTheme } from '../../core/hooks/useTheme';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import { defaultExpenseCategories, defaultIncomeCategories } from '../../core/data/categories';

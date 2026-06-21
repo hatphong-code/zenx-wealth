@@ -4,7 +4,7 @@ import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { Save, UserCircle } from 'lucide-react';
-import { Button } from '../components/ui/button';
+import { Button } from '../../core/../web/components/ui/button';
 import { db } from '../../core/services/firebaseDb';
 import { formatMoney } from '../../core/utils/formatters';
 import { getCachedUserProfile, getUserProfile, setUserProfileCache } from '../../core/services/userService';

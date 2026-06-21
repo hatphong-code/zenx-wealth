@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { BarChart3, Brain, CheckCircle2, Lock, Loader2, Sparkles, Target, Zap } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
-import { Button } from '../components/ui/button';
+import { Button } from '../../core/../web/components/ui/button';
 import { formatMoney } from '../../core/utils/formatters';
 import {
   DEFAULT_PLAN_TEMPLATES,

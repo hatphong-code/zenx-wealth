@@ -1,7 +1,7 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import { Crown, Save, Settings2, ShieldCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '../components/ui/button';
+import { Button } from '../../core/../web/components/ui/button';
 import { useAuth } from '../../core/auth/useAuth';
 import { featureCatalog, featureGroups, SUBSCRIPTION_TIERS } from '../../core/data/accessControl';
 import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';

@@ -1,6 +1,6 @@
 ﻿import { useAuth } from '../../core/auth/useAuth';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../core/../web/components/ui/card';
+import { Button } from '../../core/../web/components/ui/button';
 import { AlertTriangle, Zap } from 'lucide-react';
 import { formatMoney } from '../../core/utils/formatters';
 import { useLatteFactor } from '../../core/hooks/useLatteFactor';

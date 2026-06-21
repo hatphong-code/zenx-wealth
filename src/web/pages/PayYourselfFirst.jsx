@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { PiggyBank, Save } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
-import { Button } from '../components/ui/button';
+import { Button } from '../../core/../web/components/ui/button';
 import { formatMoney, formatNumber } from '../../core/utils/formatters';
 import { getCachedUserProfile } from '../../core/services/userService';
 import {

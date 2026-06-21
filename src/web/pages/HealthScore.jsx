@@ -1,7 +1,7 @@
 ﻿import { Activity } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../core/../web/components/ui/card';
 import { useReportsData } from '../../core/hooks/useReportsData';
 import { computeHealthScore } from '../../core/services/healthScoreService';
 import { formatMoney } from '../../core/utils/formatters';
