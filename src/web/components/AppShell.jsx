@@ -605,14 +605,14 @@ export default function AppShell({ children }) {
         {/* Mobile top bar */}
         <MobileTopBar activeGroup={activeGroup} activeItem={activeItem} />
 
-        {/* Scrollable content */}
-        <main id="main-content" className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
-          <GestureNavigationWrapper>
+        {/* Gesture wrapper with scrollable content */}
+        <GestureNavigationWrapper>
+          <main id="main-content" className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
             <div className="pb-24 md:pb-0">
               {children}
             </div>
-          </GestureNavigationWrapper>
-        </main>
+          </main>
+        </GestureNavigationWrapper>
       </div>
 
       {/* QuickCapture FAB — mobile only, always visible */}

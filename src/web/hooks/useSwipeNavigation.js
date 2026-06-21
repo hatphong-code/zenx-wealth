@@ -45,6 +45,7 @@ export function useSwipeNavigation() {
     if (!touch) return;
     e.currentTarget._swipeStartX = touch.clientX;
     e.currentTarget._swipeStartTime = Date.now();
+    console.log('[Swipe] TouchStart at X:', touch.clientX);
   }, []);
 
   const handleTouchEnd = useCallback(
@@ -56,15 +57,19 @@ export function useSwipeNavigation() {
       const deltaTime = Date.now() - e.currentTarget._swipeStartTime;
       const velocity = Math.abs(deltaX) / deltaTime;
 
+      console.log('[Swipe] TouchEnd - deltaX:', deltaX, 'deltaTime:', deltaTime, 'velocity:', velocity);
+
       // Threshold: 50px minimum or 0.5px/ms velocity
       const minDistance = 50;
       const minVelocity = 0.5;
 
       if (Math.abs(deltaX) < minDistance && velocity < minVelocity) {
+        console.log('[Swipe] Below threshold, ignoring');
         return;
       }
 
       const direction = deltaX > 0 ? 'right' : 'left';
+      console.log('[Swipe] Direction:', direction, 'Current route:', currentHubIndex);
       setSwipeDirection(direction);
       handleSwipe(direction);
 
@@ -75,7 +80,7 @@ export function useSwipeNavigation() {
       delete e.currentTarget._swipeStartX;
       delete e.currentTarget._swipeStartTime;
     },
-    [handleSwipe]
+    [handleSwipe, currentHubIndex]
   );
 
   return {

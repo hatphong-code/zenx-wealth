@@ -9,9 +9,15 @@ export default function GestureNavigationWrapper({ children }) {
 
   return (
     <div
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      className={`transition-opacity duration-300 w-full ${
+      onTouchStart={(e) => {
+        console.log('[GestureWrapper] TouchStart fired');
+        handleTouchStart(e);
+      }}
+      onTouchEnd={(e) => {
+        console.log('[GestureWrapper] TouchEnd fired');
+        handleTouchEnd(e);
+      }}
+      className={`flex flex-col flex-1 min-w-0 transition-opacity duration-300 ${
         swipeDirection ? 'opacity-75' : 'opacity-100'
       }`}
       style={{
@@ -24,6 +30,7 @@ export default function GestureNavigationWrapper({ children }) {
             : 'translateX(0)',
         transition: 'transform 150ms ease-out, opacity 300ms ease-out',
         userSelect: 'none',
+        pointerEvents: 'auto',
       }}
     >
       {children}
