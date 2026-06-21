@@ -613,13 +613,18 @@ export default function AppShell({ children }) {
       </div>
 
       {/* QuickCapture FAB — mobile only, always visible */}
-      <Link
-        to="/transactions/new"
-        className="md:hidden fixed bottom-[76px] right-4 z-40 w-14 h-14 rounded-full bg-zx-accent text-zx-on-accent shadow-zx flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
-        title={t('appShell.quickAdd')}
-      >
-        <Plus className="h-6 w-6" strokeWidth={2.5} />
-      </Link>
+      {(() => {
+        const hasFirstTx = typeof window !== 'undefined' && localStorage.getItem('zx-first-tx-done');
+        return (
+          <Link
+            to="/transactions/new"
+            className={`md:hidden fixed bottom-[76px] right-4 z-40 w-14 h-14 rounded-full bg-zx-accent text-zx-on-accent shadow-zx flex items-center justify-center hover:opacity-90 active:scale-95 transition-all ${!hasFirstTx ? 'animate-pulse' : ''}`}
+            title={t('appShell.quickAdd')}
+          >
+            <Plus className="h-6 w-6" strokeWidth={2.5} />
+          </Link>
+        );
+      })()}
 
       {/* Fixed bottom tabs (mobile) */}
       <BottomTabs

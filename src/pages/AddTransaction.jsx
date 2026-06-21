@@ -151,6 +151,10 @@ export default function AddTransaction() {
         return;
       }
 
+      // Check if this is the first transaction for celebration
+      const allTxs = await getTransactions(user.uid);
+      const isFirstTransaction = (allTxs.transactions || []).length === 0;
+
       const docRef = await addDoc(collection(db, 'users', user.uid, 'transactions'), { ...payload, createdAt: serverTimestamp() });
       invalidateTransactionsCache(user.uid);
       invalidateDashboardStatsCache(user.uid);
@@ -166,9 +170,17 @@ export default function AddTransaction() {
         setTodayTxs(prev => [{ id: docRef.id, ...payload, date: { toDate: () => new Date(`${form.date}T00:00:00`) } }, ...prev]);
       }
 
+      // First win celebration
+      if (isFirstTransaction) {
+        try { localStorage.setItem('zx-first-tx-done', 'true'); } catch {}
+        try { await updateDoc(doc(db, 'users', user.uid), { hasFirstTransaction: true, updatedAt: serverTimestamp() }); } catch {}
+        toast({ title: t('toast.firstTransaction'), description: t('toast.firstTransactionDesc'), variant: 'success' });
+      } else {
+        toast({ title: t('toast.txAdded'), variant: 'success' });
+      }
+
       // Clear form, keep type + date for quick re-entry
       setForm(prev => ({ ...emptyForm, type: prev.type, date: prev.date }));
-      toast({ title: t('toast.txAdded'), variant: 'success' });
       amountRef.current?.focus();
 
     } catch (err) { setError(err.message); }

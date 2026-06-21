@@ -37,6 +37,7 @@ const BudgetTemplates = lazy(() => import('./pages/BudgetTemplates'));
 const ImportTransactions = lazy(() => import('./pages/ImportTransactions'));
 const HealthScore = lazy(() => import('./pages/HealthScore'));
 const Upgrade = lazy(() => import('./pages/Upgrade'));
+const WelcomeScreen = lazy(() => import('./pages/WelcomeScreen'));
 
 function PageFallback() {
   const { t } = useI18n();
@@ -126,6 +127,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={routeElement(<Login />)} />
         <Route path="/onboarding" element={routeElement(<OnboardingFlow />)} />
+        <Route path="/welcome" element={routeElement(<WelcomeScreen />)} />
         <Route path="/" element={routeElement(<PrivateRoute featureKey="dashboard"><Dashboard /></PrivateRoute>)} />
         <Route path="/track" element={routeElement(<PrivateRoute featureKey="transactions"><TrackHub /></PrivateRoute>)} />
         <Route path="/plan" element={routeElement(<PrivateRoute featureKey="roadmap"><PlanHub /></PrivateRoute>)} />

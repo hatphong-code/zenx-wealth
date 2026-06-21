@@ -1,5 +1,5 @@
 ﻿import { Link } from 'react-router-dom';
-import { ArrowRight, Coffee, Lock, PiggyBank, Shield, Wallet } from 'lucide-react';
+import { ArrowRight, Coffee, Lock, PiggyBank, Plus, Shield, Wallet } from 'lucide-react';
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useAuth } from '../auth/useAuth';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
@@ -333,13 +333,36 @@ export default function Dashboard() {
             </p>
           </section>
 
+          {/* ── Empty state — no transactions yet ── */}
+          {!loading && !error && txData.transactions.length === 0 && (
+            <section className="pb-6">
+              <div className="rounded-zx border border-zx-line bg-zx-surface p-6 text-center space-y-4 shadow-zx">
+                <div className="text-4xl">📊</div>
+                <div className="space-y-1">
+                  <p className="font-zx-head text-base font-semibold text-zx-text">{t('dashboard.emptyTitle')}</p>
+                  <p className="text-sm text-zx-text-soft">{t('dashboard.emptySubtitle')}</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                  <Link to="/transactions/new"
+                    className="inline-flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent px-5 py-2.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
+                    <Plus className="h-4 w-4" /> {t('dashboard.emptyAddTx')}
+                  </Link>
+                  <Link to="/roadmap"
+                    className="inline-flex items-center justify-center gap-2 rounded-zx-sm border border-zx-line px-5 py-2.5 text-sm text-zx-text-soft hover:text-zx-text transition">
+                    {t('dashboard.emptyRoadmap')}
+                  </Link>
+                </div>
+              </div>
+            </section>
+          )}
+
           {/* ── Hero: Cash flow + Net worth ── */}
           <section className="pb-6">
             {loading ? (
               <p className="text-zx-text-soft text-sm">{t('dashboard.loading')}</p>
             ) : error ? (
               <p className="text-zx-negative text-sm">{error}</p>
-            ) : (
+            ) : txData.transactions.length === 0 ? null : (
               <div className="flex items-end justify-between gap-6 flex-wrap">
                 <div>
                   <p className="font-zx-display font-bold leading-none"
