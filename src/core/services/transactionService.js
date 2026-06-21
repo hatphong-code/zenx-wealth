@@ -103,8 +103,15 @@ export async function createTransaction(userId, data) {
     return { id: docRef.id, ...data };
   } catch (err) {
     // If Firebase error is network-related, queue instead of throwing
-    if (err?.code === 'unavailable' || err?.message?.includes('ERR_INTERNET_DISCONNECTED') || !navigator.onLine) {
-      console.warn('Network error detected, queuing transaction');
+    const isNetworkError =
+      err?.code === 'unavailable' ||
+      err?.code === 'unknown' ||
+      err?.message?.includes('ERR_INTERNET_DISCONNECTED') ||
+      err?.message?.includes('HTTP error has no status') ||
+      !navigator.onLine;
+
+    if (isNetworkError) {
+      console.warn('Network error detected, queuing transaction:', err);
       SyncQueue.addOperation({
         type: 'createTransaction',
         userId,
@@ -140,8 +147,15 @@ export async function updateTransaction(userId, id, data) {
     return { id, ...data };
   } catch (err) {
     // If Firebase error is network-related, queue instead of throwing
-    if (err?.code === 'unavailable' || err?.message?.includes('ERR_INTERNET_DISCONNECTED') || !navigator.onLine) {
-      console.warn('Network error detected, queuing transaction update');
+    const isNetworkError =
+      err?.code === 'unavailable' ||
+      err?.code === 'unknown' ||
+      err?.message?.includes('ERR_INTERNET_DISCONNECTED') ||
+      err?.message?.includes('HTTP error has no status') ||
+      !navigator.onLine;
+
+    if (isNetworkError) {
+      console.warn('Network error detected, queuing transaction update:', err);
       SyncQueue.addOperation({
         type: 'updateTransaction',
         userId,
@@ -173,8 +187,15 @@ export async function deleteTransaction(userId, id) {
     invalidateTransactionsCache(userId);
   } catch (err) {
     // If Firebase error is network-related, queue instead of throwing
-    if (err?.code === 'unavailable' || err?.message?.includes('ERR_INTERNET_DISCONNECTED') || !navigator.onLine) {
-      console.warn('Network error detected, queuing transaction delete');
+    const isNetworkError =
+      err?.code === 'unavailable' ||
+      err?.code === 'unknown' ||
+      err?.message?.includes('ERR_INTERNET_DISCONNECTED') ||
+      err?.message?.includes('HTTP error has no status') ||
+      !navigator.onLine;
+
+    if (isNetworkError) {
+      console.warn('Network error detected, queuing transaction delete:', err);
       SyncQueue.addOperation({
         type: 'deleteTransaction',
         userId,
