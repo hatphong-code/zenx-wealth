@@ -216,7 +216,7 @@ function SidebarStats({ userId }) {
   const { data: roadmap } = useWealthRoadmapData(userId);
   const { t } = useI18n();
   const { fmt } = useNumberFormat();
-  const currentPhase = roadmap.phases.find(p => p.id === roadmap.currentPhaseId) || roadmap.phases[0];
+  const currentPhase = roadmap?.phases?.find(p => p.id === roadmap.currentPhaseId) || roadmap?.phases?.[0] || null;
   const emgPct = stats.targetMonths > 0 ? (stats.emergencyMonths / stats.targetMonths) * 100 : 0;
   const isPositive = stats.netCashFlow >= 0;
 
