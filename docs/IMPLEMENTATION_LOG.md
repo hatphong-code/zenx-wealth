@@ -2,6 +2,20 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-22 — Onboarding: Latte Factor Projection + Budget Template Recommendation
+
+- Created `src/core/data/latteOnboarding.js`: LATTE_ITEMS (5 habits), AGE_BRACKETS, recommendTemplateIdByAgeRange()
+- Added `calculateFutureValue()` and `buildLatteProjectionSeries()` to `financialCalculations.js`
+- Extended onboarding from 5 → 6 steps (theme → language → currency+goal → numbers+age → latte → summary)
+- Step 4 (Numbers): added 4-button age bracket picker (<22, 22-29, 30-44, 45+)
+- Step 5 (new Latte Factor): tap-to-toggle habit chips, auto-sum daily saving, manual override input, seed example when no selection, Recharts LineChart (savings vs invested, 20 years)
+- Step 6 (Summary): added template recommendation card with "Xem" → /budget-templates?recommend={id}
+- `handleFinish` saves ageRange; only saves estimatedDailySaving when user has real input (not seed)
+- `BudgetTemplates.jsx`: reads ?recommend= query param and auto-opens preview modal for that template
+- i18n: 26 new keys in both vi.js and en.js; step3Title/step3Subtitle renamed → step4Title/step4Subtitle
+
+---
+
 ## 2026-06-21 — Phase 1: Mobile Enhancement Infrastructure (1.1 - 1.3)
 
 **Phase 1.1 (Gesture Navigation) - LIVE:**

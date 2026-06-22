@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { useTheme } from '../../core/hooks/useTheme';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import { db } from '../../core/services/firebaseDb';
 import { setUserProfileCache, getUserProfile } from '../../core/services/userService';
+import { buildLatteProjectionSeries } from '../../core/services/financialCalculations';
 import { formatMoney } from '../../core/utils/formatters';
+import { LATTE_ITEMS, AGE_BRACKETS, recommendTemplateIdByAgeRange } from '../../core/data/latteOnboarding';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 const GOAL_OPTIONS = [
   { key: 'track',     icon: '🔍' },
@@ -62,6 +65,18 @@ export default function OnboardingFlow() {
   const [emergencyTarget, setEmergencyTarget] = useState('6');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [ageRange, setAgeRange] = useState('22-29');
+  const [selectedLatte, setSelectedLatte] = useState([]);
+  const [useManualDaily, setUseManualDaily] = useState(false);
+  const [manualDaily, setManualDaily] = useState('');
+
+  const dailySavingReal = useManualDaily
+    ? Number(manualDaily) || 0
+    : selectedLatte.reduce((sum, id) => {
+        const item = LATTE_ITEMS.find(i => i.id === id);
+        return sum + (item ? (currency === 'USD' ? item.usd : item.vnd) : 0);
+      }, 0);
+  const hasRealLatteInput = dailySavingReal > 0;
 
   // ── Step 1: Theme ──────────────────────────────────────────────────
   const themeOptions = [
@@ -102,9 +117,11 @@ export default function OnboardingFlow() {
         locale,
         theme,
         primaryGoal,
+        ageRange,
         ...(skip ? {} : {
           monthlyEssentialExpense: Number(monthlyExpense),
           emergencyFundTargetMonths: Number(emergencyTarget) || 6,
+          ...(hasRealLatteInput ? { estimatedDailySaving: dailySavingReal } : {}),
         }),
       };
       const next = { ...existing, settings, onboardingCompleted: true, updatedAt: serverTimestamp() };
@@ -125,6 +142,11 @@ export default function OnboardingFlow() {
 
   const expenseNum = Number(monthlyExpense);
   const expensePreview = Number.isFinite(expenseNum) && expenseNum > 0 ? formatMoney(expenseNum, currency) : null;
+
+  const DEFAULT_SEED_DAILY = currency === 'USD' ? 3 : 50000;
+  const dailySavingDisplay = hasRealLatteInput ? dailySavingReal : DEFAULT_SEED_DAILY;
+  const projectionSeries = buildLatteProjectionSeries(dailySavingDisplay * 30);
+  const recommendedTemplateId = recommendTemplateIdByAgeRange(ageRange);
 
   const goalLabels = {
     track:     t('onboarding.goalTrack'),
@@ -300,6 +322,25 @@ export default function OnboardingFlow() {
               </label>
             </div>
 
+            {/* Age */}
+            <div className="space-y-2">
+              <label className="block">
+                <span className="text-sm font-medium text-zx-text-soft">{t('onboarding.ageLabel')}</span>
+                <div className="mt-2 grid grid-cols-4 gap-2">
+                  {AGE_BRACKETS.map(a => (
+                    <button key={a} type="button" onClick={() => setAgeRange(a)}
+                      className={`rounded-zx-sm border py-2.5 text-sm font-semibold transition ${
+                        ageRange === a
+                          ? 'border-zx-accent bg-zx-accent-soft text-zx-accent'
+                          : 'border-zx-line bg-zx-surface text-zx-text-soft hover:border-zx-accent'
+                      }`}>
+                      {a}
+                    </button>
+                  ))}
+                </div>
+              </label>
+            </div>
+
             {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
 
             <NavButtons
@@ -309,14 +350,115 @@ export default function OnboardingFlow() {
           </div>
         )}
 
-        {/* ── Step 5: Summary ── */}
+        {/* ── Step 5: Latte Factor Projection ── */}
         {step === 5 && (
           <div className="space-y-6">
             <div className="text-center space-y-2">
-              <div className="text-4xl mb-3">✦</div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zx-text-soft">{t('onboarding.step', { current: 5, total: TOTAL_STEPS })}</p>
-              <h1 className="font-zx-head text-2xl font-bold text-zx-positive">{t('onboarding.step3Title')}</h1>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zx-text-soft">
+                {t('onboarding.step', { current: 5, total: TOTAL_STEPS })}
+              </p>
+              <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('onboarding.step3Title')}</h1>
               <p className="text-sm text-zx-text-soft">{t('onboarding.step3Subtitle')}</p>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-zx-text-soft">{t('onboarding.latteIntro')}</p>
+              <div className="grid grid-cols-2 gap-2">
+                {LATTE_ITEMS.map(item => {
+                  const price = currency === 'USD' ? item.usd : item.vnd;
+                  const selected = selectedLatte.includes(item.id);
+                  return (
+                    <button key={item.id} type="button"
+                      onClick={() => setSelectedLatte(prev =>
+                        selected ? prev.filter(id => id !== item.id) : [...prev, item.id]
+                      )}
+                      className={`flex items-center gap-2 rounded-zx-sm border px-3 py-2.5 text-left transition ${
+                        selected
+                          ? 'border-zx-accent bg-zx-accent-soft ring-1 ring-zx-accent'
+                          : 'border-zx-line bg-zx-surface hover:border-zx-accent'
+                      }`}>
+                      <span className="text-xl">{item.icon}</span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-sm font-medium text-zx-text truncate">{t(`onboarding.${item.labelKey}`)}</span>
+                        <span className="block text-xs text-zx-text-soft">≈ {formatMoney(price, currency)}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {!useManualDaily ? (
+              <button type="button" onClick={() => setUseManualDaily(true)}
+                className="text-xs text-zx-text-soft underline underline-offset-2 hover:text-zx-text">
+                {t('onboarding.latteAdjustManually')}
+              </button>
+            ) : (
+              <label className="block">
+                <span className="text-sm font-medium text-zx-text-soft">{t('onboarding.latteAmountLabel')}</span>
+                <input type="number" inputMode="decimal" min="0" step="any" value={manualDaily}
+                  onChange={e => setManualDaily(e.target.value)}
+                  className="mt-2 w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-3 text-zx-text outline-none focus:ring-2 focus:ring-zx-accent" />
+              </label>
+            )}
+
+            <div className="rounded-zx-sm border border-zx-line bg-zx-surface-2 p-4 text-center">
+              <p className="text-xs text-zx-text-soft">{t('onboarding.latteDailyTotal')}</p>
+              <p className="font-zx-display text-2xl font-bold text-zx-accent mt-1">
+                {formatMoney(dailySavingDisplay, currency)}
+              </p>
+              {!hasRealLatteInput && (
+                <p className="mt-1 text-[11px] text-zx-text-soft">{t('onboarding.latteIllustrativeNote')}</p>
+              )}
+            </div>
+
+            <div className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-3">
+              <p className="text-sm font-semibold text-zx-text">{t('onboarding.latteProjectionTitle')}</p>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={projectionSeries}>
+                    <XAxis dataKey="year" tick={{ fontSize: 11 }} tickFormatter={(y) => `${y}y`} />
+                    <YAxis hide />
+                    <Tooltip formatter={(v) => formatMoney(v, currency)} />
+                    <Line type="monotone" dataKey="savings" stroke="var(--zx-text-soft)" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="invested" stroke="var(--zx-accent)" strokeWidth={2.5} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                {[1, 10, 20].map(y => (
+                  <div key={y} className="rounded-zx-sm bg-zx-surface-2 p-2">
+                    <p className="text-[10px] text-zx-text-soft">{t(`onboarding.latteYear${y}`)}</p>
+                    <p className="text-sm font-bold text-zx-text">
+                      {formatMoney(projectionSeries.find(p => p.year === y)?.invested || 0, currency)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] text-zx-text-soft text-center">{t('onboarding.latteDisclaimer')}</p>
+            </div>
+
+            <div className="space-y-2">
+              <button onClick={() => setStep(6)}
+                className="w-full rounded-zx-sm bg-zx-accent py-3.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
+                {t('onboarding.next')} →
+              </button>
+              <button onClick={() => setStep(4)}
+                className="w-full py-2 text-xs text-zx-text-soft hover:text-zx-text transition">
+                ← {t('common.back')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 6: Summary ── */}
+        {step === 6 && (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <div className="text-4xl mb-3">✦</div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zx-text-soft">{t('onboarding.step', { current: 6, total: TOTAL_STEPS })}</p>
+              <h1 className="font-zx-head text-2xl font-bold text-zx-positive">{t('onboarding.step4Title')}</h1>
+              <p className="text-sm text-zx-text-soft">{t('onboarding.step4Subtitle')}</p>
             </div>
 
             <div className="rounded-zx-sm border border-zx-line bg-zx-surface divide-y divide-zx-line">
@@ -334,11 +476,26 @@ export default function OnboardingFlow() {
               ))}
             </div>
 
+            {/* Budget template recommendation */}
+            <div className="rounded-zx-sm border border-zx-accent/40 bg-zx-accent-soft p-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs text-zx-text-soft">{t('onboarding.templateRecommendLabel')}</p>
+                <p className="text-sm font-semibold text-zx-text">
+                  {t(`budgetTemplates.templates.${recommendedTemplateId}.name`, {}, recommendedTemplateId)}
+                </p>
+              </div>
+              <button type="button"
+                onClick={() => navigate(`/budget-templates?recommend=${recommendedTemplateId}`)}
+                className="flex-shrink-0 rounded-zx-sm bg-zx-accent px-3 py-2 text-xs font-semibold text-zx-on-accent hover:opacity-90 transition">
+                {t('onboarding.templateRecommendView')}
+              </button>
+            </div>
+
             {error && <p className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}
 
             <NavButtons
               onNext={() => handleFinish(false)}
-              onBack={() => setStep(4)}
+              onBack={() => setStep(5)}
               nextLabel={`${t('onboarding.startButton')} 🚀`}
               saving={saving}
             />

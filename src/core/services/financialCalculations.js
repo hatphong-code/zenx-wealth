@@ -302,6 +302,21 @@ export function estimateNetWorthTrend({ currentNetWorth = 0, cashFlowTrend = [] 
   }));
 }
 
+export function calculateFutureValue({ monthlyAmount, annualRatePct, months }) {
+  const r = (annualRatePct / 100) / 12;
+  if (!monthlyAmount || months <= 0) return 0;
+  if (r === 0) return monthlyAmount * months;
+  return monthlyAmount * (((1 + r) ** months - 1) / r);
+}
+
+export function buildLatteProjectionSeries(monthlyAmount, years = 20) {
+  return Array.from({ length: years + 1 }, (_, year) => ({
+    year,
+    savings: calculateFutureValue({ monthlyAmount, annualRatePct: 3, months: year * 12 }),
+    invested: calculateFutureValue({ monthlyAmount, annualRatePct: 8, months: year * 12 }),
+  }));
+}
+
 export function buildMonthlyCloseMetrics(cashFlowTrend = []) {
   const positiveMonths = cashFlowTrend.filter((item) => item.netCashFlow > 0).length;
   const averageNetCashFlow = cashFlowTrend.length > 0

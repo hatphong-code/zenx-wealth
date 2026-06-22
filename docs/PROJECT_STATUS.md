@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-21 (v3.0 + Phase 1 Mobile Enhancement)
+Last updated: 2026-06-22 (v3.1 + Onboarding Latte Factor)
 
 ## Current Phase
 
@@ -50,7 +50,7 @@ Default hosting URL: https://zenx-wealth.web.app
 - Financial Health Score (5-pillar composite metric)
 - Budget Templates (pre-built category structures by life phase)
 - User Profile + Settings
-- Onboarding Flow (5 steps: theme → language → currency+goal → numbers → summary; saves primaryGoal)
+- Onboarding Flow (6 steps: theme → language → currency+goal → numbers+age → latte projection → summary; saves primaryGoal, ageRange, estimatedDailySaving)
 - Welcome Screen (/welcome) — guided quickstart page after onboarding (3 CTA actions)
 - Dashboard Empty State (when no transactions: centered card + CTA)
 - First Win Celebration (special toast + FAB pulse indicator on first transaction)
