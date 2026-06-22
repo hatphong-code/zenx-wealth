@@ -187,10 +187,10 @@ export default function PlanHub() {
     },
     {
       key: 'debt', label: t('planHub.items.debts'),
-      value: debtData.summary.totalDebt > 0 ? fmt(debtData.summary.totalDebt) : null,
-      sub: debtData.summary.totalDebt > 0 ? t('planHub.debtCount', { count: debtData.debts.length }) : t('planHub.noDebt'),
+      value: (debtData?.summary?.totalDebt || 0) > 0 ? fmt(debtData.summary.totalDebt) : null,
+      sub: (debtData?.summary?.totalDebt || 0) > 0 ? t('planHub.debtCount', { count: debtData.debts?.length || 0 }) : t('planHub.noDebt'),
       to: '/debts',
-      status: debtData.summary.totalDebt === 0 ? 'done' : (stats.emergencyMonths >= 3 ? 'active' : 'upcoming'),
+      status: (debtData?.summary?.totalDebt || 0) === 0 ? 'done' : (stats.emergencyMonths >= 3 ? 'active' : 'upcoming'),
       featureKey: 'debt_control',
     },
     {

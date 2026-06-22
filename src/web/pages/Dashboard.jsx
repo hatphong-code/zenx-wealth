@@ -253,8 +253,8 @@ export default function Dashboard() {
 
   const emgPct = stats.targetMonths > 0 ? (stats.emergencyMonths / stats.targetMonths) * 100 : 0;
   const netSign = stats.netCashFlow >= 0 ? '+' : '';
-  const netWorth = (assetsData.summary.totalAssets || 0) - (debtData.summary.totalDebt || 0);
-  const hasNetWorth = assetsData.summary.totalAssets > 0 || debtData.summary.totalDebt > 0;
+  const netWorth = (assetsData?.summary?.totalAssets || 0) - (debtData?.summary?.totalDebt || 0);
+  const hasNetWorth = (assetsData?.summary?.totalAssets || 0) > 0 || (debtData?.summary?.totalDebt || 0) > 0;
 
   const savingsRate = stats.payYourselfTarget > 0
     ? Math.round((stats.payYourselfSaved / stats.payYourselfTarget) * 100)
