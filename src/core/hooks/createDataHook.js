@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
-export function createDataHook(fetcher, cacheGetter) {
+export function createDataHook(fetcher, cacheGetter, defaultValue = null) {
   return function useData(userId, options = {}) {
-    const [data, setData] = useState(() => cacheGetter?.(userId) ?? null);
+    const [data, setData] = useState(() => cacheGetter?.(userId) ?? defaultValue);
     const [loading, setLoading] = useState(!data);
     const [refreshing, setRefreshing] = useState(!!data);
     const [error, setError] = useState(null);

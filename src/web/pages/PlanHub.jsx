@@ -153,7 +153,7 @@ export default function PlanHub() {
   const { data: pyfData } = usePayYourselfFirstData(user?.uid);
 
   const loading = statsLoading || roadmapLoading;
-  const currentPhase = roadmap.phases.find(p => p.id === roadmap.currentPhaseId) || roadmap.phases[0];
+  const currentPhase = roadmap.phases.find(p => p.id === roadmap.currentPhaseId) || roadmap.phases[0] || null;
   const emgPct = stats.targetMonths > 0 ? (stats.emergencyMonths / stats.targetMonths) * 100 : 0;
   const milestone = getMilestone(stats.emergencyMonths);
   const eta = calcETA(stats, pyfData);
