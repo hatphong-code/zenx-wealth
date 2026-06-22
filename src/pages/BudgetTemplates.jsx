@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { CheckCircle, LayoutTemplate, X } from 'lucide-react';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../auth/useAuth';
@@ -171,6 +172,7 @@ function ApplyModal({ template, currentSettings, onConfirm, onCancel, applying, 
 export default function BudgetTemplates() {
   const { user } = useAuth();
   const { t, locale } = useI18n();
+  const [searchParams] = useSearchParams();
   const [applying, setApplying] = useState(null);
   const [applied, setApplied] = useState(null);
   const [error, setError] = useState('');
@@ -185,7 +187,14 @@ export default function BudgetTemplates() {
       setCurrentSettings(p.settings || {});
       if (p.appliedTemplateId) setApplied(p.appliedTemplateId);
     }).catch(() => {});
-    getBudgetTemplates().then(setTemplates).finally(() => setLoadingTemplates(false));
+    getBudgetTemplates().then(list => {
+      setTemplates(list);
+      const recommendId = searchParams.get('recommend');
+      if (recommendId) {
+        const match = list.find(tmpl => tmpl.id === recommendId);
+        if (match) setPreviewTemplate(match);
+      }
+    }).finally(() => setLoadingTemplates(false));
   }, [user]);
 
   const openPreview = (template) => setPreviewTemplate(template);

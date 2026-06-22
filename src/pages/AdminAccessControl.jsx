@@ -16,6 +16,7 @@ import { getApiSettings, saveApiSettings } from '../services/adminSettingsServic
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { db } from '../services/firebaseDb';
 import { DEFAULT_PLAN_TEMPLATES, invalidatePlansCache } from '../services/billingService';
+import { setUserProfileCache } from '../services/userService';
 import { budgetTemplates as HARDCODED_TEMPLATES } from '../data/budgetTemplates';
 import { getBudgetTemplates, saveBudgetTemplates } from '../services/budgetTemplatesService';
 
@@ -157,7 +158,7 @@ function FeaturesTab({ form, updateFeature, groupedFeatures, saving, handleSave,
 }
 
 /* ── Tab: Preview Plan ── */
-function PreviewTab({ subscriptionTier, handleTierSwitch, tierSaving, t }) {
+function PreviewTab({ subscriptionTier, handleTierSwitch, tierSaving, handleResetOnboarding, resetting, t }) {
   return (
     <div className="max-w-lg space-y-4">
       <div className="rounded-zx border border-zx-line bg-zx-surface p-5 space-y-3">
@@ -182,6 +183,16 @@ function PreviewTab({ subscriptionTier, handleTierSwitch, tierSaving, t }) {
       <p className="text-xs text-zx-text-soft px-1">
         {t('adminAccess.previewNote')}
       </p>
+
+      {/* Reset Onboarding */}
+      <div className="rounded-zx border border-zx-line bg-zx-surface p-5 space-y-3">
+        <span className="font-medium text-zx-text text-sm">{t('adminAccess.resetOnboardingTitle')}</span>
+        <p className="text-sm text-zx-text-soft">{t('adminAccess.resetOnboardingBody')}</p>
+        <button type="button" disabled={resetting} onClick={handleResetOnboarding}
+          className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 px-5 py-2.5 text-sm font-semibold text-zx-negative hover:bg-zx-negative/20 transition disabled:opacity-60">
+          {resetting ? t('adminAccess.resetting') : t('adminAccess.resetOnboardingBtn')}
+        </button>
+      </div>
     </div>
   );
 }
@@ -951,6 +962,7 @@ export default function AdminAccessControl() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('features');
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     if (accessControl?.features) {
@@ -980,6 +992,19 @@ export default function AdminAccessControl() {
       setError(err.message || t('adminAccess.saveError'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleResetOnboarding = async () => {
+    if (!user || resetting) return;
+    setResetting(true);
+    try {
+      await setDoc(doc(db, 'users', user.uid), { onboardingCompleted: false, updatedAt: serverTimestamp() }, { merge: true });
+      setUserProfileCache(user.uid, null);
+      window.location.href = '/';
+    } catch (err) {
+      setError(err.message);
+      setResetting(false);
     }
   };
 
@@ -1056,6 +1081,8 @@ export default function AdminAccessControl() {
               subscriptionTier={subscriptionTier}
               handleTierSwitch={handleTierSwitch}
               tierSaving={tierSaving}
+              handleResetOnboarding={handleResetOnboarding}
+              resetting={resetting}
               t={t}
             />
           )}
