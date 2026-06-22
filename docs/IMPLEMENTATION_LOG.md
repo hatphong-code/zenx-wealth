@@ -2,6 +2,16 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-23 — Systemic null-access fix post-v3.0 switch
+
+- Root cause: `createDataHook` initialized `data = null` (no cache) vs OLD hooks that had typed defaults
+- Fix: added `defaultValue` third param to `createDataHook`; all 9 hooks updated with service-accurate default objects
+- Affected: useTransactionsData, useAssetsData, useDebtData, useEmergencyFundData, usePayYourselfFirstData, useWealthRoadmapData, useIncomeSourcesData, useTradingRiskData, useReportsData, useWeeklyReviewData
+- Pages no longer crash on first render before fetch completes (Dashboard, PlanHub, AppShell)
+- Deployed: ✓
+
+---
+
 ## 2026-06-23 — v3.0 Architecture Switch Complete
 
 - `src/main.jsx` switched to `src/web/App.jsx` + `src/core/` providers
