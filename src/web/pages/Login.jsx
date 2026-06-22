@@ -8,7 +8,7 @@ import { auth } from '../../core/services/firebaseAuth';
 async function ensureUserDocument(user) {
   const [{ doc, getDoc, serverTimestamp, setDoc }, { db }] = await Promise.all([
     import('firebase/firestore/lite'),
-    import('../services/firebaseDb'),
+    import('../../core/services/firebaseDb'),
   ]);
 
   const userRef = doc(db, 'users', user.uid);

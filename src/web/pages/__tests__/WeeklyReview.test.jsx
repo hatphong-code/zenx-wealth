@@ -36,6 +36,7 @@ const weeklyData = {
 };
 
 vi.mock('firebase/firestore/lite', () => ({
+  getFirestore: vi.fn(() => ({})),
   doc: (...args) => mockDoc(...args),
   setDoc: (...args) => mockSetDoc(...args),
   serverTimestamp: () => mockServerTimestamp(),
@@ -44,11 +45,11 @@ vi.mock('firebase/firestore/lite', () => ({
   },
 }));
 
-vi.mock('../../auth/useAuth', () => ({
+vi.mock('../../../core/auth/useAuth', () => ({
   useAuth: () => ({ user: { uid: 'user-1' } }),
 }));
 
-vi.mock('../../hooks/useWeeklyReviewData', () => ({
+vi.mock('../../../core/hooks/useWeeklyReviewData', () => ({
   useWeeklyReviewData: () => ({
     data: weeklyData,
     setData: mockSetData,
@@ -63,19 +64,19 @@ vi.mock('../../components/AppNav', () => ({
   default: () => <div>Mock Nav</div>,
 }));
 
-vi.mock('../../services/firebaseDb', () => ({
+vi.mock('../../../core/services/firebaseDb', () => ({
   db: {},
 }));
 
-vi.mock('../../services/weeklyReviewService', () => ({
+vi.mock('../../../core/services/weeklyReviewService', () => ({
   setWeeklyReviewCache: (...args) => mockSetWeeklyReviewCache(...args),
 }));
 
-vi.mock('../../services/reportsService', () => ({
+vi.mock('../../../core/services/reportsService', () => ({
   invalidateReportsCache: (...args) => mockInvalidateReportsCache(...args),
 }));
 
-vi.mock('../../services/aiCoachService', () => ({
+vi.mock('../../../core/services/aiCoachService', () => ({
   invalidateAICoachCache: (...args) => mockInvalidateAICoachCache(...args),
 }));
 

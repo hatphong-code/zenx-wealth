@@ -1,24 +1,24 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { deleteDoc, doc } from 'firebase/firestore/lite';
-import { useAuth } from '../auth/useAuth';
-import { useI18n } from '../i18n/useI18n';
+import { useAuth } from '../../core/auth/useAuth';
+import { useI18n } from '../../core/i18n/useI18n';
 import ConfirmDialog from '../components/ConfirmDialog';
 import NumericInput from '../components/ui/NumericInput';
 import { ArrowUpDown, Filter, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { formatDate, formatMoney } from '../utils/formatters';
-import { db } from '../services/firebaseDb';
-import { useNumberFormat } from '../hooks/useNumberFormat';
-import { invalidateDashboardStatsCache } from '../services/dashboardService';
-import { invalidateLatteFactorCache } from '../services/latteFactorService';
-import { invalidatePayYourselfFirstCache } from '../services/payYourselfFirstService';
-import { invalidateReportsCache } from '../services/reportsService';
-import { setTransactionsCache } from '../services/transactionService';
-import { useTransactionsData } from '../hooks/useTransactionsData';
-import { getCurrentWeekMeta, invalidateWeeklyReviewCache } from '../services/weeklyReviewService';
-import { invalidateWealthRoadmapCache } from '../services/wealthRoadmapService';
-import { invalidateAICoachCache } from '../services/aiCoachService';
+import { formatDate, formatMoney } from '../../core/utils/formatters';
+import { db } from '../../core/services/firebaseDb';
+import { useNumberFormat } from '../../core/hooks/useNumberFormat';
+import { invalidateDashboardStatsCache } from '../../core/services/dashboardService';
+import { invalidateLatteFactorCache } from '../../core/services/latteFactorService';
+import { invalidatePayYourselfFirstCache } from '../../core/services/payYourselfFirstService';
+import { invalidateReportsCache } from '../../core/services/reportsService';
+import { setTransactionsCache } from '../../core/services/transactionService';
+import { useTransactionsData } from '../../core/hooks/useTransactionsData';
+import { getCurrentWeekMeta, invalidateWeeklyReviewCache } from '../../core/services/weeklyReviewService';
+import { invalidateWealthRoadmapCache } from '../../core/services/wealthRoadmapService';
+import { invalidateAICoachCache } from '../../core/services/aiCoachService';
 
 function getMonthOptions(transactions) {
   const months = new Set();

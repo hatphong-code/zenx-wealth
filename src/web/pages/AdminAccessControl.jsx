@@ -4,22 +4,23 @@ import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import ConfirmDialog from '../components/ConfirmDialog';
 import NumericInput from '../components/ui/NumericInput';
-import { useAuth } from '../auth/useAuth';
-import { featureCatalog, featureGroups, SUBSCRIPTION_TIERS } from '../data/accessControl';
-import { useFeatureAccess } from '../hooks/useFeatureAccess';
-import { useI18n } from '../i18n/useI18n';
+import { useAuth } from '../../core/auth/useAuth';
+import { featureCatalog, featureGroups, SUBSCRIPTION_TIERS } from '../../core/data/accessControl';
+import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
+import { useI18n } from '../../core/i18n/useI18n';
 import {
   getAccessControl,
   normalizeAccessControl,
   saveAccessControl,
   saveUserSubscriptionTier,
-} from '../services/accessControlService';
-import { getApiSettings, saveApiSettings } from '../services/adminSettingsService';
+} from '../../core/services/accessControlService';
+import { getApiSettings, saveApiSettings } from '../../core/services/adminSettingsService';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
-import { db } from '../services/firebaseDb';
-import { DEFAULT_PLAN_TEMPLATES, invalidatePlansCache } from '../services/billingService';
-import { budgetTemplates as HARDCODED_TEMPLATES } from '../data/budgetTemplates';
-import { getBudgetTemplates, saveBudgetTemplates } from '../services/budgetTemplatesService';
+import { db } from '../../core/services/firebaseDb';
+import { DEFAULT_PLAN_TEMPLATES, invalidatePlansCache } from '../../core/services/billingService';
+import { budgetTemplates as HARDCODED_TEMPLATES } from '../../core/data/budgetTemplates';
+import { getBudgetTemplates, saveBudgetTemplates } from '../../core/services/budgetTemplatesService';
+import { setUserProfileCache } from '../../core/services/userService';
 
 /* ── Reusable pieces ── */
 function TierToggle({ checked, onChange }) {
@@ -159,7 +160,7 @@ function FeaturesTab({ form, updateFeature, groupedFeatures, saving, handleSave,
 }
 
 /* ── Tab: Preview Plan ── */
-function PreviewTab({ subscriptionTier, handleTierSwitch, tierSaving, t }) {
+function PreviewTab({ subscriptionTier, handleTierSwitch, tierSaving, handleResetOnboarding, resetting, t }) {
   return (
     <div className="max-w-lg space-y-4">
       <div className="rounded-zx border border-zx-line bg-zx-surface p-5 space-y-3">
@@ -184,6 +185,15 @@ function PreviewTab({ subscriptionTier, handleTierSwitch, tierSaving, t }) {
       <p className="text-xs text-zx-text-soft px-1">
         {t('adminAccess.previewNote')}
       </p>
+
+      <div className="rounded-zx border border-zx-negative/30 bg-zx-negative/5 p-5 space-y-3">
+        <p className="text-sm font-medium text-zx-text">{t('adminAccess.resetOnboardingTitle')}</p>
+        <p className="text-xs text-zx-text-soft">{t('adminAccess.resetOnboardingBody')}</p>
+        <button type="button" disabled={resetting} onClick={handleResetOnboarding}
+          className="rounded-zx-sm border border-zx-negative/40 px-4 py-2 text-sm font-semibold text-zx-negative hover:bg-zx-negative/10 disabled:opacity-50 transition">
+          {resetting ? t('adminAccess.resetting') : t('adminAccess.resetOnboardingBtn')}
+        </button>
+      </div>
     </div>
   );
 }
@@ -968,6 +978,7 @@ export default function AdminAccessControl() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('features');
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     if (accessControl?.features) {
@@ -997,6 +1008,19 @@ export default function AdminAccessControl() {
       setError(err.message || t('adminAccess.saveError'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleResetOnboarding = async () => {
+    if (!user) return;
+    setResetting(true);
+    try {
+      await setDoc(doc(db, 'users', user.uid), { onboardingCompleted: false }, { merge: true });
+      setUserProfileCache(user.uid, null);
+      window.location.href = '/';
+    } catch (err) {
+      setError(err.message);
+      setResetting(false);
     }
   };
 
@@ -1073,6 +1097,8 @@ export default function AdminAccessControl() {
               subscriptionTier={subscriptionTier}
               handleTierSwitch={handleTierSwitch}
               tierSaving={tierSaving}
+              handleResetOnboarding={handleResetOnboarding}
+              resetting={resetting}
               t={t}
             />
           )}

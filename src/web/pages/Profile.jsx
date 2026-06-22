@@ -4,7 +4,8 @@ import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { Save, UserCircle } from 'lucide-react';
-import { Button } from '../../core/../web/components/ui/button';
+import { AGE_BRACKETS } from '../../core/data/latteOnboarding';
+import { Button } from '../components/ui/button';
 import { db } from '../../core/services/firebaseDb';
 import { formatMoney } from '../../core/utils/formatters';
 import { getCachedUserProfile, getUserProfile, setUserProfileCache } from '../../core/services/userService';
@@ -45,6 +46,7 @@ function toForm(user, userData = {}) {
     monthlyEssentialExpense: String(settings.monthlyEssentialExpense || defaultSettings.monthlyEssentialExpense),
     emergencyFundTargetMonths: String(settings.emergencyFundTargetMonths || defaultSettings.emergencyFundTargetMonths),
     payYourselfFirstRate: String(Math.round((settings.payYourselfFirstRate || defaultSettings.payYourselfFirstRate) * 100)),
+    ageRange: settings.ageRange || '22-29',
   };
 }
 
@@ -147,6 +149,7 @@ export default function Profile() {
           monthlyEssentialExpense,
           emergencyFundTargetMonths,
           payYourselfFirstRate: payYourselfPercent / 100,
+          ageRange: form.ageRange,
         },
       };
 
@@ -278,6 +281,27 @@ export default function Profile() {
                   required
                 />
               </label>
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-sm text-zx-text-soft">{t('profile.ageRange')}</span>
+              <div className="grid grid-cols-4 gap-2 mt-2">
+                {AGE_BRACKETS.map(bracket => (
+                  <button
+                    key={bracket}
+                    type="button"
+                    onClick={() => updateField('ageRange', bracket)}
+                    className={`rounded-zx-sm border py-2.5 text-sm font-semibold transition ${
+                      form.ageRange === bracket
+                        ? 'border-zx-accent bg-zx-accent-soft text-zx-accent'
+                        : 'border-zx-line bg-zx-surface text-zx-text-soft hover:border-zx-accent'
+                    }`}
+                  >
+                    {bracket}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-zx-text-soft">{t('profile.ageRangeHint')}</p>
             </div>
           </section>
 

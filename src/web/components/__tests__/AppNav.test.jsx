@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import AppNav from '../AppNav';
-import { I18nProvider } from '../../i18n/I18nProvider';
-import dictionary from '../../i18n/dictionaries/vi';
+import { I18nProvider } from '../../../core/i18n/I18nProvider';
+import dictionary from '../../../core/i18n/dictionaries/vi';
 
 const signOutMock = vi.fn(() => Promise.resolve());
 
@@ -12,17 +12,17 @@ vi.mock('firebase/auth', () => ({
   signOut: (...args) => signOutMock(...args),
 }));
 
-vi.mock('../../services/firebaseAuth', () => ({
+vi.mock('../../../core/services/firebaseAuth', () => ({
   auth: { currentUser: { uid: 'user-1' } },
 }));
 
-vi.mock('../../auth/useAuth', () => ({
+vi.mock('../../../core/auth/useAuth', () => ({
   useAuth: () => ({
     user: { uid: 'user-1', email: 'hatphong@gmail.com' },
   }),
 }));
 
-vi.mock('../../hooks/useFeatureAccess', () => ({
+vi.mock('../../../core/hooks/useFeatureAccess', () => ({
   useFeatureAccess: () => ({
     isAdmin: true,
     subscriptionTier: 'premium',
@@ -76,4 +76,3 @@ describe('AppNav', () => {
     });
   });
 });
-

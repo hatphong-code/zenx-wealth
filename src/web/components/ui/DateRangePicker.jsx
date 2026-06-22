@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DayPicker } from 'react-day-picker';
 import { enUS, vi } from 'react-day-picker/locale';
 import { Calendar, ChevronDown, X } from 'lucide-react';
-import { useI18n } from '../../i18n/useI18n';
+import { useI18n } from '../../../core/i18n/useI18n';
 import 'react-day-picker/style.css';
 
 function fmt(d) {

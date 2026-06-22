@@ -1,3 +1,3 @@
 import { createDataHook } from './createDataHook';
-import { getDebtData, getCachedDebtData } from '../services/debtService';
-export const useDebtData = createDataHook(getDebtData, getCachedDebtData);
+import { getDebts, getCachedDebts } from '../services/debtService';
+export const useDebtData = createDataHook(getDebts, getCachedDebts);

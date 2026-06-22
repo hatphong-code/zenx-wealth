@@ -1,3 +1,3 @@
 import { createDataHook } from './createDataHook';
-import { getPayYourselfFirstData, getCachedPayYourselfFirstData } from '../services/payYourselfFirstService';
-export const usePayYourselfFirstData = createDataHook(getPayYourselfFirstData, getCachedPayYourselfFirstData);
+import { getPayYourselfFirst, getCachedPayYourselfFirst } from '../services/payYourselfFirstService';
+export const usePayYourselfFirstData = createDataHook(getPayYourselfFirst, getCachedPayYourselfFirst);

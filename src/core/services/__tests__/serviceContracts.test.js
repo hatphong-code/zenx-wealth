@@ -9,6 +9,8 @@ describe('service contracts', () => {
   it('normalizes dashboard snapshot shape with safe defaults', () => {
     expect(normalizeDashboardStats({ netCashFlow: 1200 })).toEqual({
       netCashFlow: 1200,
+      income: 0,
+      expense: 0,
       latteFactor: 0,
       latteFactorPercent: 0,
       emergencyMonths: 0,

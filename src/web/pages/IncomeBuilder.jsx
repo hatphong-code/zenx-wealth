@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Pencil, Trash2, TrendingUp } from 'lucide-react';
-import { useAuth } from '../auth/useAuth';
+import { useAuth } from '../../core/auth/useAuth';
 import { Button } from '../components/ui/button';
 import ConfirmDialog from '../components/ConfirmDialog';
 import NumericInput from '../components/ui/NumericInput';
-import { formatMoney } from '../utils/formatters';
+import { formatMoney } from '../../core/utils/formatters';
 import {
   createIncomeSource,
   incomeStages,
@@ -13,12 +13,12 @@ import {
   removeIncomeSource,
   setIncomeSourceCache,
   updateIncomeSource,
-} from '../services/incomeBuilderService';
-import { useIncomeSourcesData } from '../hooks/useIncomeSourcesData';
-import { invalidateReportsCache } from '../services/reportsService';
-import { invalidateWealthRoadmapCache } from '../services/wealthRoadmapService';
-import { invalidateAICoachCache } from '../services/aiCoachService';
-import { useI18n } from '../i18n/useI18n';
+} from '../../core/services/incomeBuilderService';
+import { useIncomeSourcesData } from '../../core/hooks/useIncomeSourcesData';
+import { invalidateReportsCache } from '../../core/services/reportsService';
+import { invalidateWealthRoadmapCache } from '../../core/services/wealthRoadmapService';
+import { invalidateAICoachCache } from '../../core/services/aiCoachService';
+import { useI18n } from '../../core/i18n/useI18n';
 
 const initialForm = {
   sourceName: '',
