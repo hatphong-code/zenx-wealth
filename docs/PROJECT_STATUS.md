@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-22 (v3.1 + Onboarding Latte Factor)
+Last updated: 2026-06-23 (v3.2 — Architecture Switch Complete)
 
 ## Current Phase
 
@@ -213,6 +213,22 @@ users/{userId}
 ```
 
 ## Version History
+
+### v3.2 (2026-06-23) — Architecture Switch + Onboarding Latte Factor
+
+**A. v3.0 Architecture Switch COMPLETE:**
+- `src/main.jsx` now imports from `src/web/App.jsx` + `src/core/` providers
+- Deleted OLD flat structure: `src/pages/`, `src/services/`, `src/auth/`, `src/hooks/`, `src/data/`, `src/components/`, `src/utils/`, `src/i18n/`, `src/App.jsx`
+- Fixed broken imports in `src/web/pages/` (AdminAccessControl, IncomeBuilder, Transactions, Login, Profile, DateRangePicker)
+- Fixed hook export mismatches in `src/core/hooks/` (useDebtData, useIncomeSourcesData, usePayYourselfFirstData, useTradingRiskData)
+- Updated test files in `src/web/` and `src/core/` for correct import paths + updated shape
+
+**B. Onboarding Latte Factor (6-step flow — previously applied to inactive src/pages/, now active):**
+- Step 4: age bracket picker (<22, 22-29, 30-44, 45+)
+- Step 5: tap-to-toggle habit chips, auto-sum, Recharts LineChart (savings vs invested, 20yr)
+- Step 6: budget template recommendation with `?recommend=` deep link
+- Profile.jsx: ageRange bracket picker for existing users
+- AdminAccessControl Preview tab: "Chạy lại Onboarding" reset button (admin-only)
 
 ### v3.0 (2026-06-21) — Architecture Refactor (RN-Ready Core)
 

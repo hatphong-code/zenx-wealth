@@ -2,6 +2,19 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-23 — v3.0 Architecture Switch Complete
+
+- `src/main.jsx` switched to `src/web/App.jsx` + `src/core/` providers
+- Deleted OLD flat structure (src/pages/, src/services/, src/auth/, src/hooks/, src/data/, src/components/, src/utils/, src/i18n/, src/App.jsx)
+- Fixed broken imports in `src/web/pages/`: AdminAccessControl, IncomeBuilder, Transactions, Login (dynamic import), Profile, DateRangePicker
+- Fixed hook export name mismatches in `src/core/hooks/`: useDebtData, useIncomeSourcesData, usePayYourselfFirstData, useTradingRiskData
+- Updated test files in `src/web/` and `src/core/` (import paths + normalizeDashboardStats shape with income/expense)
+- Added ageRange bracket picker to `src/web/pages/Profile.jsx`
+- Added Reset Onboarding feature to `src/web/pages/AdminAccessControl.jsx` (Preview tab)
+- Build: ✓ clean. Tests: 1 pre-existing WeeklyReview label association failure (unrelated to switch)
+
+---
+
 ## 2026-06-22 — Onboarding: Latte Factor Projection + Budget Template Recommendation
 
 - Created `src/core/data/latteOnboarding.js`: LATTE_ITEMS (5 habits), AGE_BRACKETS, recommendTemplateIdByAgeRange()
