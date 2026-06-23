@@ -2,6 +2,16 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-23 — User Management tab in Admin Panel
+
+- Cloud Functions: `adminListUsers` (list Auth users + Firestore enrich), `adminUpdateUser` (setTier / resetOnboarding), admin-only guard
+- Client service: `src/core/services/adminUserService.js` via firebase/functions httpsCallable
+- UI: new "Users" tab in AdminAccessControl — email search, tier filter pills, user table, inline actions (set tier, reset onboarding), ConfirmDialog, load more
+- i18n: `adminAccess.users.*` keys in vi.js + en.js
+- Hosting deployed ✓ — functions deploy blocked by Secret Manager API (pre-existing, needs enable once in GCP Console)
+
+---
+
 ## 2026-06-23 — Systemic null-access fix post-v3.0 switch
 
 - Root cause: `createDataHook` initialized `data = null` (no cache) vs OLD hooks that had typed defaults
