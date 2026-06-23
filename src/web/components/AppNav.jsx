@@ -8,6 +8,7 @@ import {
   Lock,
   Menu,
   Plus,
+  Shield,
   UserCircle,
   Wallet,
   X,
@@ -152,12 +153,28 @@ const navGroups = [
         featureKey: 'settings',
         matches: (pathname) => pathname === '/settings',
       },
+    ],
+  },
+  {
+    id: 'admin',
+    label: 'Admin',
+    mobileTo: '/admin/access',
+    icon: Shield,
+    mobileHide: true,
+    items: [
       {
         to: '/admin/access',
-        label: 'Admin Access',
+        label: 'Người dùng & Truy cập',
         featureKey: 'admin_access',
         adminOnly: true,
         matches: (pathname) => pathname === '/admin/access',
+      },
+      {
+        to: '/admin/settings',
+        label: 'Nội dung & Cài đặt',
+        featureKey: 'admin_settings',
+        adminOnly: true,
+        matches: (pathname) => pathname === '/admin/settings',
       },
     ],
   },
@@ -284,7 +301,7 @@ export default function AppNav() {
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-zx-line bg-zx-surface/98 px-2 py-2 backdrop-blur md:hidden zx-transition">
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
-          {visibleGroups.map((group) => {
+          {visibleGroups.filter(g => !g.mobileHide).map((group) => {
             const isActive = activeGroup.id === group.id;
             const Icon = group.icon;
             return (

@@ -7,7 +7,7 @@ import { getApiSettings, saveApiSettings } from '../../core/services/adminSettin
 import {
   createQuote, deleteQuote, getQuotes, toggleQuoteActive, updateQuote,
 } from '../../core/services/quoteService';
-import { QUOTE_TEMPLATES, QUOTE_THEMES, QUOTE_SOURCE } from '../../core/data/dailyQuotes';
+import { QUOTE_TEMPLATES, QUOTE_THEMES, QUOTE_SOURCE, TEMPLATE_LABELS, THEME_LABELS } from '../../core/data/dailyQuotes';
 
 const CLAUDE_MODELS = [
   { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (fast, cheap)' },
@@ -62,8 +62,10 @@ const EMPTY_QUOTE = {
 };
 
 function QuoteForm({ initial, onSave, onCancel, saving }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [form, setForm] = useState(initial || EMPTY_QUOTE);
+  const tplLabel = (key) => TEMPLATE_LABELS[key]?.[locale] ?? key;
+  const themeLabel = (key) => THEME_LABELS[key]?.[locale] ?? key;
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
@@ -139,7 +141,7 @@ function QuoteForm({ initial, onSave, onCancel, saving }) {
                   : 'border-zx-line text-zx-text-soft hover:text-zx-text'
               }`}
             >
-              {tpl}
+              {tplLabel(tpl)}
             </button>
           ))}
         </div>
@@ -162,7 +164,7 @@ function QuoteForm({ initial, onSave, onCancel, saving }) {
                   : 'border-zx-line text-zx-text-soft hover:text-zx-text'
               }`}
             >
-              {th}
+              {themeLabel(th)}
             </button>
           ))}
         </div>
@@ -206,8 +208,10 @@ function QuoteForm({ initial, onSave, onCancel, saving }) {
 // ── Quote row ──
 
 function QuoteRow({ quote, onEdit, onDelete, onToggle }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [confirming, setConfirming] = useState(false);
+  const tplLabel = (key) => TEMPLATE_LABELS[key]?.[locale] ?? key;
+  const themeLabel = (key) => THEME_LABELS[key]?.[locale] ?? key;
 
   return (
     <div className={`p-4 border-b border-zx-line last:border-0 transition ${quote.active ? '' : 'opacity-50'}`}>
@@ -217,10 +221,10 @@ function QuoteRow({ quote, onEdit, onDelete, onToggle }) {
           <p className="text-xs text-zx-text-soft italic line-clamp-1">"{quote.en}"</p>
           <div className="flex flex-wrap gap-1.5 mt-1.5">
             {(quote.templates || []).map(tpl => (
-              <span key={tpl} className="rounded-full bg-zx-accent/10 text-zx-accent px-2 py-0.5 text-[10px] font-medium">{tpl}</span>
+              <span key={tpl} className="rounded-full bg-zx-accent/10 text-zx-accent px-2 py-0.5 text-[10px] font-medium">{tplLabel(tpl)}</span>
             ))}
             {(quote.themes || []).map(th => (
-              <span key={th} className="rounded-full bg-zx-surface-2 text-zx-text-soft px-2 py-0.5 text-[10px]">{th}</span>
+              <span key={th} className="rounded-full bg-zx-surface-2 text-zx-text-soft px-2 py-0.5 text-[10px]">{themeLabel(th)}</span>
             ))}
           </div>
         </div>
@@ -270,7 +274,7 @@ function QuoteRow({ quote, onEdit, onDelete, onToggle }) {
 // ── Quotes tab ──
 
 function QuotesTab() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -351,6 +355,8 @@ function QuotesTab() {
   });
 
   const activeCount = quotes.filter(q => q.active).length;
+  const tplLabel = (key) => TEMPLATE_LABELS[key]?.[locale] ?? key;
+  const themeLabel = (key) => THEME_LABELS[key]?.[locale] ?? key;
 
   return (
     <div className="space-y-5">
@@ -398,7 +404,7 @@ function QuotesTab() {
         >
           <option value="all">{t('adminSettings.quotes.filterAllTemplates')}</option>
           {QUOTE_TEMPLATES.filter(tp => tp !== 'all').map(tp => (
-            <option key={tp} value={tp}>{tp}</option>
+            <option key={tp} value={tp}>{tplLabel(tp)}</option>
           ))}
         </select>
 
@@ -410,7 +416,7 @@ function QuotesTab() {
         >
           <option value="">{t('adminSettings.quotes.filterAllThemes')}</option>
           {QUOTE_THEMES.map(th => (
-            <option key={th} value={th}>{th}</option>
+            <option key={th} value={th}>{themeLabel(th)}</option>
           ))}
         </select>
 

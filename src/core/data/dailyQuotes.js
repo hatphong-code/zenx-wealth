@@ -8,6 +8,26 @@ export const QUOTE_TEMPLATES = ['all', 'student', 'young_pro', 'family', 'late_s
 
 export const QUOTE_SOURCE = 'Start Late, Finish Rich — David Bach';
 
+export const TEMPLATE_LABELS = {
+  all:          { vi: 'Tất cả',          en: 'All' },
+  student:      { vi: 'Sinh viên',        en: 'Student' },
+  young_pro:    { vi: 'Người đi làm',     en: 'Young Professional' },
+  family:       { vi: 'Gia đình',         en: 'Family' },
+  late_starter: { vi: 'Bắt đầu muộn',    en: 'Late Starter' },
+  mid_career:   { vi: 'Đỉnh sự nghiệp',  en: 'Mid Career' },
+};
+
+export const THEME_LABELS = {
+  mindset:      { vi: 'Tư duy',          en: 'Mindset' },
+  latte_factor: { vi: 'Latte Factor',    en: 'Latte Factor' },
+  savings:      { vi: 'Tiết kiệm',       en: 'Savings' },
+  debt:         { vi: 'Nợ',              en: 'Debt' },
+  emergency:    { vi: 'Quỹ dự phòng',   en: 'Emergency' },
+  investing:    { vi: 'Đầu tư',          en: 'Investing' },
+  family:       { vi: 'Gia đình',        en: 'Family' },
+  action:       { vi: 'Hành động',       en: 'Action' },
+};
+
 export const seedQuotes = [
   // ── MINDSET: Late starters ──
   {
