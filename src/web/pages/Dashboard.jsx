@@ -10,6 +10,7 @@ import { useDebtData } from '../../core/hooks/useDebtData';
 import { useTransactionsData } from '../../core/hooks/useTransactionsData';
 import { formatNumber } from '../../core/utils/formatters';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
+import DailyQuoteCard from '../components/DailyQuoteCard';
 
 /* ── tiny components ── */
 
@@ -332,6 +333,9 @@ export default function Dashboard() {
               {t('dashboard.badge')}
             </p>
           </section>
+
+          {/* ── Daily Quote ── */}
+          <DailyQuoteCard />
 
           {/* ── Empty state — no transactions yet ── */}
           {!loading && !error && txData.transactions.length === 0 && (
