@@ -905,7 +905,7 @@ function UserAvatar({ displayName, email }) {
   );
 }
 
-function UsersTab({ t }) {
+function UsersTab({ t, currentUid }) {
   const [users, setUsers] = useState([]);
   const [nextPageToken, setNextPageToken] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -953,6 +953,12 @@ function UsersTab({ t }) {
       } else {
         await adminResetUserOnboarding(uid);
         setUsers(prev => prev.map(u => u.uid === uid ? { ...u, onboardingCompleted: false } : u));
+        // If resetting own account, clear cache and reload so onboarding triggers
+        if (uid === currentUid) {
+          setUserProfileCache(uid, null);
+          window.location.href = '/';
+          return;
+        }
       }
       setActionState(s => ({ ...s, [uid]: 'done' }));
       setActionMsg(m => ({ ...m, [uid]: t('adminAccess.users.actionSuccess') }));
@@ -1371,7 +1377,7 @@ export default function AdminAccessControl() {
           {activeTab === 'api' && <ApiTab t={t} />}
           {activeTab === 'plans' && <PlansTab t={t} />}
           {activeTab === 'budget_templates' && <BudgetTemplatesTab t={t} />}
-          {activeTab === 'users' && <UsersTab t={t} />}
+          {activeTab === 'users' && <UsersTab t={t} currentUid={user?.uid} />}
         </>
       )}
     </main>

@@ -89,16 +89,13 @@ function PrivateRoute({ children, featureKey, adminOnly = false }) {
 
   useEffect(() => {
     if (!user) return;
-    // Check cached profile first for instant response
+    // Serve from cache immediately for fast initial render
     const cached = getCachedUserProfile(user.uid);
-    if (cached) {
-      setOnboardingDone(Boolean(cached.onboardingCompleted));
-      return;
-    }
-    // Fetch from Firestore if not cached
-    getUserProfile(user.uid).then(profile => {
+    if (cached) setOnboardingDone(Boolean(cached.onboardingCompleted));
+    // Always fetch fresh — picks up changes made externally (e.g. admin reset)
+    getUserProfile(user.uid, { forceFresh: true }).then(profile => {
       setOnboardingDone(Boolean(profile.onboardingCompleted));
-    }).catch(() => setOnboardingDone(true)); // fail-safe: don't block app
+    }).catch(() => { if (!cached) setOnboardingDone(true); });
   }, [user]);
 
   if (loading) return <PageFallback />;
