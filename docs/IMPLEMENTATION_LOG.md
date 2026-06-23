@@ -2,6 +2,15 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-23 — Fix onboarding reset end-to-end (3 bugs)
+
+- Bug 1: `ConfirmDialog` missing `open` prop in UsersTab → dialog always returned null → all 3 action buttons (Set Premium, Set Free, Reset onboarding) appeared to do nothing
+- Bug 2: `setUserProfileCache(userId, null)` throws TypeError (`null.subscriptionTier`) → replaced with `invalidateUserProfileCache(userId)` in both PreviewTab and UsersTab
+- Bug 3 (previous session): `App.jsx` PrivateRoute returned early from cache without fetching fresh data after admin reset
+- All 3 fixed; onboarding reset flow now works end-to-end ✓
+
+---
+
 ## 2026-06-23 — User Management tab in Admin Panel
 
 - Cloud Functions: `adminListUsers` (list Auth users + Firestore enrich), `adminUpdateUser` (setTier / resetOnboarding), admin-only guard
