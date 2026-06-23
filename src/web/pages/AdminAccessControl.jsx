@@ -983,15 +983,15 @@ function UsersTab({ t, currentUid }) {
   return (
     <div>
       {/* Confirm dialog */}
-      {confirm && (
-        <ConfirmDialog
-          message={confirm.type === 'tier'
-            ? t('adminAccess.users.confirmSetTier', { email: confirm.email, tier: confirm.tier })
-            : t('adminAccess.users.confirmReset', { email: confirm.email })}
-          onConfirm={handleConfirm}
-          onCancel={() => setConfirm(null)}
-        />
-      )}
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.type === 'tier'
+          ? t('adminAccess.users.confirmSetTier', { email: confirm?.email, tier: confirm?.tier })
+          : t('adminAccess.users.confirmReset', { email: confirm?.email })}
+        tone="danger"
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirm(null)}
+      />
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
