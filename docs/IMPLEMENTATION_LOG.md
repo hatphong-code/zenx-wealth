@@ -2,6 +2,15 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-23 — Fix vertical scroll on hub pages (Dashboard, PlanHub, TrackHub, ReviewHub)
+
+- Root cause 1 (mobile): `touchAction: 'manipulation'` in `GestureNavigationWrapper` blocked all touch pan events, including vertical scroll. Changed to `touchAction: 'pan-y'` — browser now handles vertical scroll natively while JS still detects horizontal swipe deltaX.
+- Root cause 2 (desktop): GestureWrapper div (`flex-col flex-1`) lacked `overflow-hidden` → `<main>` (flex-1 inside) had `min-height: auto` (default) and grew with content → no overflow → no scroll context created. Added `overflow-hidden` to wrapper div to constrain height chain correctly. Non-hub pages were unaffected because `<main>` was a direct child of the main column which already had `overflow-hidden`.
+- Cleanup: removed 4 debug `console.log` from `useSwipeNavigation.js`, removed 3 unused pointer handler stubs.
+- Files: `src/web/components/GestureNavigationWrapper.jsx`, `src/web/hooks/useSwipeNavigation.js`
+
+---
+
 ## 2026-06-23 — i18n: fix missing translation keys
 
 - `common.done` — dùng trong Notification "Done" button sau khi allow push notifications
