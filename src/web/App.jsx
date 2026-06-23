@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState, Component } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from '../core/auth/useAuth';
 import { featureCatalogByKey } from '../core/data/accessControl';
@@ -41,6 +41,16 @@ const ImportTransactions = lazy(() => import('./pages/ImportTransactions'));
 const HealthScore = lazy(() => import('./pages/HealthScore'));
 const Upgrade = lazy(() => import('./pages/Upgrade'));
 const WelcomeScreen = lazy(() => import('./pages/WelcomeScreen'));
+
+class ChunkErrorBoundary extends Component {
+  componentDidCatch(error) {
+    if (error?.message?.includes('Failed to fetch dynamically imported module') ||
+        error?.name === 'ChunkLoadError') {
+      window.location.reload();
+    }
+  }
+  render() { return this.props.children; }
+}
 
 function PageFallback() {
   const { t } = useI18n();
@@ -116,7 +126,11 @@ function PrivateRoute({ children, featureKey, adminOnly = false }) {
 }
 
 function routeElement(element) {
-  return <Suspense fallback={<PageFallback />}>{element}</Suspense>;
+  return (
+    <ChunkErrorBoundary>
+      <Suspense fallback={<PageFallback />}>{element}</Suspense>
+    </ChunkErrorBoundary>
+  );
 }
 
 function QueueInitializer() {
