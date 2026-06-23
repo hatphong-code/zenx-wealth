@@ -28,24 +28,11 @@ export function useSwipeNavigation() {
     [currentHubIndex, navigate]
   );
 
-  const handlePointerDown = useCallback((e) => {
-    setSwipeDirection(null);
-  }, []);
-
-  const handlePointerMove = useCallback((e) => {
-    // Will be handled by gesture detection
-  }, []);
-
-  const handlePointerUp = useCallback((e) => {
-    // Will be handled by gesture detection
-  }, []);
-
   const handleTouchStart = useCallback((e) => {
     const touch = e.touches[0];
     if (!touch) return;
     e.currentTarget._swipeStartX = touch.clientX;
     e.currentTarget._swipeStartTime = Date.now();
-    console.log('[Swipe] TouchStart at X:', touch.clientX);
   }, []);
 
   const handleTouchEnd = useCallback(
@@ -57,19 +44,12 @@ export function useSwipeNavigation() {
       const deltaTime = Date.now() - e.currentTarget._swipeStartTime;
       const velocity = Math.abs(deltaX) / deltaTime;
 
-      console.log('[Swipe] TouchEnd - deltaX:', deltaX, 'deltaTime:', deltaTime, 'velocity:', velocity);
-
-      // Threshold: 40px minimum or 0.3px/ms velocity (lowered for easier swipe)
       const minDistance = 40;
       const minVelocity = 0.3;
 
-      if (Math.abs(deltaX) < minDistance && velocity < minVelocity) {
-        console.log('[Swipe] Below threshold, ignoring');
-        return;
-      }
+      if (Math.abs(deltaX) < minDistance && velocity < minVelocity) return;
 
       const direction = deltaX > 0 ? 'right' : 'left';
-      console.log('[Swipe] Direction:', direction, 'Current route:', currentHubIndex);
       setSwipeDirection(direction);
       handleSwipe(direction);
 

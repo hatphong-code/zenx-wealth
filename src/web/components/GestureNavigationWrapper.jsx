@@ -9,19 +9,13 @@ export default function GestureNavigationWrapper({ children }) {
 
   return (
     <div
-      onTouchStart={(e) => {
-        console.log('[GestureWrapper] TouchStart fired');
-        handleTouchStart(e);
-      }}
-      onTouchEnd={(e) => {
-        console.log('[GestureWrapper] TouchEnd fired');
-        handleTouchEnd(e);
-      }}
-      className={`flex flex-col flex-1 min-w-0 transition-opacity duration-300 ${
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className={`flex flex-col flex-1 min-w-0 overflow-hidden transition-opacity duration-300 ${
         swipeDirection ? 'opacity-75' : 'opacity-100'
       }`}
       style={{
-        touchAction: 'manipulation',
+        touchAction: 'pan-y',
         transform:
           swipeDirection === 'left'
             ? 'translateX(-8px)'
