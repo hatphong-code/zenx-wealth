@@ -21,6 +21,7 @@ import { DEFAULT_PLAN_TEMPLATES, invalidatePlansCache } from '../../core/service
 import { budgetTemplates as HARDCODED_TEMPLATES } from '../../core/data/budgetTemplates';
 import { getBudgetTemplates, saveBudgetTemplates } from '../../core/services/budgetTemplatesService';
 import { setUserProfileCache } from '../../core/services/userService';
+import { adminListUsers, adminSetUserTier, adminResetUserOnboarding } from '../../core/services/adminUserService';
 
 /* ── Reusable pieces ── */
 function TierToggle({ checked, onChange }) {
@@ -883,6 +884,267 @@ function TemplateEditor({ tmpl, onSave, onDelete, t }) {
   );
 }
 
+/* ── Tab: Users ── */
+function TierBadge({ tier, t }) {
+  const isPremium = tier === 'premium';
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide ${
+      isPremium ? 'bg-zx-accent-soft text-zx-accent' : 'bg-zx-surface-2 text-zx-text-soft'
+    }`}>
+      {isPremium ? t('adminAccess.users.tierPremium') : t('adminAccess.users.tierFree')}
+    </span>
+  );
+}
+
+function UserAvatar({ displayName, email }) {
+  const initials = (displayName || email || '?').trim().charAt(0).toUpperCase();
+  return (
+    <div className="h-8 w-8 rounded-full bg-zx-accent-soft flex items-center justify-center flex-shrink-0">
+      <span className="text-xs font-bold text-zx-accent">{initials}</span>
+    </div>
+  );
+}
+
+function UsersTab({ t }) {
+  const [users, setUsers] = useState([]);
+  const [nextPageToken, setNextPageToken] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [tierFilter, setTierFilter] = useState('all');
+  const [actionState, setActionState] = useState({}); // { [uid]: 'loading' | 'done' | 'error' }
+  const [actionMsg, setActionMsg] = useState({}); // { [uid]: string }
+  const [confirm, setConfirm] = useState(null); // { uid, email, type: 'tier'|'reset', tier? }
+
+  const load = async (pageToken = null) => {
+    try {
+      const result = await adminListUsers(pageToken);
+      if (pageToken) {
+        setUsers(prev => [...prev, ...result.users]);
+      } else {
+        setUsers(result.users);
+      }
+      setNextPageToken(result.nextPageToken);
+    } catch (err) {
+      setError(t('adminAccess.users.errorLoad'));
+    }
+  };
+
+  useEffect(() => {
+    load(null).finally(() => setLoading(false));
+  }, []);
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true);
+    await load(nextPageToken);
+    setLoadingMore(false);
+  };
+
+  const handleConfirm = async () => {
+    if (!confirm) return;
+    const { uid, type, tier } = confirm;
+    setActionState(s => ({ ...s, [uid]: 'loading' }));
+    setConfirm(null);
+    try {
+      if (type === 'tier') {
+        await adminSetUserTier(uid, tier);
+        setUsers(prev => prev.map(u => u.uid === uid ? { ...u, subscriptionTier: tier } : u));
+      } else {
+        await adminResetUserOnboarding(uid);
+        setUsers(prev => prev.map(u => u.uid === uid ? { ...u, onboardingCompleted: false } : u));
+      }
+      setActionState(s => ({ ...s, [uid]: 'done' }));
+      setActionMsg(m => ({ ...m, [uid]: t('adminAccess.users.actionSuccess') }));
+      setTimeout(() => setActionState(s => ({ ...s, [uid]: null })), 2500);
+    } catch (err) {
+      setActionState(s => ({ ...s, [uid]: 'error' }));
+      setActionMsg(m => ({ ...m, [uid]: t('adminAccess.users.actionError', { msg: err.message }) }));
+    }
+  };
+
+  const filtered = users.filter(u => {
+    const matchEmail = u.email.toLowerCase().includes(search.toLowerCase());
+    const matchTier = tierFilter === 'all' || u.subscriptionTier === tierFilter;
+    return matchEmail && matchTier;
+  });
+
+  const fmtDate = (iso) => {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
+  return (
+    <div>
+      {/* Confirm dialog */}
+      {confirm && (
+        <ConfirmDialog
+          message={confirm.type === 'tier'
+            ? t('adminAccess.users.confirmSetTier', { email: confirm.email, tier: confirm.tier })
+            : t('adminAccess.users.confirmReset', { email: confirm.email })}
+          onConfirm={handleConfirm}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
+
+      {/* Toolbar */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-5">
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder={t('adminAccess.users.search')}
+          className="flex-1 rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2 text-sm text-zx-text placeholder:text-zx-text-soft focus:outline-none focus:ring-2 focus:ring-zx-accent"
+        />
+        <div className="flex items-center gap-2">
+          {['all', 'free', 'premium'].map(f => (
+            <Pill key={f} active={tierFilter === f} onClick={() => setTierFilter(f)}>
+              {t(`adminAccess.users.filter${f.charAt(0).toUpperCase() + f.slice(1)}`)}
+            </Pill>
+          ))}
+        </div>
+      </div>
+
+      {/* Count */}
+      {!loading && (
+        <p className="text-xs text-zx-text-soft mb-3">
+          {t('adminAccess.users.totalCount', { count: filtered.length })}
+          {search || tierFilter !== 'all' ? ` / ${users.length}` : ''}
+        </p>
+      )}
+
+      {/* States */}
+      {loading && <p className="text-sm text-zx-text-soft py-8 text-center">{t('adminAccess.users.loading')}</p>}
+      {error && <p className="text-sm text-zx-negative py-4">{error}</p>}
+      {!loading && !error && filtered.length === 0 && (
+        <p className="text-sm text-zx-text-soft py-8 text-center">{t('adminAccess.users.empty')}</p>
+      )}
+
+      {/* Table */}
+      {!loading && filtered.length > 0 && (
+        <div className="overflow-x-auto rounded-zx border border-zx-line">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-zx-line bg-zx-surface-2">
+                {['colUser', 'colUID', 'colTier', 'colOnboarding', 'colJoined'].map(col => (
+                  <th key={col} className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft whitespace-nowrap">
+                    {t(`adminAccess.users.${col}`)}
+                  </th>
+                ))}
+                <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((u, i) => {
+                const state = actionState[u.uid];
+                const msg = actionMsg[u.uid];
+                return (
+                  <tr key={u.uid} className={`border-b border-zx-line last:border-0 ${i % 2 === 0 ? '' : 'bg-zx-surface-2/40'}`}>
+                    {/* User */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <UserAvatar displayName={u.displayName} email={u.email} />
+                        <div className="min-w-0">
+                          {u.displayName && (
+                            <p className="text-xs font-medium text-zx-text truncate max-w-[180px]">{u.displayName}</p>
+                          )}
+                          <p className="text-xs text-zx-text-soft truncate max-w-[180px]">{u.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    {/* UID */}
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        title="Click to copy"
+                        onClick={() => navigator.clipboard.writeText(u.uid)}
+                        className="font-mono text-[11px] text-zx-text-soft hover:text-zx-accent transition"
+                      >
+                        {u.uid.slice(0, 8)}…
+                      </button>
+                    </td>
+                    {/* Tier */}
+                    <td className="px-4 py-3">
+                      <TierBadge tier={u.subscriptionTier} t={t} />
+                    </td>
+                    {/* Onboarding */}
+                    <td className="px-4 py-3">
+                      <span className={`text-xs font-medium ${u.onboardingCompleted ? 'text-zx-positive' : 'text-zx-text-soft'}`}>
+                        {u.onboardingCompleted ? t('adminAccess.users.onboardingDone') : t('adminAccess.users.onboardingPending')}
+                      </span>
+                    </td>
+                    {/* Joined */}
+                    <td className="px-4 py-3 text-xs text-zx-text-soft whitespace-nowrap">
+                      {fmtDate(u.createdAt)}
+                    </td>
+                    {/* Actions */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        {state === 'loading' && (
+                          <span className="text-xs text-zx-text-soft">...</span>
+                        )}
+                        {(state === 'done' || state === 'error') && msg && (
+                          <span className={`text-xs ${state === 'error' ? 'text-zx-negative' : 'text-zx-positive'}`}>{msg}</span>
+                        )}
+                        {state !== 'loading' && (
+                          <>
+                            {u.subscriptionTier !== 'premium' ? (
+                              <button
+                                type="button"
+                                onClick={() => setConfirm({ uid: u.uid, email: u.email, type: 'tier', tier: 'premium' })}
+                                className="px-2.5 py-1 rounded-zx-sm text-xs font-medium border border-zx-accent text-zx-accent hover:bg-zx-accent hover:text-zx-on-accent transition"
+                              >
+                                {t('adminAccess.users.setTierPremium')}
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setConfirm({ uid: u.uid, email: u.email, type: 'tier', tier: 'free' })}
+                                className="px-2.5 py-1 rounded-zx-sm text-xs font-medium border border-zx-line text-zx-text-soft hover:text-zx-text transition"
+                              >
+                                {t('adminAccess.users.setTierFree')}
+                              </button>
+                            )}
+                            {!u.onboardingCompleted ? null : (
+                              <button
+                                type="button"
+                                onClick={() => setConfirm({ uid: u.uid, email: u.email, type: 'reset' })}
+                                className="px-2.5 py-1 rounded-zx-sm text-xs font-medium border border-zx-line text-zx-text-soft hover:text-zx-text transition"
+                              >
+                                {t('adminAccess.users.resetOnboarding')}
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Load more */}
+      {nextPageToken && !loading && (
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+            className="px-4 py-2 rounded-zx-sm border border-zx-line text-sm text-zx-text-soft hover:text-zx-text transition disabled:opacity-50"
+          >
+            {loadingMore ? '...' : t('adminAccess.users.loadMore')}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BudgetTemplatesTab({ t }) {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1077,6 +1339,9 @@ export default function AdminAccessControl() {
             <Tab active={activeTab === 'budget_templates'} onClick={() => setActiveTab('budget_templates')}>
               {t('adminAccess.tabBudgetTemplates')}
             </Tab>
+            <Tab active={activeTab === 'users'} onClick={() => setActiveTab('users')}>
+              {t('adminAccess.tabUsers')}
+            </Tab>
           </div>
 
           {activeTab === 'features' && (
@@ -1106,6 +1371,7 @@ export default function AdminAccessControl() {
           {activeTab === 'api' && <ApiTab t={t} />}
           {activeTab === 'plans' && <PlansTab t={t} />}
           {activeTab === 'budget_templates' && <BudgetTemplatesTab t={t} />}
+          {activeTab === 'users' && <UsersTab t={t} />}
         </>
       )}
     </main>
