@@ -116,7 +116,7 @@ export default function OnboardingFlow() {
       const next = { ...existing, settings, onboardingCompleted: true, updatedAt: serverTimestamp() };
       await setDoc(doc(db, 'users', user.uid), next, { merge: true });
       setUserProfileCache(user.uid, next);
-      navigate(`/budget-templates?recommend=${recommendedTemplateId}`);
+      navigate('/welcome', { state: { recommendedTemplateId } });
     } catch (err) {
       setError(err.message);
       setSaving(false);

@@ -82,6 +82,8 @@ export default {
     dashboardTitle: 'Explore Dashboard',
     dashboardHint: 'Get the overview first, add data gradually.',
     skip: 'Go straight to Dashboard',
+    templateTitle: 'View recommended budget template',
+    templateHint: 'A template matched to your age group and goals.',
   },
   toast: {
     txAdded: 'Transaction added',

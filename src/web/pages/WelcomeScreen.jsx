@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
-import { ArrowRight, MapPin, Plus, LayoutDashboard } from 'lucide-react';
+import { ArrowRight, MapPin, Plus, LayoutDashboard, BookOpen } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 
@@ -35,6 +35,8 @@ export default function WelcomeScreen() {
   const { user } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const location = useLocation();
+  const recommendedTemplateId = location.state?.recommendedTemplateId;
 
   if (!user) return <Navigate to="/login" replace />;
 
@@ -53,6 +55,21 @@ export default function WelcomeScreen() {
 
         {/* Action cards */}
         <div className="space-y-3">
+          {recommendedTemplateId && (
+            <button
+              onClick={() => navigate(`/budget-templates?recommend=${recommendedTemplateId}`)}
+              className="w-full flex items-center gap-4 rounded-zx border-2 border-zx-gold bg-zx-gold/10 p-4 text-left transition hover:bg-zx-gold/20"
+            >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-zx-sm bg-zx-gold/20">
+                <BookOpen className="h-5 w-5 text-zx-gold" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-sm text-zx-text">{t('welcome.templateTitle')}</p>
+                <p className="text-xs mt-0.5 text-zx-text-soft">{t('welcome.templateHint')}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 shrink-0 text-zx-gold" />
+            </button>
+          )}
           {ACTIONS.map(action => {
             const Icon = action.icon;
             const titleKey = `welcome.${action.key}Title`;

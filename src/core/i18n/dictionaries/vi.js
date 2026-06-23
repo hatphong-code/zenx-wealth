@@ -82,6 +82,8 @@ export default {
     dashboardTitle: 'Khám phá Dashboard',
     dashboardHint: 'Nhìn tổng quan trước, điền số liệu dần.',
     skip: 'Vào thẳng Dashboard',
+    templateTitle: 'Xem bộ ngân sách gợi ý',
+    templateHint: 'Template phù hợp với độ tuổi và mục tiêu bạn vừa chọn.',
   },
   toast: {
     txAdded: 'Đã thêm giao dịch',
