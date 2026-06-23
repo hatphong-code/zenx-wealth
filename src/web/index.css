@@ -1,0 +1,105 @@
+@import "../../ZenXWealthUI/tokens/colors.css";
+@import "../../ZenXWealthUI/tokens/typography.css";
+@import "../../ZenXWealthUI/tokens/spacing.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: var(--zx-font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--zx-bg);
+    color: var(--zx-text);
+    transition: background-color 0.5s ease, color 0.45s ease;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.5;
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  /* Gradient backgrounds */
+  .bg-zx-hero  { background: var(--zx-bg-gradient); }
+  .bg-zx-fill  { background: var(--zx-fill); }
+
+  /* Smooth theme transitions on surfaces */
+  .zx-transition {
+    transition:
+      background-color 0.5s ease,
+      color 0.45s ease,
+      border-color 0.5s ease,
+      box-shadow 0.5s ease;
+  }
+
+  /* Progress / ring fill using design-system gradient */
+  .progress-fill {
+    background: var(--zx-fill);
+    transition: width 0.7s cubic-bezier(.2,.7,.3,1);
+  }
+}
+
+/* ── react-day-picker theme override ── */
+.zx-rdp .rdp-root {
+  --rdp-accent-color: var(--zx-accent);
+  --rdp-accent-background-color: var(--zx-accent-soft);
+  --rdp-range_middle-background-color: var(--zx-accent-soft);
+  --rdp-range_start-color: var(--zx-on-accent);
+  --rdp-range_end-color: var(--zx-on-accent);
+  --rdp-range_start-date-background-color: var(--zx-accent);
+  --rdp-range_end-date-background-color: var(--zx-accent);
+  --rdp-today-color: var(--zx-accent);
+  --rdp-day-height: 36px;
+  --rdp-day-width: 36px;
+  --rdp-day_button-height: 34px;
+  --rdp-day_button-width: 34px;
+  color: var(--zx-text);
+  background: var(--zx-surface);
+  font-family: var(--zx-font-body);
+  font-size: 13px;
+}
+
+@media print {
+  /* Hide navigation chrome */
+  nav, aside, .md\:flex.h-screen > aside,
+  [class*="BottomTabs"], [class*="TopBar"], [class*="MobileTopBar"],
+  a[href="#main-content"] {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  body, html { background: white !important; color: black !important; }
+  .flex.h-screen { display: block !important; }
+  #main-content { overflow: visible !important; }
+
+  /* Remove shadows/borders for cleaner print */
+  .shadow-zx { box-shadow: none !important; }
+
+  /* Page breaks */
+  section { page-break-inside: avoid; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .zx-transition {
+    transition: none !important;
+  }
+
+  .progress-fill {
+    transition: none !important;
+  }
+}

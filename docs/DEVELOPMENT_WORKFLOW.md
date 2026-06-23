@@ -55,16 +55,33 @@ Hub pages:
   /settings   = Settings (profile hub)
 ```
 
-## Code Conventions
+## Code Conventions (v3.0)
 
-- All pages under `src/pages/`. Hub pages go in `src/pages/` directly (e.g. `TrackHub.jsx`).
-- Shared shell in `src/components/AppShell.jsx`. Do not add `AppNav` to new pages — AppShell wraps all authenticated routes in `App.jsx`.
-- Keep user data under `users/{userId}` in Firestore.
-- Move repeated Firestore logic into `src/services/`.
-- Store money values as numbers; persist transaction currency.
-- Display money through `src/utils/formatters.js` — use `fmtShort()` for hub/dashboard, `formatMoney()` for detail pages.
-- Store dates as Firestore `Timestamp`.
-- Keep Firebase web config in Vite env vars.
+**Folder Structure (Core vs Web):**
+- **Pages:** `src/web/pages/` (web-only React components)
+- **UI Components:** `src/web/components/` (UI layer — buttons, cards, feature components)
+- **Services:** `src/core/services/` (Firestore logic, shared with RN)
+- **Data Hooks:** `src/core/hooks/` (useTransactionsData, useAssetsData, etc.)
+- **Custom Hooks:** `src/core/hooks/` (useTheme, useI18n, useAuth)
+- **Utils:** `src/core/utils/` (formatters, validators, pure functions)
+- **i18n:** `src/core/i18n/` (dictionaries, useI18n hook, getTranslation for services)
+
+**Critical Rules:**
+- ❌ Pages NEVER import `firebase/firestore` directly — use `src/core/services/`
+- ❌ `src/core/` CANNOT import from `src/web/` (maintains RN portability)
+- ✅ Services handle all Firestore reads/writes + cache
+- ✅ After every write, call `cacheCoordinator.invalidateAfter*(userId)`
+
+**Data & Persistence:**
+- Keep user data under `users/{userId}` in Firestore
+- Store money values as numbers; persist transaction currency
+- Display money through `src/core/utils/formatters.js` — use `fmtShort()` for hub/dashboard, `formatMoney()` for detail pages
+- Store dates as Firestore `Timestamp`
+- Keep Firebase web config in Vite env vars
+
+**Shared Shell:**
+- `src/web/components/AppShell.jsx` wraps all authenticated routes in `src/web/App.jsx`
+- Do not add extra nav wrappers to individual pages
 
 ## Ít Khung Page Pattern
 

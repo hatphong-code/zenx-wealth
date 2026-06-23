@@ -912,40 +912,49 @@ Date: date-fns
 AI later: OpenAI API hoặc Gemini API
 ```
 
-### Cấu trúc thư mục
+### Cấu trúc thư mục (v3.0 — RN-Ready)
 
 ```text
 src/
-  app/
-  components/
-    dashboard/
-    transactions/
-    latte/
-    emergency/
-    roadmap/
-    review/
-  pages/
-    DashboardPage.jsx
-    TransactionsPage.jsx
-    LatteFactorPage.jsx
-    EmergencyFundPage.jsx
-    WeeklyReviewPage.jsx
-    SettingsPage.jsx
-  services/
-    firebase.js
-    transactionService.js
-    dashboardService.js
-    reviewService.js
-  hooks/
-    useTransactions.js
-    useDashboardStats.js
-  utils/
-    financeCalculations.js
-    formatCurrency.js
-  data/
-    categories.js
-    roadmapPhases.js
+  core/                      ← Portable (web + React Native)
+    /auth/
+      useAuth.js
+    /data/
+      accessControl.js
+    /hooks/
+      useTransactionsData.js (via createDataHook factory)
+      useDashboardStats.js
+      useTheme.js, useI18n.js
+    /i18n/
+      dictionaries/vi.js, en.js
+      getTranslation.js (service-level i18n)
+    /services/
+      transactionService.js
+      dashboardService.js
+      userService.js
+      cacheCoordinator.js
+      storageAdapter.js
+    /utils/
+      formatters.js (fmtShort, formatMoney, formatDate)
+      financeCalculations.js (savingsRate, latteFactor, etc.)
+      validators.js
+      
+  web/                       ← Web-specific (React + Tailwind)
+    /components/
+      /ui/
+        Button.jsx, Card.jsx, Input.jsx, Toast.jsx, etc.
+      TransactionRow.jsx, StatTile.jsx, etc.
+    /pages/
+      Dashboard.jsx
+      Transactions.jsx
+      TrackHub.jsx, PlanHub.jsx, ReviewHub.jsx
+      Settings.jsx, etc.
+    App.jsx (routes + feature gating)
+    index.css (Tailwind + design tokens)
+    main.jsx (Vite entry)
 ```
+
+**Nguyên tắc:** `src/core/` dùng chung web + RN. `src/web/` chỉ web. Xem `CLAUDE.md` → "Folder Architecture" để biết chi tiết.
 
 ---
 

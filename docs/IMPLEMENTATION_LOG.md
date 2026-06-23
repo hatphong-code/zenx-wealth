@@ -2,6 +2,237 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-23 — Fix vertical scroll on hub pages (Dashboard, PlanHub, TrackHub, ReviewHub)
+
+- Root cause 1 (mobile): `touchAction: 'manipulation'` in `GestureNavigationWrapper` blocked all touch pan events, including vertical scroll. Changed to `touchAction: 'pan-y'` — browser now handles vertical scroll natively while JS still detects horizontal swipe deltaX.
+- Root cause 2 (desktop): GestureWrapper div (`flex-col flex-1`) lacked `overflow-hidden` → `<main>` (flex-1 inside) had `min-height: auto` (default) and grew with content → no overflow → no scroll context created. Added `overflow-hidden` to wrapper div to constrain height chain correctly. Non-hub pages were unaffected because `<main>` was a direct child of the main column which already had `overflow-hidden`.
+- Cleanup: removed 4 debug `console.log` from `useSwipeNavigation.js`, removed 3 unused pointer handler stubs.
+- Files: `src/web/components/GestureNavigationWrapper.jsx`, `src/web/hooks/useSwipeNavigation.js`
+
+---
+
+## 2026-06-23 — i18n: fix missing translation keys
+
+- `common.done` — dùng trong Notification "Done" button sau khi allow push notifications
+- `profile.ageRange` + `profile.ageRangeHint` — dùng trong trang Hồ Sơ / Profile
+- Files: `src/core/i18n/dictionaries/vi.js`, `src/core/i18n/dictionaries/en.js`
+
+---
+
+## 2026-06-23 — PWA/deployment stability fixes
+
+- `ChunkErrorBoundary` added to `App.jsx` wrapping every `<Suspense>` route — auto-reloads page when a lazy chunk 404s after deploy (stale service worker scenario)
+- `public/firebase-messaging-sw.js` created — fixes FCM "unsupported MIME type" console error; service worker now registered correctly for push notifications background handling
+- Files: `src/web/App.jsx`, `public/firebase-messaging-sw.js`
+
+---
+
+## 2026-06-23 — Onboarding flow bug fixes
+
+- Step 6 "View" button: navigating to `/budget-templates` while `onboardingCompleted: false` caused PrivateRoute to redirect back to step 1 → fixed by saving onboarding complete then navigating to `/welcome` with `{ state: { recommendedTemplateId } }`
+- `WelcomeScreen` updated: reads `location.state.recommendedTemplateId`; if present, renders highlighted gold card "Xem bộ ngân sách gợi ý" at top of action list → user reaches budget template after going through welcome screen
+- i18n: added `welcome.templateTitle` + `welcome.templateHint` to vi.js + en.js
+- Files: `src/web/pages/OnboardingFlow.jsx`, `src/web/pages/WelcomeScreen.jsx`, `src/core/i18n/dictionaries/vi.js`, `src/core/i18n/dictionaries/en.js`
+
+---
+
+## 2026-06-23 — Fix onboarding reset end-to-end (3 bugs)
+
+- Bug 1: `ConfirmDialog` missing `open` prop in UsersTab → dialog always returned null → all 3 action buttons (Set Premium, Set Free, Reset onboarding) appeared to do nothing
+- Bug 2: `setUserProfileCache(userId, null)` throws TypeError (`null.subscriptionTier`) → replaced with `invalidateUserProfileCache(userId)` in both PreviewTab and UsersTab
+- Bug 3 (previous session): `App.jsx` PrivateRoute returned early from cache without fetching fresh data after admin reset
+- All 3 fixed; onboarding reset flow now works end-to-end ✓
+
+---
+
+## 2026-06-23 — User Management tab in Admin Panel
+
+- Cloud Functions: `adminListUsers` (list Auth users + Firestore enrich), `adminUpdateUser` (setTier / resetOnboarding), admin-only guard
+- Client service: `src/core/services/adminUserService.js` via firebase/functions httpsCallable
+- UI: new "Users" tab in AdminAccessControl — email search, tier filter pills, user table, inline actions (set tier, reset onboarding), ConfirmDialog, load more
+- i18n: `adminAccess.users.*` keys in vi.js + en.js
+- Hosting deployed ✓ — functions deploy blocked by Secret Manager API (pre-existing, needs enable once in GCP Console)
+
+---
+
+## 2026-06-23 — Systemic null-access fix post-v3.0 switch
+
+- Root cause: `createDataHook` initialized `data = null` (no cache) vs OLD hooks that had typed defaults
+- Fix: added `defaultValue` third param to `createDataHook`; all 9 hooks updated with service-accurate default objects
+- Affected: useTransactionsData, useAssetsData, useDebtData, useEmergencyFundData, usePayYourselfFirstData, useWealthRoadmapData, useIncomeSourcesData, useTradingRiskData, useReportsData, useWeeklyReviewData
+- Pages no longer crash on first render before fetch completes (Dashboard, PlanHub, AppShell)
+- Deployed: ✓
+
+---
+
+## 2026-06-23 — v3.0 Architecture Switch Complete
+
+- `src/main.jsx` switched to `src/web/App.jsx` + `src/core/` providers
+- Deleted OLD flat structure (src/pages/, src/services/, src/auth/, src/hooks/, src/data/, src/components/, src/utils/, src/i18n/, src/App.jsx)
+- Fixed broken imports in `src/web/pages/`: AdminAccessControl, IncomeBuilder, Transactions, Login (dynamic import), Profile, DateRangePicker
+- Fixed hook export name mismatches in `src/core/hooks/`: useDebtData, useIncomeSourcesData, usePayYourselfFirstData, useTradingRiskData
+- Updated test files in `src/web/` and `src/core/` (import paths + normalizeDashboardStats shape with income/expense)
+- Added ageRange bracket picker to `src/web/pages/Profile.jsx`
+- Added Reset Onboarding feature to `src/web/pages/AdminAccessControl.jsx` (Preview tab)
+- Build: ✓ clean. Tests: 1 pre-existing WeeklyReview label association failure (unrelated to switch)
+
+---
+
+## 2026-06-22 — Onboarding: Latte Factor Projection + Budget Template Recommendation
+
+- Created `src/core/data/latteOnboarding.js`: LATTE_ITEMS (5 habits), AGE_BRACKETS, recommendTemplateIdByAgeRange()
+- Added `calculateFutureValue()` and `buildLatteProjectionSeries()` to `financialCalculations.js`
+- Extended onboarding from 5 → 6 steps (theme → language → currency+goal → numbers+age → latte → summary)
+- Step 4 (Numbers): added 4-button age bracket picker (<22, 22-29, 30-44, 45+)
+- Step 5 (new Latte Factor): tap-to-toggle habit chips, auto-sum daily saving, manual override input, seed example when no selection, Recharts LineChart (savings vs invested, 20 years)
+- Step 6 (Summary): added template recommendation card with "Xem" → /budget-templates?recommend={id}
+- `handleFinish` saves ageRange; only saves estimatedDailySaving when user has real input (not seed)
+- `BudgetTemplates.jsx`: reads ?recommend= query param and auto-opens preview modal for that template
+- i18n: 26 new keys in both vi.js and en.js; step3Title/step3Subtitle renamed → step4Title/step4Subtitle
+
+---
+
+## 2026-06-21 — Phase 1: Mobile Enhancement Infrastructure (1.1 - 1.3)
+
+**Phase 1.1 (Gesture Navigation) - LIVE:**
+- `useSwipeNavigation` hook: Detects left/right swipes on hub pages. Min threshold: 50px distance OR 0.5px/ms velocity. Navigation sequence: Dashboard ↔ TrackHub ↔ PlanHub ↔ ReviewHub.
+- `GestureNavigationWrapper` component: Visual feedback during swipe (transform ±8px, opacity 0.75). Only active on mobile hub pages.
+- Updated `AppShell.jsx` to wrap main content. Deployed.
+
+**Phase 1.2 (Offline-first Sync) - LIVE:**
+- `syncQueue.js`: Queue management with deduplication. Persists to sessionStorage. Auto-processes on connection restored.
+- `useSyncStatus` hook: Tracks online/offline/syncing state. Dispatches custom events for UI updates.
+- `SyncStatus` component: Visual indicator in sidebar (red offline, orange syncing with count, green online).
+- `useQueueProcessor` hook: Global processor initialized in App.jsx. Listens to 'online' event.
+- Operations queued for sync: createTransaction, updateTransaction, deleteTransaction, updateUserSettings, updateTheme, updateLocale, createEmergencyFundRecord, saveWeeklyReview.
+- Deduplication ensures only latest write per resource is queued. Deployed.
+
+**Phase 1.3 (Push Notifications) - LIVE:**
+- `pushNotificationService.js`: FCM integration. requestPermission(), registerServiceWorker(), getFCMToken() (cached), setupMessageListener().
+- `usePushNotification` hook: Initializes on app load. Shows permission dialog on first visit.
+- `PushNotificationPermissionDialog` component: Bottom-sheet on mobile. Allow/Not Now actions.
+- Service Worker (`public/sw.js`): Handles background FCM messages via Firebase SDK (compat mode). Displays notifications, handles clicks.
+- Settings toggle: New notifications section with enable/disable button. Syncs with PushNotificationService.
+- i18n: Added common.notNow, common.processing, notifications.permissionDialog, settings.notificationsTitle/Subtitle.
+- Deployed.
+
+**Phase 1 Complete** — All three subphases live at https://wealth.zenx.asia. Gesture navigation works on real Android devices. Offline sync infrastructure ready (write queuing implemented but not integrated into individual services — can be added later if needed). Push notification system ready for FCM backend integration.
+
+---
+
+## 2026-06-21 — v3.0 Architecture Refactor Complete (Sprints 1-6)
+
+**Sprint 1**: All Firestore writes moved to services. Pages no longer import firebase/firestore. createTransaction, updateTransaction, deleteTransaction, updateUserSettings, updateTheme, updateLocale, createEmergencyFundRecord, saveWeeklyReview — all in service layer.
+
+**Sprint 2**: Cache invalidation centralized via cacheCoordinator.js. 8 individual calls → 1 per operation type (transaction/settings/emergency/review).
+
+**Sprint 3**: Storage abstracted via storageAdapter.js. sessionCache now uses pluggable interface; RN can inject AsyncStorage.
+
+**Sprint 4**: Folder restructure: src/core/ (portable) + src/web/ (web-only). Updated 100+ import paths. Core has zero web dependencies.
+
+**Sprint 5**: Hook factory createDataHook() eliminates 550 lines of boilerplate. 10 data hooks (Assets, Debt, EmergencyFund, IncomeSources, PayYourselfFirst, Reports, TradingRisk, Transactions, WealthRoadmap, WeeklyReview) now share identical implementation.
+
+**Sprint 6**: Service-level i18n. Created getTranslation.js. Moved 50+ aiCoachService copy strings to vi.js + en.js dictionaries. Services can now access translations without React context dependency.
+
+**Impact**: Core is fully platform-agnostic and ready for React Native migration. All write operations abstracted, cache pluggable, storage abstracted, folders separated, hooks DRY, i18n decoupled from UI layer.
+
+---
+
+## 2026-06-20 — v2.4 Priority 3 UI/UX Improvements
+
+### prefers-reduced-motion
+- `@media (prefers-reduced-motion: reduce)` trong `index.css` — tắt mọi transition/animation khi OS yêu cầu. Áp dụng cho `*`, `.zx-transition`, `.progress-fill`.
+
+### Chart Empty States (Reports)
+- `EmptyChart` component hiển thị icon + "Chưa có dữ liệu" + hint khi trends rỗng.
+- `isEmptyTrend()` helper kiểm tra array rỗng hoặc tất cả values = 0.
+- Wire vào 3 ChartShell: cashFlow, netWorthEstimate, emergencyCoverage.
+
+### Weekly Review Auto-save
+- Debounced `useEffect` 30s: khi `dirty && !saving`, tự save Firestore (merge: true).
+- Header hiện "Đang lưu..." khi saving, "Đã lưu tự động HH:MM" sau khi xong.
+- Silent fail — user vẫn có thể bấm "Lưu" thủ công.
+
+### Focus Trap (BottomSheet)
+- `src/hooks/useFocusTrap.js` — trap Tab/Shift+Tab trong container, restore focus khi đóng.
+- Wire vào `BottomSheet` trong `AppShell.jsx` với `useRef`.
+- Thêm `role="dialog" aria-modal="true"` cho ARIA compliance.
+
+### Combobox (Transactions filter)
+- `src/components/ui/Combobox.jsx` — searchable dropdown: inline search input, clear button, click-outside close.
+- Replace `<select>` tháng và danh mục trong Transactions.jsx advanced filter panel.
+
+---
+
+## 2026-06-20 — v2.3 Priority 2 UI/UX Improvements
+
+### Export CSV (Transactions)
+- Nút "Xuất CSV" trong header Transactions, chỉ hiện khi có data. Export danh sách đang filter ra `.csv` có BOM (Excel-safe), filename `giao-dich-YYYY-MM-DD.csv`.
+
+### Breadcrumb Navigation
+- Desktop TopBar hiển thị `"Group › Page"` trên sub-pages; hub pages vẫn hiện greeting.
+- Group label link về hub route (/track, /plan, /review). Profile/Admin group hiện text không có link.
+
+### Date Range Presets (Reports)
+- Toggle 4 preset: 3T / 6T / Năm nay / Tất cả — filter các trend arrays (cashFlow, netWorthEstimate, emergencyCoverage) bằng slice, default 6T.
+
+### Bulk Actions (Transactions)
+- Nút "Chọn" toggle selection mode. Desktop: checkbox column + click-row-to-toggle. Mobile: checkbox per card.
+- "Chọn tất cả" trong thead. Action bar: "Xóa N mục" → `writeBatch` Firestore delete + toast + invalidate caches.
+
+### Global Search (Ctrl+K)
+- `GlobalSearch.jsx`: overlay mở bằng Ctrl/Cmd+K hoặc click nút hint trong TopBar. Đóng bằng Escape/click backdrop.
+- Tìm trong featureCatalog (static, all features) + cached transactions (category + note). Highlight match.
+- Navigate đến page khi chọn. Transaction results navigate về /transactions.
+
+---
+
+## 2026-06-20 — v2.2 Priority 1 UI/UX Improvements
+
+### Toast/Notification System
+- Tạo `src/components/ui/Toast.jsx`: `ToastProvider` + `useToast()` hook, 3 variants (success/error/info), auto-dismiss 3.5s, stacks nhiều toast
+- Wire vào `main.jsx` (wrap toàn app)
+- Wire vào `Transactions.jsx` (delete success/error), `AddTransaction.jsx` (add/edit success), `Settings.jsx` (save success/error)
+- Xóa `savedFlash` state và `message` state cũ (replaced by toast)
+
+### Base Form Components
+- Tạo `src/components/ui/Input.jsx`, `Textarea.jsx`, `Select.jsx` — unified styling qua design tokens
+- Replace `const inputCls` pattern trong `Settings.jsx` và `AddTransaction.jsx`
+- Error state prop: `error={true}` đổi border sang `zx-negative`
+
+### aria-label cho icon-only buttons
+- `AppShell.jsx`: close button mobile nav group sheet
+- `AppNav.jsx`: hamburger menu button + close menu button
+- `BudgetTemplates.jsx`: close button template preview modal
+- `TrackHub.jsx`: close button convert panel
+- i18n keys: `nav.openMenu` thêm vào vi.js + en.js
+
+### Skeleton Loading
+- Tạo `src/components/ui/Skeleton.jsx`: `Skeleton`, `SkeletonText`, `SkeletonCard`, `SkeletonRow`
+- `AddTransaction.jsx`: thay `<div>Đang tải...</div>` → skeleton form (5 skeleton bars)
+- `Transactions.jsx`: khi `loading && transactions.length === 0` → hiện 6 `SkeletonRow`
+
+### Error token fix
+- `Transactions.jsx`, `AddTransaction.jsx`, `Settings.jsx`: thay `border-red-900 bg-red-950 text-red-300` → `border-zx-negative/40 bg-zx-negative/10 text-zx-negative`
+
+---
+
+## 2026-06-20 — v2.1 UI/UX Analysis + Project Documentation
+
+### UI/UX Desktop Analysis
+- Phân tích toàn diện UI/UX phiên bản desktop, tạo `UI_UX_DESKTOP_REPORT.md` (13 mục, scorecard 6.9/10)
+- Nhận diện 3 vấn đề Critical (Toast, base form components, aria-label), 5 High, 5 Medium
+- Xác nhận những gì đang tốt: dual-theme token system, lazy loading, mobile-first layout, feature gating
+
+### Project Documentation
+- Tạo `CLAUDE.md` tại root — project context và quy tắc làm việc cho mọi Claude session
+  - Design system rules (5 quy tắc tuyệt đối), navigation architecture, code conventions
+  - i18n đầy đủ: hook signature, interpolation `{token}`, bảng formatters, quy tắc dictionary
+  - Danh sách tech debt ưu tiên 🔴🟠🟡 từ UI/UX report
+  - Quy tắc cập nhật `PROJECT_STATUS.md` + `IMPLEMENTATION_LOG.md` sau mỗi session
+
+---
+
 ## 2026-06-18 — v2.1 Plan Layout Polish + Budget Templates Overhaul
 
 ### Plan Section — Layout Standardization (6 pages)
