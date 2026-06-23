@@ -7,7 +7,7 @@ firebase.initializeApp({
   projectId: 'zenx-wealth',
   storageBucket: 'zenx-wealth.firebasestorage.app',
   messagingSenderId: '201162966597',
-  appId: '450ec1404293398ef2c52c',
+  appId: '1:201162966597:web:450ec1404293398ef2c52c',
 });
 
 const messaging = firebase.messaging();
