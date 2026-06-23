@@ -92,8 +92,7 @@ function PrivateRoute({ children, featureKey, adminOnly = false }) {
     // Serve from cache immediately for fast initial render
     const cached = getCachedUserProfile(user.uid);
     if (cached) setOnboardingDone(Boolean(cached.onboardingCompleted));
-    // Always fetch fresh — picks up changes made externally (e.g. admin reset)
-    getUserProfile(user.uid, { forceFresh: true }).then(profile => {
+    getUserProfile(user.uid).then(profile => {
       setOnboardingDone(Boolean(profile.onboardingCompleted));
     }).catch(() => { if (!cached) setOnboardingDone(true); });
   }, [user]);

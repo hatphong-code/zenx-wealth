@@ -20,7 +20,7 @@ import { db } from '../../core/services/firebaseDb';
 import { DEFAULT_PLAN_TEMPLATES, invalidatePlansCache } from '../../core/services/billingService';
 import { budgetTemplates as HARDCODED_TEMPLATES } from '../../core/data/budgetTemplates';
 import { getBudgetTemplates, saveBudgetTemplates } from '../../core/services/budgetTemplatesService';
-import { setUserProfileCache } from '../../core/services/userService';
+import { invalidateUserProfileCache } from '../../core/services/userService';
 import { adminListUsers, adminSetUserTier, adminResetUserOnboarding } from '../../core/services/adminUserService';
 
 /* ── Reusable pieces ── */
@@ -955,7 +955,7 @@ function UsersTab({ t, currentUid }) {
         setUsers(prev => prev.map(u => u.uid === uid ? { ...u, onboardingCompleted: false } : u));
         // If resetting own account, clear cache and reload so onboarding triggers
         if (uid === currentUid) {
-          setUserProfileCache(uid, null);
+          invalidateUserProfileCache(uid);
           window.location.href = '/';
           return;
         }
@@ -1284,7 +1284,7 @@ export default function AdminAccessControl() {
     setResetting(true);
     try {
       await setDoc(doc(db, 'users', user.uid), { onboardingCompleted: false }, { merge: true });
-      setUserProfileCache(user.uid, null);
+      invalidateUserProfileCache(user.uid);
       window.location.href = '/';
     } catch (err) {
       setError(err.message);
