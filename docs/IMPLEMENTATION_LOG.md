@@ -2,6 +2,14 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-23 — i18n: fix missing translation keys
+
+- `common.done` — dùng trong Notification "Done" button sau khi allow push notifications
+- `profile.ageRange` + `profile.ageRangeHint` — dùng trong trang Hồ Sơ / Profile
+- Files: `src/core/i18n/dictionaries/vi.js`, `src/core/i18n/dictionaries/en.js`
+
+---
+
 ## 2026-06-23 — PWA/deployment stability fixes
 
 - `ChunkErrorBoundary` added to `App.jsx` wrapping every `<Suspense>` route — auto-reloads page when a lazy chunk 404s after deploy (stale service worker scenario)
