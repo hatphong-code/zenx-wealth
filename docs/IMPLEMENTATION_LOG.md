@@ -2,6 +2,23 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-23 — PWA/deployment stability fixes
+
+- `ChunkErrorBoundary` added to `App.jsx` wrapping every `<Suspense>` route — auto-reloads page when a lazy chunk 404s after deploy (stale service worker scenario)
+- `public/firebase-messaging-sw.js` created — fixes FCM "unsupported MIME type" console error; service worker now registered correctly for push notifications background handling
+- Files: `src/web/App.jsx`, `public/firebase-messaging-sw.js`
+
+---
+
+## 2026-06-23 — Onboarding flow bug fixes
+
+- Step 6 "View" button: navigating to `/budget-templates` while `onboardingCompleted: false` caused PrivateRoute to redirect back to step 1 → fixed by saving onboarding complete then navigating to `/welcome` with `{ state: { recommendedTemplateId } }`
+- `WelcomeScreen` updated: reads `location.state.recommendedTemplateId`; if present, renders highlighted gold card "Xem bộ ngân sách gợi ý" at top of action list → user reaches budget template after going through welcome screen
+- i18n: added `welcome.templateTitle` + `welcome.templateHint` to vi.js + en.js
+- Files: `src/web/pages/OnboardingFlow.jsx`, `src/web/pages/WelcomeScreen.jsx`, `src/core/i18n/dictionaries/vi.js`, `src/core/i18n/dictionaries/en.js`
+
+---
+
 ## 2026-06-23 — Fix onboarding reset end-to-end (3 bugs)
 
 - Bug 1: `ConfirmDialog` missing `open` prop in UsersTab → dialog always returned null → all 3 action buttons (Set Premium, Set Free, Reset onboarding) appeared to do nothing
