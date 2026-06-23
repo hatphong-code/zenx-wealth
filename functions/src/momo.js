@@ -1,12 +1,7 @@
 import { createHmac } from 'crypto';
 import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https';
-import { defineSecret } from 'firebase-functions/params';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
-
-const MOMO_PARTNER_CODE = defineSecret('MOMO_PARTNER_CODE');
-const MOMO_ACCESS_KEY = defineSecret('MOMO_ACCESS_KEY');
-const MOMO_SECRET_KEY = defineSecret('MOMO_SECRET_KEY');
 
 const MOMO_ENDPOINT = 'https://payment.momo.vn/v2/gateway/api/create';
 const REGION = 'asia-southeast1';
@@ -70,10 +65,7 @@ function buildIpnSignature(data, accessKey, secretKey) {
   return momoSignature(raw, secretKey);
 }
 
-export const createMomoPayment = onCall({
-  region: REGION,
-  secrets: [MOMO_PARTNER_CODE, MOMO_ACCESS_KEY, MOMO_SECRET_KEY],
-}, async (request) => {
+export const createMomoPayment = onCall({ region: REGION }, async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Must be signed in.');
 
   const { plan, returnHost } = request.data;
@@ -82,10 +74,9 @@ export const createMomoPayment = onCall({
   const userId = request.auth.uid;
   const config = await getBillingConfig();
 
-  // Firestore config takes priority, Firebase Secrets as fallback
-  const partnerCode = config.partnerCode || MOMO_PARTNER_CODE.value();
-  const accessKey = config.accessKey || MOMO_ACCESS_KEY.value();
-  const secretKey = config.secretKey || MOMO_SECRET_KEY.value();
+  const partnerCode = config.partnerCode;
+  const accessKey = config.accessKey;
+  const secretKey = config.secretKey;
 
   if (!partnerCode || !accessKey || !secretKey) {
     throw new HttpsError('failed-precondition', 'MoMo credentials not configured. Add them in Admin Settings.');
@@ -132,16 +123,13 @@ export const createMomoPayment = onCall({
   return { payUrl: result.payUrl, orderId };
 });
 
-export const momoIPN = onRequest({
-  region: REGION,
-  secrets: [MOMO_ACCESS_KEY, MOMO_SECRET_KEY],
-}, async (req, res) => {
+export const momoIPN = onRequest({ region: REGION }, async (req, res) => {
   if (req.method !== 'POST') { res.status(405).send('Method Not Allowed'); return; }
 
   const data = req.body;
   const config = await getBillingConfig();
-  const accessKey = config.accessKey || MOMO_ACCESS_KEY.value();
-  const secretKey = config.secretKey || MOMO_SECRET_KEY.value();
+  const accessKey = config.accessKey;
+  const secretKey = config.secretKey;
 
   const expected = buildIpnSignature(data, accessKey, secretKey);
   if (expected !== data.signature) {
