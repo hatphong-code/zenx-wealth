@@ -98,6 +98,31 @@ export default function OnboardingFlow() {
     },
   ];
 
+  const handleFinishAndView = async () => {
+    if (!user) return;
+    const expense = Number(monthlyExpense);
+    if (!Number.isFinite(expense) || expense <= 0) { setError(t('onboarding.errorExpense')); return; }
+    setSaving(true);
+    setError('');
+    try {
+      const existing = await getUserProfile(user.uid);
+      const settings = {
+        ...(existing.settings || {}),
+        currency, locale, theme, primaryGoal, ageRange,
+        monthlyEssentialExpense: Number(monthlyExpense),
+        emergencyFundTargetMonths: Number(emergencyTarget) || 6,
+        ...(hasRealLatteInput ? { estimatedDailySaving: dailySavingReal } : {}),
+      };
+      const next = { ...existing, settings, onboardingCompleted: true, updatedAt: serverTimestamp() };
+      await setDoc(doc(db, 'users', user.uid), next, { merge: true });
+      setUserProfileCache(user.uid, next);
+      navigate(`/budget-templates?recommend=${recommendedTemplateId}`);
+    } catch (err) {
+      setError(err.message);
+      setSaving(false);
+    }
+  };
+
   const handleFinish = async (skip = false) => {
     if (!user) return;
     if (!skip) {
@@ -485,9 +510,10 @@ export default function OnboardingFlow() {
                 </p>
               </div>
               <button type="button"
-                onClick={() => navigate(`/budget-templates?recommend=${recommendedTemplateId}`)}
-                className="flex-shrink-0 rounded-zx-sm bg-zx-accent px-3 py-2 text-xs font-semibold text-zx-on-accent hover:opacity-90 transition">
-                {t('onboarding.templateRecommendView')}
+                onClick={handleFinishAndView}
+                disabled={saving}
+                className="flex-shrink-0 rounded-zx-sm bg-zx-accent px-3 py-2 text-xs font-semibold text-zx-on-accent hover:opacity-90 transition disabled:opacity-60">
+                {saving ? t('onboarding.saving') : t('onboarding.templateRecommendView')}
               </button>
             </div>
 
