@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Timestamp, serverTimestamp } from 'firebase/firestore/lite';
 import { useAuth } from '../../core/auth/useAuth';
@@ -62,6 +62,8 @@ export default function AddTransaction() {
   const [currency, setCurrency] = useState('VND');
   const [customCategories, setCustomCategories] = useState({ income: [], expense: [] });
   const [todayTxs, setTodayTxs] = useState([]);
+  const [noteSuggestions, setNoteSuggestions] = useState([]);
+  const [noteInputFocused, setNoteInputFocused] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -83,6 +85,10 @@ export default function AddTransaction() {
               return d === today;
             });
             setTodayTxs(filtered);
+            const uniqueNotes = [...new Set(
+              (txData.transactions || []).map(tx => tx.note?.trim()).filter(Boolean)
+            )].slice(0, 60);
+            setNoteSuggestions(uniqueNotes);
           } catch (readErr) {
             // If offline, just skip loading today's transactions
             console.warn('[AddTransaction] Could not load today transactions:', readErr?.message);
@@ -227,6 +233,14 @@ export default function AddTransaction() {
   const chipCategories = form.type === 'expense' ? defaultExpenseCategories : defaultIncomeCategories;
 
 
+  const filteredNoteSuggestions = useMemo(() => {
+    if (!noteInputFocused || noteSuggestions.length === 0) return [];
+    const q = form.note.trim().toLowerCase();
+    return noteSuggestions
+      .filter(n => !q || n.toLowerCase().includes(q))
+      .slice(0, 5);
+  }, [form.note, noteSuggestions, noteInputFocused]);
+
   const panelTxs = todayTxs;
   const panelIncome = panelTxs.filter(tx => tx.type === 'income').reduce((s, tx) => s + Number(tx.amount), 0);
   const panelExpense = panelTxs.filter(tx => tx.type === 'expense').reduce((s, tx) => s + Number(tx.amount), 0);
@@ -364,12 +378,29 @@ export default function AddTransaction() {
             )}
 
             {/* Note */}
-            <div>
+            <div className="relative">
               <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
                 {t('common.noteOptional')}
               </label>
               <Textarea value={form.note} onChange={e => updateField('note', e.target.value)}
-                rows={2} placeholder={t('addTransaction.addNotePlaceholder')} />
+                rows={2} placeholder={t('addTransaction.addNotePlaceholder')}
+                onFocus={() => setNoteInputFocused(true)}
+                onBlur={() => setTimeout(() => setNoteInputFocused(false), 150)}
+              />
+              {filteredNoteSuggestions.length > 0 && (
+                <div className="absolute z-10 left-0 right-0 mt-1 rounded-zx-sm border border-zx-line bg-zx-surface shadow-zx overflow-hidden">
+                  {filteredNoteSuggestions.map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onMouseDown={e => { e.preventDefault(); updateField('note', s); setNoteInputFocused(false); }}
+                      className="w-full text-left px-3 py-2 text-sm text-zx-text hover:bg-zx-surface-2 transition truncate"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {error && <p id="addtx-error" role="alert" className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 p-3 text-sm text-zx-negative">{error}</p>}

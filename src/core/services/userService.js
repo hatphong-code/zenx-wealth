@@ -26,6 +26,12 @@ const defaultSettings = {
     income: [],
     expense: [],
   },
+  notificationPrefs: {
+    weeklyReview: true,
+    transactionLog: false,
+    milestones: true,
+    monthlyLetter: true,
+  },
 };
 
 function mergeSettings(settings = {}) {
@@ -40,6 +46,10 @@ function mergeSettings(settings = {}) {
     allocationRule: {
       ...defaultSettings.allocationRule,
       ...(settings.allocationRule || {}),
+    },
+    notificationPrefs: {
+      ...defaultSettings.notificationPrefs,
+      ...(settings.notificationPrefs || {}),
     },
     customCategories: mergeTransactionCategories(customCategoriesRaw),
     customCategoriesRaw,

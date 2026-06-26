@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Save, Settings2, Target, Tags, Bell } from 'lucide-react';
+import { ChevronRight, LayoutTemplate, Save, Settings2, Target, Tags, Bell } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../core/auth/useAuth';
 import { Button } from '../../core/../web/components/ui/button';
 import { Input } from '../../core/../web/components/ui/Input';
@@ -9,6 +10,7 @@ import { useTheme } from '../../core/hooks/useTheme';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import { defaultExpenseCategories, defaultIncomeCategories } from '../../core/data/categories';
 import { getUserProfile, setUserProfileCache, updateTheme, updateUserSettings } from '../../core/services/userService';
+import { getBudgetTemplates } from '../../core/services/budgetTemplatesService';
 import { invalidateAfterSettingsWrite } from '../../core/services/cacheCoordinator';
 import { useI18n } from '../../core/i18n/useI18n';
 import { PushNotificationService } from '../../core/services/pushNotificationService';
@@ -21,6 +23,13 @@ const defaultAllocationRule = {
   highRiskTrading: 5,
 };
 
+const defaultNotificationPrefs = {
+  weeklyReview: true,
+  transactionLog: false,
+  milestones: true,
+  monthlyLetter: true,
+};
+
 const emptyForm = {
   goal12Month: '',
   incomeCategories: [],
@@ -28,6 +37,7 @@ const emptyForm = {
   newIncomeCategory: '',
   newExpenseCategory: '',
   allocationRule: defaultAllocationRule,
+  notificationPrefs: defaultNotificationPrefs,
 };
 
 function toForm(profile) {
@@ -39,6 +49,7 @@ function toForm(profile) {
     newIncomeCategory: '',
     newExpenseCategory: '',
     allocationRule: { ...defaultAllocationRule, ...(settings.allocationRule || {}) },
+    notificationPrefs: { ...defaultNotificationPrefs, ...(settings.notificationPrefs || {}) },
   };
 }
 
@@ -49,7 +60,7 @@ function sanitizeCategories(items) {
 
 export default function Settings() {
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { theme, setTheme } = useTheme();
   const { unit, setUnit } = useNumberFormat();
   const [notificationsEnabled, setNotificationsEnabled] = useState(
@@ -100,18 +111,31 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [appliedTemplateId, setAppliedTemplateId] = useState('');
+  const [templateName, setTemplateName] = useState('');
 
   useEffect(() => {
     if (!user) return;
     let active = true;
-    getUserProfile(user.uid, { forceFresh: true })
-      .then((profile) => {
+    Promise.all([
+      getUserProfile(user.uid, { forceFresh: true }),
+      getBudgetTemplates(),
+    ]).then(([profile, templates]) => {
         if (!active) return;
         setForm(toForm(profile));
         setError('');
-        // Sync number unit from Firestore to local state
         const savedUnit = profile?.settings?.numberUnit;
         if (savedUnit && savedUnit !== unit) setUnit(savedUnit);
+        const tid = profile?.appliedTemplateId || profile?.settings?.budgetTemplate || '';
+        setAppliedTemplateId(tid);
+        if (tid) {
+          const tmpl = templates.find(t => t.id === tid);
+          if (tmpl) {
+            const name = (locale === 'en' ? tmpl.nameEN : tmpl.nameVI)
+              || t(`budgetTemplates.templates.${tmpl.id}.name`, {}, tmpl.id);
+            setTemplateName(name);
+          }
+        }
       })
       .catch((err) => { if (!active) return; setError(err.message || 'Failed to load settings.'); })
       .finally(() => { if (!active) return; setLoading(false); });
@@ -136,6 +160,15 @@ export default function Settings() {
     setForm((c) => ({ ...c, [field]: c[field].filter((item) => item !== value) }));
   };
 
+  const toggleNotifPref = async (key) => {
+    const next = { ...form.notificationPrefs, [key]: !form.notificationPrefs[key] };
+    setForm(f => ({ ...f, notificationPrefs: next }));
+    if (!user) return;
+    try {
+      await updateUserSettings(user.uid, { notificationPrefs: next });
+    } catch {}
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!user) return;
@@ -154,6 +187,7 @@ export default function Settings() {
           allocationRule,
           numberUnit: unit,
           theme,
+          notificationPrefs: form.notificationPrefs,
           customCategories: {
             income: sanitizeCategories(form.incomeCategories),
             expense: sanitizeCategories(form.expenseCategories),
@@ -267,19 +301,67 @@ export default function Settings() {
             <button
               type="button"
               onClick={() => handleNotificationsToggle(!notificationsEnabled)}
-              className={`flex-shrink-0 rounded-full h-7 w-12 p-1 transition ${
-                notificationsEnabled
-                  ? 'bg-zx-positive'
-                  : 'bg-zx-surface-2'
-              }`}
+              aria-pressed={notificationsEnabled}
+              className={`flex-shrink-0 rounded-full h-7 w-12 p-1 transition ${notificationsEnabled ? 'bg-zx-positive' : 'bg-zx-surface-2'}`}
             >
-              <div
-                className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                  notificationsEnabled ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
+              <div className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
             </button>
           </div>
+
+          {notificationsEnabled && (
+            <div className="mt-4 border-t border-zx-line pt-4 space-y-3">
+              {[
+                { key: 'weeklyReview',    label: t('settings.notifPrefs.weeklyReview'),    desc: t('settings.notifPrefs.weeklyReviewDesc') },
+                { key: 'transactionLog',  label: t('settings.notifPrefs.transactionLog'),  desc: t('settings.notifPrefs.transactionLogDesc') },
+                { key: 'milestones',      label: t('settings.notifPrefs.milestones'),      desc: t('settings.notifPrefs.milestonesDesc') },
+                { key: 'monthlyLetter',   label: t('settings.notifPrefs.monthlyLetter'),   desc: t('settings.notifPrefs.monthlyLetterDesc') },
+              ].map(pref => (
+                <div key={pref.key} className="flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-zx-text">{pref.label}</p>
+                    <p className="text-xs text-zx-text-soft">{pref.desc}</p>
+                  </div>
+                  <button
+                    type="button"
+                    aria-pressed={form.notificationPrefs[pref.key]}
+                    onClick={() => toggleNotifPref(pref.key)}
+                    className={`flex-shrink-0 rounded-full h-6 w-10 p-1 transition ${form.notificationPrefs[pref.key] ? 'bg-zx-accent' : 'bg-zx-surface-2 border border-zx-line'}`}
+                  >
+                    <div className={`h-4 w-4 rounded-full bg-white shadow transition-transform ${form.notificationPrefs[pref.key] ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── Budget Template ── */}
+        <section className="rounded-zx border border-zx-line bg-zx-surface p-5 shadow-zx zx-transition">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 rounded-zx-sm bg-zx-icon-bg p-2 text-zx-gold">
+                <LayoutTemplate className="h-4 w-4" />
+              </div>
+              <div>
+                <h2 className="font-semibold">{t('settings.budgetTemplateTitle')}</h2>
+                <p className="text-sm text-zx-text-soft">{t('settings.budgetTemplateSubtitle')}</p>
+              </div>
+            </div>
+            <Link
+              to="/budget-templates"
+              className="flex-shrink-0 flex items-center gap-1 rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-1.5 text-xs text-zx-text-soft hover:text-zx-text transition"
+            >
+              {t('settings.budgetTemplateSwitch')}
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          {appliedTemplateId && (
+            <div className="mt-3 flex items-center gap-2 rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2">
+              <span className="text-xs text-zx-positive font-semibold">✓</span>
+              <span className="text-xs text-zx-text-soft">{t('settings.budgetTemplateCurrent')}</span>
+              <span className="text-xs font-medium text-zx-text">{templateName || appliedTemplateId}</span>
+            </div>
+          )}
         </section>
 
         <form onSubmit={handleSubmit} className="space-y-6">

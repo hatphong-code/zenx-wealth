@@ -127,6 +127,11 @@ export default function Reports() {
               {loading && <p className="text-zx-text-soft">{t('reports.loading')}</p>}
               {refreshing && <p className="text-zx-accent">{t('reports.refreshing')}</p>}
               {error && <p className="text-zx-negative">{error}</p>}
+              {!loading && data.txCount > 0 && (
+                <p className="text-xs text-zx-text-soft">
+                  {t('reports.txCountHint', { count: data.txCount })}
+                </p>
+              )}
               <div className="flex items-center gap-2 ml-auto print:hidden flex-wrap">
                 {/* Quick presets */}
                 <div className="flex rounded-zx-sm border border-zx-line overflow-hidden text-xs">

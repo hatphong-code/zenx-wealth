@@ -227,6 +227,7 @@ async function computeReports(userId) {
       todayPnl: tradingRisk.summary.todayPnl,
       monthPnl: tradingRisk.summary.monthPnl,
     },
+    txCount: recentTransactions.length,
     trends: {
       cashFlow: cashFlowTrend,
       emergencyCoverage: emergencyTrend,
