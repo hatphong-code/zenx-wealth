@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Crown, Save, Settings2, ShieldCheck, Sparkles } from 'lucide-react';
+import { Crown, Save, ShieldCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -56,12 +56,6 @@ function Pill({ active, onClick, children }) {
     </button>
   );
 }
-
-const CLAUDE_MODELS = [
-  { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (fast)' },
-  { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6 (balanced)' },
-  { value: 'claude-opus-4-8', label: 'Claude Opus 4.8 (best)' },
-];
 
 /* ── Tab: Features ── */
 function FeaturesTab({ form, updateFeature, groupedFeatures, saving, handleSave, error, message, t }) {
@@ -194,202 +188,6 @@ function PreviewTab({ subscriptionTier, handleTierSwitch, tierSaving, handleRese
           className="rounded-zx-sm border border-zx-negative/40 px-4 py-2 text-sm font-semibold text-zx-negative hover:bg-zx-negative/10 disabled:opacity-50 transition">
           {resetting ? t('adminAccess.resetting') : t('adminAccess.resetOnboardingBtn')}
         </button>
-      </div>
-    </div>
-  );
-}
-
-/* ── Tab: API & Config ── */
-function StatusRow({ ok, label, sub }) {
-  return (
-    <div className="flex items-start gap-2.5 py-2">
-      <span className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${ok ? 'bg-zx-positive text-zx-on-accent' : 'bg-zx-surface-2 border border-zx-line text-zx-text-soft'}`}>
-        {ok ? '✓' : '–'}
-      </span>
-      <div className="min-w-0">
-        <p className={`text-sm font-medium ${ok ? 'text-zx-text' : 'text-zx-text-soft'}`}>{label}</p>
-        {sub && <p className="text-xs text-zx-text-soft mt-0.5">{sub}</p>}
-      </div>
-    </div>
-  );
-}
-
-function ApiTab({ t }) {
-  const [form, setForm] = useState({ claudeApiKey: '', claudeModel: 'claude-haiku-4-5-20251001', resendApiKey: '', emailFrom: '', emailFromName: 'ZenX Wealth' });
-  const [configured, setConfigured] = useState({ claudeKey: false, resendKey: false, emailFrom: false });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const [showKeys, setShowKeys] = useState({});
-
-  useEffect(() => {
-    getApiSettings()
-      .then(s => {
-        setForm(prev => ({
-          ...prev,
-          claudeModel: s.claudeModel || prev.claudeModel,
-          emailFrom: s.emailFrom || '',
-          emailFromName: s.emailFromName || 'ZenX Wealth',
-        }));
-        setConfigured({
-          claudeKey: Boolean(s.claudeApiKey),
-          resendKey: Boolean(s.resendApiKey),
-          emailFrom: Boolean(s.emailFrom),
-        });
-      })
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
-  const toggleShow = (k) => setShowKeys(p => ({ ...p, [k]: !p[k] }));
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setSaving(true); setMessage(''); setError('');
-    try {
-      const updates = { claudeModel: form.claudeModel, emailFrom: form.emailFrom, emailFromName: form.emailFromName };
-      if (form.claudeApiKey.trim()) updates.claudeApiKey = form.claudeApiKey.trim();
-      if (form.resendApiKey.trim()) updates.resendApiKey = form.resendApiKey.trim();
-      await saveApiSettings(updates);
-      setConfigured(prev => ({
-        claudeKey: prev.claudeKey || Boolean(form.claudeApiKey.trim()),
-        resendKey: prev.resendKey || Boolean(form.resendApiKey.trim()),
-        emailFrom: Boolean(form.emailFrom),
-      }));
-      setMessage(t('adminSettings.saveSuccess'));
-      setForm(p => ({ ...p, claudeApiKey: '', resendApiKey: '' }));
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading) return <p className="text-sm text-zx-text-soft">{t('common.loading')}</p>;
-
-  const inputCls = 'w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-4 py-2.5 text-sm text-zx-text outline-none focus:ring-2 focus:ring-zx-accent';
-  const labelCls = 'text-xs font-semibold uppercase tracking-[0.1em] text-zx-text-soft mb-1.5 block';
-
-  const selectedModel = CLAUDE_MODELS.find(m => m.value === form.claudeModel);
-
-  return (
-    <div className="lg:grid lg:grid-cols-[1fr_260px] lg:gap-8 lg:items-start">
-
-      {/* LEFT: Form */}
-      <form onSubmit={handleSave} className="space-y-5">
-        {error && <p className="rounded-zx-sm border border-red-900 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>}
-        {message && <p className="rounded-zx-sm border border-emerald-900 bg-emerald-950/40 p-3 text-sm text-emerald-300">{message}</p>}
-
-        {/* Claude section */}
-        <div className="rounded-zx border border-zx-line bg-zx-surface p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zx-text-soft">{t('adminSettings.claudeSection')}</p>
-            <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer"
-              className="text-xs text-zx-accent hover:opacity-80">console.anthropic.com ↗</a>
-          </div>
-
-          <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
-            <div>
-              <label className={labelCls}>{t('adminSettings.claudeKeyLabel')}</label>
-              <div className="relative">
-                <input type={showKeys.claude ? 'text' : 'password'} value={form.claudeApiKey}
-                  onChange={e => set('claudeApiKey', e.target.value)}
-                  placeholder={configured.claudeKey ? '(set — leave blank to keep)' : 'sk-ant-api03-…'}
-                  className={`${inputCls} pr-10 font-mono text-xs`} />
-                <button type="button" onClick={() => toggleShow('claude')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-medium text-zx-text-soft hover:text-zx-text uppercase tracking-wide">
-                  {showKeys.claude ? 'hide' : 'show'}
-                </button>
-              </div>
-            </div>
-            {configured.claudeKey && (
-              <span className="mb-0.5 text-xs text-zx-positive font-medium whitespace-nowrap">✓ set</span>
-            )}
-          </div>
-
-          <div>
-            <label className={labelCls}>{t('adminSettings.claudeModelLabel')}</label>
-            <select value={form.claudeModel} onChange={e => set('claudeModel', e.target.value)} className={inputCls}>
-              {CLAUDE_MODELS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Email section */}
-        <div className="rounded-zx border border-zx-line bg-zx-surface p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zx-text-soft">{t('adminSettings.emailSection')}</p>
-            <a href="https://resend.com" target="_blank" rel="noopener noreferrer"
-              className="text-xs text-zx-accent hover:opacity-80">resend.com ↗</a>
-          </div>
-
-          <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
-            <div>
-              <label className={labelCls}>{t('adminSettings.resendKeyLabel')}</label>
-              <div className="relative">
-                <input type={showKeys.resend ? 'text' : 'password'} value={form.resendApiKey}
-                  onChange={e => set('resendApiKey', e.target.value)}
-                  placeholder={configured.resendKey ? '(set — leave blank to keep)' : 're_…'}
-                  className={`${inputCls} pr-10 font-mono text-xs`} />
-                <button type="button" onClick={() => toggleShow('resend')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-medium text-zx-text-soft hover:text-zx-text uppercase tracking-wide">
-                  {showKeys.resend ? 'hide' : 'show'}
-                </button>
-              </div>
-            </div>
-            {configured.resendKey && (
-              <span className="mb-0.5 text-xs text-zx-positive font-medium whitespace-nowrap">✓ set</span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-[1fr_auto] gap-3">
-            <div>
-              <label className={labelCls}>{t('adminSettings.emailFromLabel')}</label>
-              <input type="email" value={form.emailFrom} onChange={e => set('emailFrom', e.target.value)}
-                placeholder="noreply@yourdomain.com" className={inputCls} />
-              <p className="text-xs text-zx-text-soft mt-1">{t('adminSettings.emailFromHint')}</p>
-            </div>
-          </div>
-
-          <div>
-            <label className={labelCls}>{t('adminSettings.emailFromNameLabel')}</label>
-            <input type="text" value={form.emailFromName} onChange={e => set('emailFromName', e.target.value)}
-              placeholder="ZenX Wealth" className={inputCls} />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 pt-1">
-          <button type="submit" disabled={saving}
-            className="flex items-center gap-2 rounded-zx-sm bg-zx-accent px-5 py-2.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 disabled:opacity-50 transition">
-            <Save className="h-4 w-4" />
-            {saving ? t('common.saving') : t('common.save')}
-          </button>
-          <p className="text-xs text-zx-text-soft">{t('adminSettings.keySecurityNote')}</p>
-        </div>
-      </form>
-
-      {/* RIGHT: Status panel */}
-      <div className="mt-6 lg:mt-0 rounded-zx border border-zx-line bg-zx-surface p-5 sticky top-6">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zx-text-soft mb-4">{t('adminSettings.statusPanel')}</p>
-
-        <div className="space-y-1 mb-5 divide-y divide-zx-line/50">
-          <StatusRow ok={configured.claudeKey} label="Anthropic API Key" sub="Required for AI Coach" />
-          <StatusRow ok={Boolean(form.claudeModel)} label={`Model: ${selectedModel?.label.split(' (')[0] || '—'}`} sub={selectedModel ? '' : 'Select a model'} />
-          <StatusRow ok={configured.resendKey} label="Resend API Key" sub="Required for email delivery" />
-          <StatusRow ok={configured.emailFrom} label={configured.emailFrom ? form.emailFrom || 'Email set' : 'From email'} sub={configured.emailFrom ? '' : 'Required for email delivery'} />
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2">{t('adminSettings.readyFor')}</p>
-          <div className={`flex items-center gap-2 text-xs rounded-zx-sm px-3 py-2 ${configured.claudeKey ? 'bg-zx-positive-soft text-zx-positive' : 'bg-zx-surface-2 text-zx-text-soft'}`}>
-            <span>{configured.claudeKey ? '✓' : '○'}</span> AI Coach
-          </div>
-          <div className={`flex items-center gap-2 text-xs rounded-zx-sm px-3 py-2 ${configured.resendKey && configured.emailFrom ? 'bg-zx-positive-soft text-zx-positive' : 'bg-zx-surface-2 text-zx-text-soft'}`}>
-            <span>{configured.resendKey && configured.emailFrom ? '✓' : '○'}</span> Monthly Letter Email
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -1234,7 +1032,7 @@ function BudgetTemplatesTab({ t }) {
 }
 
 /* ── Main page ── */
-const TABS = ['features', 'preview', 'api', 'plans', 'budget_templates'];
+const TABS = ['features', 'preview', 'plans', 'budget_templates'];
 
 export default function AdminAccessControl() {
   const { t } = useI18n();
@@ -1336,9 +1134,6 @@ export default function AdminAccessControl() {
             <Tab active={activeTab === 'preview'} onClick={() => setActiveTab('preview')}>
               {t('adminAccess.tabPreview')}
             </Tab>
-            <Tab active={activeTab === 'api'} onClick={() => setActiveTab('api')}>
-              {t('adminAccess.tabApi')}
-            </Tab>
             <Tab active={activeTab === 'plans'} onClick={() => setActiveTab('plans')}>
               {t('adminAccess.tabPlans')}
             </Tab>
@@ -1374,7 +1169,6 @@ export default function AdminAccessControl() {
             />
           )}
 
-          {activeTab === 'api' && <ApiTab t={t} />}
           {activeTab === 'plans' && <PlansTab t={t} />}
           {activeTab === 'budget_templates' && <BudgetTemplatesTab t={t} />}
           {activeTab === 'users' && <UsersTab t={t} currentUid={user?.uid} />}
