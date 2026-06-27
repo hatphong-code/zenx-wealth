@@ -714,21 +714,16 @@ function RolesTab({ t, currentUid }) {
   const [confirm, setConfirm] = useState(null); // { uid, email, action: 'grant'|'revoke' }
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const [modsSnap, usersResult] = await Promise.all([
-          getDocs(query(collection(db, 'users'), where('role', '==', 'moderator'))),
-          adminListUsers(),
-        ]);
-        setModerators(modsSnap.docs.map(d => ({ uid: d.id, ...d.data() })));
-        setUsers(usersResult.users || []);
-      } catch {
-        // ignore
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
+    // Load user list first — independent of moderator query
+    adminListUsers()
+      .then(result => setUsers(result.users || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+
+    // Load current moderators separately — failure doesn't block user list
+    getDocs(query(collection(db, 'users'), where('role', '==', 'moderator')))
+      .then(snap => setModerators(snap.docs.map(d => ({ uid: d.id, ...d.data() }))))
+      .catch(() => {}); // security rules may block collection query — silent fallback
   }, []);
 
   async function handleConfirm() {
