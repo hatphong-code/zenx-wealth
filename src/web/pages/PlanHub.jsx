@@ -575,7 +575,7 @@ function ReferenceFundList({ t }) {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     } else {
       setSortKey(col);
-      setSortDir(['return1y', 'return3y', 'aumBillion'].includes(col) ? 'desc' : 'asc');
+      setSortDir(['return1y', 'return3y', 'return5y', 'aumBillion'].includes(col) ? 'desc' : 'asc');
     }
   }
 
@@ -586,6 +586,7 @@ function ReferenceFundList({ t }) {
       let av, bv;
       if (sortKey === 'return1y')  { av = a.historicalReturns?.['1y'] ?? -999; bv = b.historicalReturns?.['1y'] ?? -999; }
       else if (sortKey === 'return3y') { av = a.historicalReturns?.['3y'] ?? -999; bv = b.historicalReturns?.['3y'] ?? -999; }
+      else if (sortKey === 'return5y') { av = a.historicalReturns?.['5y'] ?? -999; bv = b.historicalReturns?.['5y'] ?? -999; }
       else if (sortKey === 'name') { av = a.name; bv = b.name; }
       else { av = a[sortKey] ?? 0; bv = b[sortKey] ?? 0; }
       if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
@@ -649,13 +650,14 @@ function ReferenceFundList({ t }) {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="font-semibold text-sm text-zx-text">{fund.name}</p>
+                      {fund.fullName && <p className="text-[11px] text-zx-text leading-snug">{fund.fullName}</p>}
                       <p className="text-xs text-zx-text-soft">{fund.manager}</p>
                     </div>
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zx-surface-2 text-zx-text-soft shrink-0">
                       {t(`planHub.funds.assetType.${fund.assetType}`)}
                     </span>
                   </div>
-                  <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                  <div className="grid grid-cols-5 gap-1.5 text-center text-xs">
                     <div>
                       <p className="text-zx-text-soft">{t('planHub.funds.colRisk')}</p>
                       <p className={`font-semibold ${RISK_COLOR[fund.riskTier] || ''}`}>{fund.riskTier}/5</p>
@@ -671,6 +673,10 @@ function ReferenceFundList({ t }) {
                     <div>
                       <p className="text-zx-text-soft">{t('planHub.funds.col3y')}</p>
                       <ReturnVal value={fund.historicalReturns?.['3y']} />
+                    </div>
+                    <div>
+                      <p className="text-zx-text-soft">{t('planHub.funds.col5y')}</p>
+                      <ReturnVal value={fund.historicalReturns?.['5y']} />
                     </div>
                   </div>
                   <div className="flex justify-between text-[10px] text-zx-text-soft">
@@ -695,13 +701,15 @@ function ReferenceFundList({ t }) {
                     <SortTh col="riskTier"     label={t('planHub.funds.colRisk')}    sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
                     <SortTh col="return1y"     label={t('planHub.funds.col1y')}      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
                     <SortTh col="return3y"     label={t('planHub.funds.col3y')}      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+                    <SortTh col="return5y"     label={t('planHub.funds.col5y')}      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zx-line">
                   {visible.map(fund => (
                     <tr key={fund.id} className="bg-zx-surface hover:bg-zx-surface-2 transition">
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-3 max-w-[220px]">
                         <p className="font-semibold text-zx-text">{fund.name}</p>
+                        {fund.fullName && <p className="text-[11px] text-zx-text leading-snug truncate">{fund.fullName}</p>}
                         <p className="text-zx-text-soft text-[11px]">{fund.manager}</p>
                       </td>
                       <td className="px-3 py-3">
@@ -717,6 +725,7 @@ function ReferenceFundList({ t }) {
                       </td>
                       <td className="px-3 py-3 text-right"><ReturnVal value={fund.historicalReturns?.['1y']} /></td>
                       <td className="px-3 py-3 text-right"><ReturnVal value={fund.historicalReturns?.['3y']} /></td>
+                      <td className="px-3 py-3 text-right"><ReturnVal value={fund.historicalReturns?.['5y']} /></td>
                     </tr>
                   ))}
                 </tbody>

@@ -781,6 +781,7 @@ export default {
       colRisk: 'Rủi ro',
       col1y: '1 năm',
       col3y: '3 năm',
+      col5y: '5 năm',
       colSource: 'Nguồn',
       aumUnit: 'tỷ ₫',
       ageUnit: 'năm',

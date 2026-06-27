@@ -769,6 +769,7 @@ export default {
       colRisk: 'Risk',
       col1y: '1Y Return',
       col3y: '3Y Return',
+      col5y: '5Y Return',
       colSource: 'Source',
       aumUnit: 'bn ₫',
       ageUnit: 'yr',
