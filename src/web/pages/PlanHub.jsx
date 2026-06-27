@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Circle, Lock } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
@@ -10,6 +11,8 @@ import { usePayYourselfFirstData } from '../../core/hooks/usePayYourselfFirstDat
 import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
 import { fmtShort, formatNumber } from '../../core/utils/formatters';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
+import { calculateRequiredMonthlySaving, applyDebtOverlay } from '../../core/services/financialCalculations';
+import NumericInput from '../components/ui/NumericInput';
 
 function HL() { return <div className="h-px bg-zx-line" />; }
 
@@ -141,6 +144,74 @@ function PlanItem({ label, value, sub, to, status, canAccess: access }) {
   return <Link to={to} className="block hover:bg-zx-surface-2 -mx-1 px-1 rounded-zx-sm transition">{inner}</Link>;
 }
 
+const ALLOCATION_LABELS = {
+  living: 'planHub.alloc.living',
+  emergencyFund: 'planHub.alloc.emergencyFund',
+  longTermAsset: 'planHub.alloc.longTermAsset',
+  businessLearning: 'planHub.alloc.businessLearning',
+  highRiskTrading: 'planHub.alloc.highRiskTrading',
+  debtRepayment: 'planHub.alloc.debtRepayment',
+};
+
+function ReverseGoalCalculator({ t, fmt }) {
+  const [goal, setGoal] = useState('');
+  const [years, setYears] = useState('');
+  const [rate, setRate] = useState('8');
+  const [result, setResult] = useState(null);
+
+  function calculate() {
+    const fv = parseFloat(goal);
+    const months = parseFloat(years) * 12;
+    const r = parseFloat(rate);
+    if (!fv || !months || isNaN(r)) return;
+    const res = calculateRequiredMonthlySaving({ futureValueGoal: fv, presentValue: 0, annualRatePct: r, months });
+    setResult(res);
+  }
+
+  return (
+    <section className="mt-6 pt-6 border-t border-zx-line">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
+        {t('planHub.reverseGoal.title')}
+      </p>
+      <div className="space-y-3">
+        <div>
+          <label htmlFor="rg-goal" className="text-xs text-zx-text-soft block mb-1">{t('planHub.reverseGoal.goalLabel')}</label>
+          <NumericInput id="rg-goal" placeholder="e.g. 2000000000" value={goal} onChange={e => { setGoal(e.target.value); setResult(null); }} />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label htmlFor="rg-years" className="text-xs text-zx-text-soft block mb-1">{t('planHub.reverseGoal.yearsLabel')}</label>
+            <NumericInput id="rg-years" placeholder="20" value={years} onChange={e => { setYears(e.target.value); setResult(null); }} />
+          </div>
+          <div>
+            <label htmlFor="rg-rate" className="text-xs text-zx-text-soft block mb-1">{t('planHub.reverseGoal.rateLabel')}</label>
+            <NumericInput id="rg-rate" placeholder="8" value={rate} onChange={e => { setRate(e.target.value); setResult(null); }} />
+          </div>
+        </div>
+        <button onClick={calculate}
+          className="w-full rounded-zx-sm bg-zx-surface-2 border border-zx-line py-2.5 text-sm font-medium text-zx-text hover:bg-zx-line transition">
+          {t('planHub.reverseGoal.calculate')}
+        </button>
+        {result && (
+          <div className="rounded-zx-sm bg-zx-surface-2 p-3 text-center">
+            {result.alreadyMet ? (
+              <p className="text-sm text-zx-positive font-medium">{t('planHub.reverseGoal.alreadyMet')}</p>
+            ) : (
+              <>
+                <p className="text-xs text-zx-text-soft mb-1">{t('planHub.reverseGoal.resultLabel')}</p>
+                <p className="font-zx-display text-xl font-bold text-zx-accent">
+                  {fmt(result.requiredMonthlySaving)}{t('planHub.reverseGoal.perMonth')}
+                </p>
+                <p className="text-[11px] text-zx-text-soft mt-1">{t('planHub.reverseGoal.adjustHint')}</p>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export default function PlanHub() {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -159,6 +230,12 @@ export default function PlanHub() {
   const eta = calcETA(stats, pyfData);
   const latteMonthly = stats.latteFactor || 0;
   const priority = getPriority(stats, debtData.summary, latteMonthly, t, fmt, fmtNum);
+
+  const hasBadDebt = (debtData?.summary?.badDebt || 0) > 0;
+  const adjustedAllocation = hasBadDebt
+    ? applyDebtOverlay(pyfData.allocationRule, debtData.summary, pyfData.totalIncome)
+    : null;
+  const highestDebtRate = debtData?.summary?.highestPriorityDebt?.interestRate;
 
   const planItems = [
     {
@@ -324,6 +401,35 @@ export default function PlanHub() {
               </Link>
             )}
           </section>
+
+          {/* Debt-Aware Allocation Overlay */}
+          {hasBadDebt && adjustedAllocation && (
+            <section className="mt-6 pt-6 border-t border-zx-line">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-2">
+                {t('planHub.debtOverlay.title')}
+              </p>
+              <p className="text-xs text-zx-text-soft leading-relaxed mb-3">
+                {t('planHub.debtOverlay.explanation', {
+                  interestRate: highestDebtRate != null ? highestDebtRate : '—',
+                })}
+              </p>
+              <div className="space-y-1.5">
+                {Object.entries(adjustedAllocation).map(([key, pct]) => pct > 0 && (
+                  <div key={key} className="flex items-center justify-between text-xs">
+                    <span className={`text-zx-text${key === 'debtRepayment' ? ' font-semibold text-zx-accent' : ''}`}>
+                      {t(ALLOCATION_LABELS[key] || key)}
+                    </span>
+                    <span className={`font-mono font-semibold${key === 'debtRepayment' ? ' text-zx-accent' : ' text-zx-text-soft'}`}>
+                      {pct}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-zx-text-soft mt-2">{t('planHub.debtOverlay.disclaimer')}</p>
+            </section>
+          )}
+
+          <ReverseGoalCalculator t={t} fmt={fmt} />
         </div>
       </div>
     </div>

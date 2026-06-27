@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { useTheme } from '../../core/hooks/useTheme';
@@ -439,26 +439,32 @@ export default function OnboardingFlow() {
 
             <div className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-3">
               <p className="text-sm font-semibold text-zx-text">{t('onboarding.latteProjectionTitle')}</p>
-              <div className="h-48">
+              <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={projectionSeries}>
                     <XAxis dataKey="year" tick={{ fontSize: 11 }} tickFormatter={(y) => `${y}y`} />
                     <YAxis hide />
                     <Tooltip formatter={(v) => formatMoney(v, currency)} />
+                    <Legend iconType="line" wrapperStyle={{ fontSize: 11 }}
+                      formatter={(key) => t(`onboarding.latteLegend${key.charAt(0).toUpperCase() + key.slice(1)}`)} />
                     <Line type="monotone" dataKey="savings" stroke="var(--zx-text-soft)" strokeWidth={2} dot={false} />
                     <Line type="monotone" dataKey="invested" stroke="var(--zx-accent)" strokeWidth={2.5} dot={false} />
+                    <Line type="monotone" dataKey="growth" stroke="var(--zx-positive)" strokeWidth={2.5} dot={false} strokeDasharray="4 2" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
               <div className="grid grid-cols-3 gap-2 text-center">
-                {[1, 10, 20].map(y => (
-                  <div key={y} className="rounded-zx-sm bg-zx-surface-2 p-2">
-                    <p className="text-[10px] text-zx-text-soft">{t(`onboarding.latteYear${y}`)}</p>
-                    <p className="text-sm font-bold text-zx-text">
-                      {formatMoney(projectionSeries.find(p => p.year === y)?.invested || 0, currency)}
-                    </p>
-                  </div>
-                ))}
+                {[1, 10, 20].map(y => {
+                  const pt = projectionSeries.find(p => p.year === y) || {};
+                  return (
+                    <div key={y} className="rounded-zx-sm bg-zx-surface-2 p-2 space-y-1">
+                      <p className="text-[10px] text-zx-text-soft">{t(`onboarding.latteYear${y}`)}</p>
+                      <p className="text-xs font-semibold text-zx-text-soft">{formatMoney(pt.savings || 0, currency)}</p>
+                      <p className="text-xs font-bold text-zx-accent">{formatMoney(pt.invested || 0, currency)}</p>
+                      <p className="text-xs font-bold text-zx-positive">{formatMoney(pt.growth || 0, currency)}</p>
+                    </div>
+                  );
+                })}
               </div>
               <p className="text-[11px] text-zx-text-soft text-center">{t('onboarding.latteDisclaimer')}</p>
             </div>

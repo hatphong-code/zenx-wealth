@@ -1,3 +1,5 @@
+import Decimal from 'decimal.js';
+
 export function calculateDashboardMetrics({
   transactions = [],
   emergencyRecords = [],
@@ -303,10 +305,36 @@ export function estimateNetWorthTrend({ currentNetWorth = 0, cashFlowTrend = [] 
 }
 
 export function calculateFutureValue({ monthlyAmount, annualRatePct, months }) {
-  const r = (annualRatePct / 100) / 12;
   if (!monthlyAmount || months <= 0) return 0;
-  if (r === 0) return monthlyAmount * months;
-  return monthlyAmount * (((1 + r) ** months - 1) / r);
+  const r = new Decimal(annualRatePct).div(100).div(12);
+  const PMT = new Decimal(monthlyAmount);
+  const N = new Decimal(months);
+  if (r.isZero()) return PMT.times(N).toNumber();
+  // FV = PMT × ((1+r)^N − 1) / r
+  const growth = r.plus(1).pow(N);
+  return PMT.times(growth.minus(1)).div(r).toNumber();
+}
+
+// Spec 6: reverse PMT — "how much/month do I need to save?"
+// Returns { requiredMonthlySaving: number } | { requiredMonthlySaving: 0, alreadyMet: true } | null
+export function calculateRequiredMonthlySaving({ futureValueGoal, presentValue = 0, annualRatePct, months }) {
+  if (!futureValueGoal || months <= 0 || annualRatePct == null) return null;
+  const FV = new Decimal(futureValueGoal);
+  const PV = new Decimal(presentValue || 0);
+  const r = new Decimal(annualRatePct).div(100).div(12);
+  const N = new Decimal(months);
+
+  const growthFactor = r.plus(1).pow(N);
+  // PV compounded to end of period
+  const pvFuture = PV.times(growthFactor);
+  if (pvFuture.gte(FV)) return { requiredMonthlySaving: 0, alreadyMet: true };
+
+  const remaining = FV.minus(pvFuture);
+  if (r.isZero()) return { requiredMonthlySaving: remaining.div(N).toNumber() };
+
+  // PMT = remaining / ((1+r)^N - 1) * r
+  const pmt = remaining.times(r).div(growthFactor.minus(1));
+  return { requiredMonthlySaving: pmt.toNumber() };
 }
 
 export function buildLatteProjectionSeries(monthlyAmount, years = 20) {
@@ -314,7 +342,65 @@ export function buildLatteProjectionSeries(monthlyAmount, years = 20) {
     year,
     savings: calculateFutureValue({ monthlyAmount, annualRatePct: 3, months: year * 12 }),
     invested: calculateFutureValue({ monthlyAmount, annualRatePct: 8, months: year * 12 }),
+    growth: calculateFutureValue({ monthlyAmount, annualRatePct: 11, months: year * 12 }),
   }));
+}
+
+// Spec Debt-Aware Allocation Overlay
+// Floors PROPOSED — pending Hà Phong confirmation (see spec-debt-aware-allocation-overlay.md):
+//   emergencyFund floor: 5%  (mid_career already uses 5%; any less breaks emergency habit)
+//   longTermAsset floor: 5%  (matches student template minimum; keeps investing habit alive)
+//   businessLearning, highRiskTrading: 0  (speculative/discretionary, safe to zero)
+// Tier ratios PROPOSED:
+//   Moderate (10-25%): take 50% of longTermAsset headroom above floor
+//   Heavy (>25%): zero out longTermAsset to floor + take 33% of emergencyFund headroom above floor
+export function applyDebtOverlay(baseAllocation, debtSummary, monthlyIncome) {
+  if (!debtSummary?.badDebt || debtSummary.badDebt <= 0) {
+    return { ...baseAllocation, debtRepayment: 0 };
+  }
+
+  const FLOOR_EMERGENCY = 5;
+  const FLOOR_LONG_TERM = 5;
+
+  let { living, emergencyFund, longTermAsset, businessLearning, highRiskTrading } = baseAllocation;
+  const debtRatio = monthlyIncome > 0 ? (debtSummary.monthlyPayment / monthlyIncome) : 0;
+  const debtNeedPct = Math.min(debtRatio * 100, 100 - living - FLOOR_EMERGENCY - FLOOR_LONG_TERM);
+
+  // Step 1: always zero businessLearning + highRiskTrading (most discretionary)
+  let freed = businessLearning + highRiskTrading;
+  businessLearning = 0;
+  highRiskTrading = 0;
+
+  // Step 2: moderate tier — take up to 50% of longTermAsset headroom
+  if (debtRatio >= 0.10 && freed < debtNeedPct) {
+    const headroom = Math.max(0, longTermAsset - FLOOR_LONG_TERM);
+    const fraction = debtRatio < 0.25 ? 0.5 : 1.0; // heavy tier: take full headroom
+    const take = Math.min(headroom * fraction, debtNeedPct - freed);
+    longTermAsset -= take;
+    freed += take;
+  }
+
+  // Step 3: heavy tier — additionally take 33% of emergencyFund headroom
+  if (debtRatio >= 0.25 && freed < debtNeedPct) {
+    const headroom = Math.max(0, emergencyFund - FLOOR_EMERGENCY);
+    const take = Math.min(headroom * 0.33, debtNeedPct - freed);
+    emergencyFund -= take;
+    freed += take;
+  }
+
+  // Cap debtRepayment at actual debt need; return excess to longTermAsset
+  const debtRepayment = Math.min(freed, debtNeedPct);
+  const excess = freed - debtRepayment;
+  longTermAsset += excess;
+
+  return {
+    living: Math.round(living * 10) / 10,
+    emergencyFund: Math.round(emergencyFund * 10) / 10,
+    longTermAsset: Math.round(longTermAsset * 10) / 10,
+    businessLearning: Math.round(businessLearning * 10) / 10,
+    highRiskTrading: Math.round(highRiskTrading * 10) / 10,
+    debtRepayment: Math.round(debtRepayment * 10) / 10,
+  };
 }
 
 export function buildMonthlyCloseMetrics(cashFlowTrend = []) {

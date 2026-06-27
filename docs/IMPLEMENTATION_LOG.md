@@ -2,6 +2,40 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-27 — Spec 1/5/6/7 + Debt-Aware Allocation Overlay
+
+**Spec 1 — Decimal precision:**
+- Refactored `calculateFutureValue` in `financialCalculations.js` to use `decimal.js` internally (same signature, `Number` return). Installed `decimal.js`.
+- Added unit tests: reference value check (900k/month, 8%, 240mo), zero-rate, zero-months.
+
+**Spec 5 — Three-scenario projection:**
+- Added `growth` field (11% rate) to `buildLatteProjectionSeries`.
+- Updated `OnboardingFlow.jsx` Step 5 chart: added 3rd Line (`growth`, green dashed), added `<Legend>`, updated summary grid to show 3 values per year column (savings / invested / growth).
+- i18n: `latteLegendSavings`, `latteLegendInvested`, `latteLegendGrowth` in vi.js + en.js.
+
+**Spec 6 — Reverse Goal Calculator (PMT inverse):**
+- Added `calculateRequiredMonthlySaving({ futureValueGoal, presentValue, annualRatePct, months })` to `financialCalculations.js`. Uses Decimal, returns `{ requiredMonthlySaving }` or `{ requiredMonthlySaving: 0, alreadyMet: true }` or `null`.
+- Round-trip test confirms PMT → FV → PMT within Decimal precision.
+- Added `ReverseGoalCalculator` card in `PlanHub.jsx` right panel (below priority CTA). Uses `NumericInput`, `formatMoney`.
+- i18n: `planHub.reverseGoal.*` in vi.js + en.js.
+
+**Spec 7 — Goal Health Check (Phase 1):**
+- Extended `goalTrackingService.js`: `getGoalChecksRef(userId)` → subcollection `users/{userId}/goalChecks`. `maybeCreateGoalCheck` reads latest check, creates new record if ≥3 months gap (read-triggered, no Cloud Function needed). Added `saveGoalCheckAction(userId, checkId, userAction)` export.
+- `GoalTracking.jsx`: added "Kiểm tra tiến độ" card showing when `latestCheck.userAction` is null. Two buttons: "Điều chỉnh mục tiêu" / "Giữ nguyên" → saves `userAction` to Firestore, shows confirmation.
+- i18n: `goalTracking.check*` keys in vi.js + en.js.
+
+**Spec Debt-Aware Allocation Overlay:**
+- Added `applyDebtOverlay(baseAllocation, debtSummary, monthlyIncome)` to `financialCalculations.js`. Floors: `emergencyFund=5%`, `longTermAsset=5%` (proposed, pending confirmation). Tier logic: <10% light / 10-25% moderate / >25% heavy.
+- Total always sums to 100 (excess freed beyond debt need returns to `longTermAsset`).
+- Integrated in `PlanHub.jsx`: shows debt-adjusted allocation section when `badDebt > 0`, with explanatory copy using real interest rate. `ReverseGoalCalculator` added below.
+- Added `debtRepayment: 0` to all 5 templates in `budgetTemplates.js` for consistent 6-key shape.
+- i18n: `planHub.debtOverlay.*` + `planHub.alloc.*` in vi.js + en.js.
+
+**Tests:** 34 core service tests pass (20 calculations, 6 serviceContracts, 8 goalParsing).
+**Files:** `src/core/services/financialCalculations.js`, `src/core/services/__tests__/calculations.test.js`, `src/core/services/goalTrackingService.js`, `src/web/pages/GoalTracking.jsx`, `src/web/pages/OnboardingFlow.jsx`, `src/web/pages/PlanHub.jsx`, `src/core/data/budgetTemplates.js`, `src/core/i18n/dictionaries/vi.js`, `src/core/i18n/dictionaries/en.js`
+
+---
+
 ## 2026-06-27 — Reports stability + AI Coach i18n + locale-switch access bug
 
 **Reports intermittent loading:**

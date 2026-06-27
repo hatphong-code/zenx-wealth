@@ -2,7 +2,7 @@
 import { TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
-import { getGoalTracking } from '../../core/services/goalTrackingService';
+import { getGoalTracking, saveGoalCheckAction } from '../../core/services/goalTrackingService';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 
 function ProgressBar({ value, isOnTrack }) {
@@ -20,6 +20,8 @@ export default function GoalTracking() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [actionSaving, setActionSaving] = useState(false);
+  const [actionDone, setActionDone] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -42,6 +44,17 @@ export default function GoalTracking() {
 
     return () => { active = false; };
   }, [user]);
+
+  async function handleCheckAction(action) {
+    if (!user || !data?.latestCheck?.id || actionSaving) return;
+    setActionSaving(true);
+    try {
+      await saveGoalCheckAction(user.uid, data.latestCheck.id, action);
+      setActionDone(true);
+    } finally {
+      setActionSaving(false);
+    }
+  }
 
   if (loading) {
     return <main className="p-10 text-center text-zx-text-soft">{t('common.loading')}</main>;
@@ -175,6 +188,35 @@ export default function GoalTracking() {
           </div>
         </div>
       </section>
+
+      {/* Goal Check History Card */}
+      {data.latestCheck && !data.latestCheck.userAction && !actionDone && (
+        <section className="rounded-zx border border-zx-line bg-zx-surface p-6 mt-6">
+          <h2 className="font-zx-head font-semibold text-zx-text mb-2">{t('goalTracking.checkTitle')}</h2>
+          <p className="text-sm text-zx-text-soft mb-1">
+            {t('goalTracking.checkProgress', { pct: progress.progressPercent.toFixed(0) })}
+          </p>
+          <p className="text-sm text-zx-text-soft mb-4">
+            {progress.isOnTrack ? t('goalTracking.checkOnTrackMsg') : t('goalTracking.checkOffTrackMsg')}
+          </p>
+          <div className="flex gap-3">
+            <button onClick={() => handleCheckAction('adjust')} disabled={actionSaving}
+              className="flex-1 rounded-zx-sm border border-zx-accent text-zx-accent py-2.5 text-sm font-medium hover:bg-zx-accent hover:text-zx-on-accent transition disabled:opacity-50">
+              {t('goalTracking.checkAdjust')}
+            </button>
+            <button onClick={() => handleCheckAction('keep')} disabled={actionSaving}
+              className="flex-1 rounded-zx-sm border border-zx-line text-zx-text-soft py-2.5 text-sm font-medium hover:border-zx-text hover:text-zx-text transition disabled:opacity-50">
+              {t('goalTracking.checkKeep')}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {actionDone && (
+        <div className="mt-6 rounded-zx-sm bg-zx-positive/10 border border-zx-positive/30 p-3 text-sm text-zx-positive text-center">
+          {t('goalTracking.checkSaved')}
+        </div>
+      )}
 
       <div className="mt-6 text-center text-xs text-zx-text-soft">
         <p>{t('goalTracking.lastUpdated', { date: new Date(data.lastUpdated).toLocaleDateString('vi-VN') })}</p>

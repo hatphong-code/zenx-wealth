@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-27 (v3.3 — Stability & i18n fixes)
+Last updated: 2026-06-27 (v3.4 — Decimal precision, 3-scenario projection, reverse goal calculator, goal check history, debt-aware allocation)
 
 ## Current Phase
 
@@ -46,11 +46,13 @@ Default hosting URL: https://zenx-wealth.web.app
 - Reports (trend layer + estimated net worth)
 - AI Coach (LLM-backed via Claude API Cloud Function)
 - Monthly Financial Letter (download + email delivery via Resend)
-- Goal Tracking (12-month goal, multi-format parsing, on-track signal)
+- Goal Tracking (12-month goal, multi-format parsing, on-track signal) + periodic check history (read-triggered, 3-month interval, user action recording)
+- Reverse Goal Calculator (PMT inverse, compound interest, `calculateRequiredMonthlySaving`) — integrated in PlanHub
 - Financial Health Score (5-pillar composite metric)
-- Budget Templates (pre-built category structures by life phase)
+- Budget Templates (pre-built category structures by life phase) — all 5 templates now have consistent 6-key shape with `debtRepayment: 0`
+- Debt-Aware Allocation Overlay (`applyDebtOverlay`) — adjusts PYF allocation when bad debt exists, shown in PlanHub
 - User Profile + Settings
-- Onboarding Flow (6 steps: theme → language → currency+goal → numbers+age → latte projection → summary; saves primaryGoal, ageRange, estimatedDailySaving)
+- Onboarding Flow (6 steps: theme → language → currency+goal → numbers+age → latte projection → summary; saves primaryGoal, ageRange, estimatedDailySaving) — 3-scenario chart (3%/8%/11%)
 - Welcome Screen (/welcome) — guided quickstart page after onboarding (3 CTA actions)
 - Dashboard Empty State (when no transactions: centered card + CTA)
 - First Win Celebration (special toast + FAB pulse indicator on first transaction)

@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyDebtOverlay,
   buildBalanceSheet,
   buildEmergencyCoverageTrend,
+  buildLatteProjectionSeries,
   buildMonthlyCashFlowTrend,
   buildMonthlyCloseMetrics,
   calculateDashboardMetrics,
+  calculateFutureValue,
   calculateLatteMetrics,
+  calculateRequiredMonthlySaving,
   calculateWeeklyMetrics,
   estimateNetWorthTrend,
   normalizeLatteTopCategories,
@@ -152,6 +156,98 @@ describe('financialCalculations', () => {
     });
 
     expect(netWorthTrend.map((item) => item.estimatedNetWorth)).toEqual([3300, 3800, 4500]);
+  });
+});
+
+describe('calculateFutureValue — Decimal precision (Spec 1)', () => {
+  it('matches reference value for 900k/month at 8% for 240 months', () => {
+    const result = calculateFutureValue({ monthlyAmount: 900000, annualRatePct: 8, months: 240 });
+    // Reference: PMT=900000, r=8/1200, n=240 → ~536M
+    expect(result).toBeGreaterThan(500_000_000);
+    expect(result).toBeLessThan(600_000_000);
+  });
+
+  it('returns 0 for 0 months', () => {
+    expect(calculateFutureValue({ monthlyAmount: 900000, annualRatePct: 8, months: 0 })).toBe(0);
+  });
+
+  it('returns simple sum when rate is 0', () => {
+    expect(calculateFutureValue({ monthlyAmount: 1000, annualRatePct: 0, months: 10 })).toBe(10000);
+  });
+});
+
+describe('calculateRequiredMonthlySaving — reverse PMT (Spec 6)', () => {
+  it('round-trips with calculateFutureValue', () => {
+    const monthlyAmount = 900000;
+    const annualRatePct = 8;
+    const months = 240;
+    const fv = calculateFutureValue({ monthlyAmount, annualRatePct, months });
+    const result = calculateRequiredMonthlySaving({ futureValueGoal: fv, presentValue: 0, annualRatePct, months });
+    expect(result.requiredMonthlySaving).toBeCloseTo(monthlyAmount, -2); // within 100 VND
+  });
+
+  it('returns alreadyMet when PV already exceeds FV with growth', () => {
+    const result = calculateRequiredMonthlySaving({
+      futureValueGoal: 100_000_000,
+      presentValue: 200_000_000,
+      annualRatePct: 8,
+      months: 60,
+    });
+    expect(result).toMatchObject({ requiredMonthlySaving: 0, alreadyMet: true });
+  });
+
+  it('returns null for invalid input', () => {
+    expect(calculateRequiredMonthlySaving({ futureValueGoal: 0, annualRatePct: 8, months: 60 })).toBeNull();
+    expect(calculateRequiredMonthlySaving({ futureValueGoal: 100_000_000, annualRatePct: 8, months: 0 })).toBeNull();
+  });
+});
+
+describe('buildLatteProjectionSeries — 3 scenarios (Spec 5)', () => {
+  it('includes savings, invested, growth keys for each year', () => {
+    const series = buildLatteProjectionSeries(1_000_000, 5);
+    expect(series).toHaveLength(6); // years 0-5
+    expect(series[0]).toMatchObject({ year: 0, savings: 0, invested: 0, growth: 0 });
+    expect(series[5].savings).toBeGreaterThan(0);
+    expect(series[5].invested).toBeGreaterThan(series[5].savings);
+    expect(series[5].growth).toBeGreaterThan(series[5].invested);
+  });
+});
+
+describe('applyDebtOverlay (Spec Debt-Aware)', () => {
+  const base = { living: 55, emergencyFund: 15, longTermAsset: 20, businessLearning: 7, highRiskTrading: 3 };
+
+  it('no bad debt → passthrough with debtRepayment: 0', () => {
+    const result = applyDebtOverlay(base, { badDebt: 0, monthlyPayment: 0 }, 20_000_000);
+    expect(result).toMatchObject({ ...base, debtRepayment: 0 });
+  });
+
+  it('light ratio (<10%) → only zeros businessLearning and highRiskTrading', () => {
+    const result = applyDebtOverlay(base, { badDebt: 5_000_000, monthlyPayment: 1_500_000 }, 20_000_000);
+    expect(result.businessLearning).toBe(0);
+    expect(result.highRiskTrading).toBe(0);
+    // excess freed beyond debtNeedPct returns to longTermAsset, so longTermAsset >= base
+    expect(result.longTermAsset).toBeGreaterThanOrEqual(base.longTermAsset);
+    expect(result.emergencyFund).toBe(base.emergencyFund);
+    expect(result.debtRepayment).toBeGreaterThan(0);
+  });
+
+  it('total always sums to 100', () => {
+    const cases = [
+      { badDebt: 5_000_000, monthlyPayment: 1_000_000 },   // light
+      { badDebt: 10_000_000, monthlyPayment: 3_000_000 },  // moderate
+      { badDebt: 20_000_000, monthlyPayment: 6_000_000 },  // heavy
+    ];
+    for (const debt of cases) {
+      const r = applyDebtOverlay(base, { ...debt }, 20_000_000);
+      const sum = r.living + r.emergencyFund + r.longTermAsset + r.businessLearning + r.highRiskTrading + r.debtRepayment;
+      expect(sum).toBeCloseTo(100, 0);
+    }
+  });
+
+  it('floors are never violated', () => {
+    const result = applyDebtOverlay(base, { badDebt: 50_000_000, monthlyPayment: 10_000_000 }, 20_000_000);
+    expect(result.emergencyFund).toBeGreaterThanOrEqual(5);
+    expect(result.longTermAsset).toBeGreaterThanOrEqual(5);
   });
 });
 

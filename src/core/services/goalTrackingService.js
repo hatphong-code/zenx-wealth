@@ -1,8 +1,11 @@
+import { addDoc, collection, getDocs, limit, orderBy, query, serverTimestamp } from 'firebase/firestore/lite';
+import { db } from './firebaseDb';
 import { getCachedValue, loadWithCache, removeCachedValue, setCachedValue } from './sessionCache';
 import { getUserProfile } from './userService';
 import { getReports } from './reportsService';
 
 const GOAL_CACHE_TTL_MS = 60 * 60 * 1000;
+const GOAL_CHECK_INTERVAL_MONTHS = 3;
 
 function getGoalCacheKey(userId) {
   return `goal-tracking:${userId}`;
@@ -115,6 +118,45 @@ function calculateGoalProgress(profile, reports) {
   };
 }
 
+function getGoalChecksRef(userId) {
+  return collection(db, 'users', userId, 'goalChecks');
+}
+
+function monthsDiff(dateA, dateB) {
+  return (dateA.getFullYear() - dateB.getFullYear()) * 12 + (dateA.getMonth() - dateB.getMonth());
+}
+
+async function getLatestGoalCheck(userId) {
+  try {
+    const q = query(getGoalChecksRef(userId), orderBy('checkedAt', 'desc'), limit(1));
+    const snap = await getDocs(q);
+    if (snap.empty) return null;
+    const d = snap.docs[0].data();
+    return { id: snap.docs[0].id, ...d, checkedAt: d.checkedAt?.toDate?.() || new Date(d.checkedAt) };
+  } catch {
+    return null;
+  }
+}
+
+async function maybeCreateGoalCheck(userId, progress) {
+  if (!progress) return null;
+  const latest = await getLatestGoalCheck(userId);
+  const now = new Date();
+  if (latest && monthsDiff(now, latest.checkedAt) < GOAL_CHECK_INTERVAL_MONTHS) {
+    return latest;
+  }
+  const record = {
+    checkedAt: serverTimestamp(),
+    goalAmount: progress.goalAmount,
+    netWorth: progress.currentNetWorth,
+    progressPercent: progress.progressPercent,
+    isOnTrack: progress.isOnTrack,
+    userAction: null,
+  };
+  const ref = await addDoc(getGoalChecksRef(userId), record).catch(() => null);
+  return ref ? { id: ref.id, ...record, checkedAt: now } : latest;
+}
+
 async function fetchGoalTracking(userId) {
   const [profile, reports] = await Promise.all([
     getUserProfile(userId),
@@ -122,10 +164,12 @@ async function fetchGoalTracking(userId) {
   ]);
 
   const progress = calculateGoalProgress(profile, reports);
+  const latestCheck = await maybeCreateGoalCheck(userId, progress);
 
   return {
     profile,
     progress,
+    latestCheck,
     lastUpdated: new Date().toISOString(),
   };
 }
@@ -149,4 +193,10 @@ export function setGoalTrackingCache(userId, value) {
 
 export function invalidateGoalTrackingCache(userId) {
   removeCachedValue(getGoalCacheKey(userId));
+}
+
+export async function saveGoalCheckAction(userId, checkId, userAction) {
+  const { doc, setDoc } = await import('firebase/firestore/lite');
+  const ref = doc(db, 'users', userId, 'goalChecks', checkId);
+  await setDoc(ref, { userAction }, { merge: true });
 }
