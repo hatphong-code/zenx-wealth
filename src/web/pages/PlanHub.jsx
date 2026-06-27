@@ -11,7 +11,8 @@ import { usePayYourselfFirstData } from '../../core/hooks/usePayYourselfFirstDat
 import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
 import { fmtShort, formatNumber } from '../../core/utils/formatters';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
-import { calculateRequiredMonthlySaving, applyDebtOverlay } from '../../core/services/financialCalculations';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { calculateRequiredMonthlySaving, calculateFutureValue, applyDebtOverlay } from '../../core/services/financialCalculations';
 import { referenceFunds } from '../../core/data/referenceFunds';
 import NumericInput from '../components/ui/NumericInput';
 
@@ -159,14 +160,40 @@ function ReverseGoalCalculator({ t, fmt }) {
   const [years, setYears] = useState('');
   const [rate, setRate] = useState('8');
   const [result, setResult] = useState(null);
+  const [inputError, setInputError] = useState('');
+
+  function calcAt(fv, months, r) {
+    if (r < 0) return null;
+    return calculateRequiredMonthlySaving({ futureValueGoal: fv, presentValue: 0, annualRatePct: r, months });
+  }
 
   function calculate() {
-    const fv = parseFloat(goal);
-    const months = parseFloat(years) * 12;
-    const r = parseFloat(rate);
-    if (!fv || !months || isNaN(r)) return;
-    const res = calculateRequiredMonthlySaving({ futureValueGoal: fv, presentValue: 0, annualRatePct: r, months });
-    setResult(res);
+    setInputError('');
+    const fv = Number(goal);
+    const yrs = Number(years);
+    const r = Number(rate);
+
+    if (!goal || isNaN(fv) || fv <= 0) { setInputError(t('planHub.reverseGoal.errorGoal')); return; }
+    if (!years || isNaN(yrs) || yrs <= 0) { setInputError(t('planHub.reverseGoal.errorYears')); return; }
+    if (isNaN(r) || r < 0) { setInputError(t('planHub.reverseGoal.errorRate')); return; }
+
+    const months = yrs * 12;
+    const res = calcAt(fv, months, r);
+    if (!res) { setInputError(t('planHub.reverseGoal.errorCalc')); return; }
+
+    const series = Array.from({ length: Math.ceil(yrs) + 1 }, (_, yr) => {
+      const m = yr * 12;
+      const pmt = res.requiredMonthlySaving || 0;
+      return {
+        yr,
+        low:    calculateFutureValue({ monthlyAmount: pmt, annualRatePct: Math.max(0, r - 1), months: m }),
+        center: calculateFutureValue({ monthlyAmount: pmt, annualRatePct: r, months: m }),
+        high:   calculateFutureValue({ monthlyAmount: pmt, annualRatePct: r + 1, months: m }),
+        goal:   fv,
+      };
+    });
+
+    setResult({ center: res, low: calcAt(fv, months, r - 1), high: calcAt(fv, months, r + 1), r, series, fv });
   }
 
   return (
@@ -177,33 +204,93 @@ function ReverseGoalCalculator({ t, fmt }) {
       <div className="space-y-3">
         <div>
           <label htmlFor="rg-goal" className="text-xs text-zx-text-soft block mb-1">{t('planHub.reverseGoal.goalLabel')}</label>
-          <NumericInput id="rg-goal" placeholder="e.g. 2000000000" value={goal} onChange={e => { setGoal(e.target.value); setResult(null); }} />
+          <NumericInput id="rg-goal" placeholder="2000000000" value={goal}
+            onChange={e => { setGoal(e.target.value); setResult(null); setInputError(''); }} />
+          {goal && Number(goal) > 0 && (
+            <p className="text-xs text-zx-text-soft mt-1.5">{fmt(Number(goal))}</p>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label htmlFor="rg-years" className="text-xs text-zx-text-soft block mb-1">{t('planHub.reverseGoal.yearsLabel')}</label>
-            <NumericInput id="rg-years" placeholder="20" value={years} onChange={e => { setYears(e.target.value); setResult(null); }} />
+            <NumericInput id="rg-years" placeholder="20" value={years}
+              onChange={e => { setYears(e.target.value); setResult(null); setInputError(''); }} />
           </div>
           <div>
             <label htmlFor="rg-rate" className="text-xs text-zx-text-soft block mb-1">{t('planHub.reverseGoal.rateLabel')}</label>
-            <NumericInput id="rg-rate" placeholder="8" value={rate} onChange={e => { setRate(e.target.value); setResult(null); }} />
+            <NumericInput id="rg-rate" placeholder="8" value={rate}
+              onChange={e => { setRate(e.target.value); setResult(null); setInputError(''); }} />
           </div>
         </div>
-        <button onClick={calculate}
-          className="w-full rounded-zx-sm bg-zx-surface-2 border border-zx-line py-2.5 text-sm font-medium text-zx-text hover:bg-zx-line transition">
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { label: t('planHub.reverseGoal.ratePresetSavings'), value: '5' },
+            { label: t('planHub.reverseGoal.ratePresetInvested'), value: '8' },
+            { label: t('planHub.reverseGoal.ratePresetGrowth'),  value: '11' },
+          ].map(preset => (
+            <button key={preset.value} type="button"
+              onClick={() => { setRate(preset.value); setResult(null); setInputError(''); }}
+              className={`rounded-zx-pill border px-2.5 py-1 text-[11px] transition ${
+                rate === preset.value
+                  ? 'border-zx-accent bg-zx-accent/10 text-zx-accent font-semibold'
+                  : 'border-zx-line text-zx-text-soft hover:border-zx-accent/50 hover:text-zx-text'
+              }`}>
+              {preset.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-[11px] text-zx-text-soft">{t('planHub.reverseGoal.rateHint')}</p>
+        {inputError && <p className="text-xs text-zx-negative">{inputError}</p>}
+        <button type="button" onClick={calculate}
+          className="w-full rounded-zx-sm bg-zx-accent py-2.5 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
           {t('planHub.reverseGoal.calculate')}
         </button>
         {result && (
-          <div className="rounded-zx-sm bg-zx-surface-2 p-3 text-center">
-            {result.alreadyMet ? (
-              <p className="text-sm text-zx-positive font-medium">{t('planHub.reverseGoal.alreadyMet')}</p>
+          <div className="rounded-zx-sm bg-zx-surface-2 p-3">
+            {result.center.alreadyMet ? (
+              <p className="text-sm text-zx-positive font-medium text-center">{t('planHub.reverseGoal.alreadyMet')}</p>
             ) : (
               <>
-                <p className="text-xs text-zx-text-soft mb-1">{t('planHub.reverseGoal.resultLabel')}</p>
-                <p className="font-zx-display text-xl font-bold text-zx-accent">
-                  {fmt(result.requiredMonthlySaving)}{t('planHub.reverseGoal.perMonth')}
-                </p>
-                <p className="text-[11px] text-zx-text-soft mt-1">{t('planHub.reverseGoal.adjustHint')}</p>
+                <p className="text-xs text-zx-text-soft mb-2 text-center">{t('planHub.reverseGoal.resultLabel')}</p>
+                <div className="grid grid-cols-3 gap-1 text-center">
+                  {[
+                    { res: result.low,    rLabel: `${result.r - 1}%`, muted: true },
+                    { res: result.center, rLabel: `${result.r}%`,     muted: false },
+                    { res: result.high,   rLabel: `${result.r + 1}%`, muted: true },
+                  ].map(({ res, rLabel, muted }) => (
+                    <div key={rLabel} className={`rounded-zx-sm p-2 ${muted ? '' : 'bg-zx-surface ring-1 ring-zx-accent/30'}`}>
+                      <p className={`text-[10px] mb-1 ${muted ? 'text-zx-text-soft' : 'text-zx-accent font-semibold'}`}>{rLabel}</p>
+                      {!res || res.alreadyMet ? (
+                        <p className="text-[11px] text-zx-positive font-semibold">✓</p>
+                      ) : (
+                        <p className={`font-zx-display text-sm font-bold leading-tight ${muted ? 'text-zx-text-soft' : 'text-zx-accent'}`}>
+                          {fmt(res.requiredMonthlySaving)}
+                        </p>
+                      )}
+                      <p className="text-[10px] text-zx-text-soft">{t('planHub.reverseGoal.perMonth')}</p>
+                    </div>
+                  ))}
+                </div>
+                {result.series && (
+                  <div className="mt-3 h-40">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={result.series} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                        <XAxis dataKey="yr" tick={{ fontSize: 10 }} tickFormatter={y => `${y}y`} />
+                        <YAxis hide />
+                        <Tooltip
+                          formatter={(v, name) => [fmt(v), name === 'goal' ? t('planHub.reverseGoal.chartGoal') : `${name === 'low' ? result.r - 1 : name === 'high' ? result.r + 1 : result.r}%`]}
+                          labelFormatter={yr => `${t('planHub.reverseGoal.chartYear')} ${yr}`}
+                          contentStyle={{ fontSize: 11 }}
+                        />
+                        <Line type="monotone" dataKey="low"    stroke="var(--zx-text-soft)" strokeWidth={1.5} dot={false} strokeDasharray="3 2" />
+                        <Line type="monotone" dataKey="center" stroke="var(--zx-accent)"    strokeWidth={2.5} dot={false} />
+                        <Line type="monotone" dataKey="high"   stroke="var(--zx-positive)"  strokeWidth={1.5} dot={false} strokeDasharray="3 2" />
+                        <Line type="monotone" dataKey="goal"   stroke="var(--zx-gold)"      strokeWidth={1}   dot={false} strokeDasharray="4 3" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                <p className="text-[10px] text-zx-text-soft mt-2 text-center">{t('planHub.reverseGoal.adjustHint')}</p>
               </>
             )}
           </div>
