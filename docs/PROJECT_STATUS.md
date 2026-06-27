@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-27 (v3.4 — Decimal precision, 3-scenario projection, reverse goal calculator, goal check history, debt-aware allocation)
+Last updated: 2026-06-27 (v3.5 — Spec 1/5/6/7 + Debt-Aware Allocation + Fund Reference List MVP)
 
 ## Current Phase
 
@@ -51,6 +51,7 @@ Default hosting URL: https://zenx-wealth.web.app
 - Financial Health Score (5-pillar composite metric)
 - Budget Templates (pre-built category structures by life phase) — all 5 templates now have consistent 6-key shape with `debtRepayment: 0`
 - Debt-Aware Allocation Overlay (`applyDebtOverlay`) — adjusts PYF allocation when bad debt exists, shown in PlanHub
+- Fund Reference List MVP (Phase 1) — 10 curated VN funds in PlanHub collapsible section (`src/core/data/referenceFunds.js`), card/table responsive, prominent disclaimer. Historical returns null pending manual factsheet curation.
 - User Profile + Settings
 - Onboarding Flow (6 steps: theme → language → currency+goal → numbers+age → latte projection → summary; saves primaryGoal, ageRange, estimatedDailySaving) — 3-scenario chart (3%/8%/11%)
 - Welcome Screen (/welcome) — guided quickstart page after onboarding (3 CTA actions)

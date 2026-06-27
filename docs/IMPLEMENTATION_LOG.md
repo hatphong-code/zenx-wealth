@@ -2,6 +2,14 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-27 — Fund Reference List Phase 1
+
+**Phase 0 xác nhận:** vị trí = PlanHub section, data = static curated file (API approach requires undocumented fmarket endpoint + Python stack không match Node.js backend), auto_investing_started = giữ thủ công.
+**Phase 1 implement:** 10 quỹ đại diện trong `src/core/data/referenceFunds.js` (VEOF, VDEF, VCBF-BCF, VCBF-TBF, VCBF-FIF, SSI-SCA, SSI-IMF, VFMVN30, VFMVSF, MABF). UI: collapsible section trong PlanHub, card mobile / table desktop. Disclaimer nổi bật. Historical returns để null — cần cập nhật tay từ factsheet.
+**Files:** `src/core/data/referenceFunds.js`, `src/web/pages/PlanHub.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-27 — Spec 1/5/6/7 + Debt-Aware Allocation Overlay
 
 **Spec 1 — Decimal precision:**
