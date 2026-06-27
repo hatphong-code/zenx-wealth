@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Circle, Lock } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Circle, Lock } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { useDashboardStats } from '../../core/hooks/useDashboardStats';
@@ -12,6 +12,7 @@ import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
 import { fmtShort, formatNumber } from '../../core/utils/formatters';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import { calculateRequiredMonthlySaving, applyDebtOverlay } from '../../core/services/financialCalculations';
+import { referenceFunds } from '../../core/data/referenceFunds';
 import NumericInput from '../components/ui/NumericInput';
 
 function HL() { return <div className="h-px bg-zx-line" />; }
@@ -432,6 +433,108 @@ export default function PlanHub() {
           <ReverseGoalCalculator t={t} fmt={fmt} />
         </div>
       </div>
+      {/* ── Fund Reference List ── */}
+      <ReferenceFundList t={t} />
+    </div>
+  );
+}
+
+function ReferenceFundList({ t }) {
+  const [open, setOpen] = useState(false);
+
+  const RISK_COLOR = ['', 'text-zx-positive', 'text-zx-positive', 'text-zx-gold', 'text-zx-accent', 'text-zx-negative'];
+
+  return (
+    <div className="mt-8 border-t border-zx-line pt-6">
+      <button onClick={() => setOpen(v => !v)}
+        className="flex items-center justify-between w-full text-left group">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft group-hover:text-zx-text transition">
+          {t('planHub.funds.sectionTitle')}
+        </p>
+        {open
+          ? <ChevronUp className="h-4 w-4 text-zx-text-soft" />
+          : <ChevronDown className="h-4 w-4 text-zx-text-soft" />}
+      </button>
+
+      {open && (
+        <div className="mt-4 space-y-4">
+          <p className="text-xs text-zx-text-soft bg-zx-surface-2 rounded-zx-sm px-3 py-2 leading-relaxed">
+            ⚠ {t('planHub.funds.disclaimer')}
+          </p>
+
+          {/* Mobile: card list */}
+          <div className="md:hidden space-y-3">
+            {referenceFunds.map(fund => (
+              <div key={fund.id} className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-semibold text-sm text-zx-text">{fund.name}</p>
+                    <p className="text-xs text-zx-text-soft">{fund.manager}</p>
+                  </div>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zx-surface-2 text-zx-text-soft shrink-0">
+                    {t(`planHub.funds.assetType.${fund.assetType}`)}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div>
+                    <p className="text-zx-text-soft">{t('planHub.funds.colAge')}</p>
+                    <p className="font-semibold text-zx-text">{fund.fundAgeYears}{t('planHub.funds.ageUnit')}</p>
+                  </div>
+                  <div>
+                    <p className="text-zx-text-soft">{t('planHub.funds.colAum')}</p>
+                    <p className="font-semibold text-zx-text">{fund.aumBillion.toLocaleString()} {t('planHub.funds.aumUnit')}</p>
+                  </div>
+                  <div>
+                    <p className="text-zx-text-soft">{t('planHub.funds.colRisk')}</p>
+                    <p className={`font-semibold ${RISK_COLOR[fund.riskTier] || ''}`}>
+                      {t('planHub.funds.riskTier', { n: fund.riskTier })}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-zx-text-soft">{t('planHub.funds.colExpense')}: {fund.expenseRatioPct}{t('planHub.funds.expenseUnit')}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <div className="hidden md:block overflow-x-auto rounded-zx border border-zx-line">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-zx-line bg-zx-surface-2">
+                  {['colName', 'colType', 'colAge', 'colAum', 'colExpense', 'colRisk'].map(col => (
+                    <th key={col} className="px-3 py-2.5 text-left font-semibold text-zx-text-soft uppercase tracking-[0.1em]">
+                      {t(`planHub.funds.${col}`)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zx-line">
+                {referenceFunds.map(fund => (
+                  <tr key={fund.id} className="bg-zx-surface hover:bg-zx-surface-2 transition">
+                    <td className="px-3 py-3">
+                      <p className="font-semibold text-zx-text">{fund.name}</p>
+                      <p className="text-zx-text-soft">{fund.manager}</p>
+                    </td>
+                    <td className="px-3 py-3 text-zx-text-soft">
+                      {t(`planHub.funds.assetType.${fund.assetType}`)}
+                    </td>
+                    <td className="px-3 py-3 text-zx-text">{fund.fundAgeYears}{t('planHub.funds.ageUnit')}</td>
+                    <td className="px-3 py-3 text-zx-text">{fund.aumBillion.toLocaleString()} {t('planHub.funds.aumUnit')}</td>
+                    <td className="px-3 py-3 text-zx-text">{fund.expenseRatioPct}{t('planHub.funds.expenseUnit')}</td>
+                    <td className={`px-3 py-3 font-semibold ${RISK_COLOR[fund.riskTier] || ''}`}>
+                      {t('planHub.funds.riskTier', { n: fund.riskTier })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="text-[10px] text-zx-text-soft text-right">
+            {t('planHub.funds.colSource')}: {referenceFunds[0]?.source?.split(' — ')[0]} — 2026-06
+          </p>
+        </div>
+      )}
     </div>
   );
 }
