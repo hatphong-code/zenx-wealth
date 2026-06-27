@@ -45,7 +45,7 @@ function ChartShell({ title, subtitle, isEmpty, children }) {
 }
 
 function isEmptyTrend(arr) {
-  return !arr?.length || arr.every(d => !d.income && !d.expense && !d.value && !d.netWorth && !d.estimated);
+  return !arr?.length || arr.every(d => !d.income && !d.expense && !d.estimatedNetWorth && !d.monthsCovered && !d.balance);
 }
 
 function sliceTrend(arr, preset, customRange) {

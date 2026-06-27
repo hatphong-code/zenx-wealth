@@ -2,6 +2,28 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-27 — Reports stability + AI Coach i18n + locale-switch access bug
+
+**Reports intermittent loading:**
+- Root cause: `Promise.all` in `computeReports` — any one of 11 service calls failing aborted the entire computation. Also `await setDoc` blocked return even when compute succeeded.
+- Fix: replaced `Promise.all` with `Promise.allSettled` + per-service safe fallbacks; made snapshot `setDoc` fire-and-forget.
+- Root cause 2: `useReportsData` DEFAULT had wrong field names (`cashFlowTrend`, `closeMetrics`) vs what `Reports.jsx` accesses (`data.trends.cashFlow`, `data.monthlyClose`). On cold load (no session cache), `data.trends` was `undefined` → crash → black screen.
+- Fix: replaced hardcoded DEFAULT with `normalizeReports({})` so shape always matches.
+- Root cause 3: `isEmptyTrend` checked wrong field names for Net Worth (`estimatedNetWorth`) and Emergency Fund (`monthsCovered`) charts → both always showed empty state.
+- Fix: added correct field names to `isEmptyTrend`.
+
+**Locale-switch causing feature-locked screen:**
+- Root cause: `LocaleToggle.changeLocale` called `setUserProfileCache` with a fake profile (no `subscriptionTier`) when profile cache was null → `notifyUserProfileChanged` fired → `handleAccessChange` rebuilt state with `subscriptionTier: 'free'` → `canAccess('reports')` = false.
+- Fix 1 (`AppShell.jsx`): skip `setUserProfileCache` when cached profile is null.
+- Fix 2 (`useFeatureAccess.js`): functional setState in `handleAccessChange` falls back to existing state values when cache is expired.
+
+**AI Coach i18n incomplete:**
+- Root cause: `useAICoachData` only had `[userId]` as dependency; locale change didn't trigger re-fetch; `fetchAICoach` read locale from (potentially cached) profile.
+- Fix: `getAICoach` / `fetchAICoach` accept explicit `locale` param; `useAICoachData(userId, locale)` adds locale to dependency array; `AICoach.jsx` passes `locale` from `useI18n`.
+- Files: `src/core/services/reportsService.js`, `src/core/hooks/useReportsData.js`, `src/web/pages/Reports.jsx`, `src/web/components/AppShell.jsx`, `src/core/hooks/useFeatureAccess.js`, `src/core/services/aiCoachService.js`, `src/core/hooks/useAICoachData.js`, `src/web/pages/AICoach.jsx`
+
+---
+
 ## 2026-06-23 — Fix vertical scroll on hub pages (Dashboard, PlanHub, TrackHub, ReviewHub)
 
 - Root cause 1 (mobile): `touchAction: 'manipulation'` in `GestureNavigationWrapper` blocked all touch pan events, including vertical scroll. Changed to `touchAction: 'pan-y'` — browser now handles vertical scroll natively while JS still detects horizontal swipe deltaX.

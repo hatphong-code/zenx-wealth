@@ -65,7 +65,13 @@ export function useFeatureAccess(user) {
     if (typeof window === 'undefined' || !user?.uid) return undefined;
 
     const handleAccessChange = () => {
-      setState(buildState(user, getCachedUserProfile(user.uid), getCachedAccessControl()));
+      // Use functional update so we can fall back to existing state values when cache is expired,
+      // preventing a cache miss from resetting subscriptionTier to 'free'
+      setState(prev => {
+        const freshProfile = getCachedUserProfile(user.uid);
+        const freshAC = getCachedAccessControl();
+        return buildState(user, freshProfile ?? prev.profile, freshAC ?? prev.accessControl);
+      });
     };
 
     const handleUserChange = (event) => {

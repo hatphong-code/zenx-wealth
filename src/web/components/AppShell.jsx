@@ -178,12 +178,14 @@ function LocaleToggle({ compact = false }) {
 
   const changeLocale = async (nextLocale) => {
     setLocale(nextLocale);
-    // Sync to Firestore so services generate text in correct language
     if (!user) return;
     try {
       const cached = getCachedUserProfile(user.uid);
-      const next = { ...(cached || {}), settings: { ...(cached?.settings || {}), locale: nextLocale } };
-      setUserProfileCache(user.uid, next);
+      // Only update cache if we have a real profile — prevents writing a fake profile
+      // that strips subscriptionTier and causes feature-gating to reset to 'free'
+      if (cached) {
+        setUserProfileCache(user.uid, { ...cached, settings: { ...cached.settings, locale: nextLocale } });
+      }
       await updateLocale(user.uid, nextLocale);
     } catch {}
   };

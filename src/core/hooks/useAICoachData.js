@@ -11,7 +11,7 @@ const defaultState = {
   actions: [],
 };
 
-export function useAICoachData(userId) {
+export function useAICoachData(userId, locale) {
   const [data, setData] = useState(defaultState);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -31,7 +31,7 @@ export function useAICoachData(userId) {
     }
 
     let active = true;
-    getAICoach(userId, { forceFresh: true })
+    getAICoach(userId, { forceFresh: true, locale })
       .then((value) => {
         if (!active) return;
         setData(value);
@@ -50,7 +50,7 @@ export function useAICoachData(userId) {
     return () => {
       active = false;
     };
-  }, [userId]);
+  }, [userId, locale]);
 
   return { data, setData, loading, refreshing, error, setError };
 }

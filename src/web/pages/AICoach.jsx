@@ -35,8 +35,8 @@ function toneIcon(tone) {
 
 export default function AICoach() {
   const { user } = useAuth();
-  const { t } = useI18n();
-  const { data, loading, refreshing, error } = useAICoachData(user?.uid);
+  const { t, locale } = useI18n();
+  const { data, loading, refreshing, error } = useAICoachData(user?.uid, locale);
   const { data: reports } = useReportsData(user?.uid);
   const { data: roadmap } = useWealthRoadmapData(user?.uid);
 

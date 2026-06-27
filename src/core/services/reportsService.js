@@ -152,7 +152,8 @@ async function computeReports(userId) {
   const thirteenMonthsAgo = new Date();
   thirteenMonthsAgo.setMonth(thirteenMonthsAgo.getMonth() - 13);
 
-  const [profile, dashboard, latte, weekly, roadmap, debts, income, tradingRisk, assets, recentTransactions, emergencyState] = await Promise.all([
+  // Use allSettled so a single service failure doesn't abort the entire report computation.
+  const settled = await Promise.allSettled([
     getUserProfile(userId),
     getDashboardStats(userId),
     getLatteFactor(userId),
@@ -165,6 +166,26 @@ async function computeReports(userId) {
     getTransactionsSince(userId, thirteenMonthsAgo),
     getEmergencyFund(userId),
   ]);
+
+  settled.forEach((result, i) => {
+    if (result.status === 'rejected') {
+      console.warn(`[reports] service[${i}] failed:`, result.reason?.message);
+    }
+  });
+
+  const val = (i) => settled[i].status === 'fulfilled' ? settled[i].value : null;
+
+  const profile       = val(0)  ?? { settings: {} };
+  const dashboard     = val(1)  ?? { netCashFlow: 0, latteFactor: 0, emergencyMonths: 0, payYourselfProgress: 0, currency: 'VND' };
+  const latte         = val(2)  ?? { total: 0, topCategories: [] };
+  const weekly        = val(3)  ?? { review: {} };
+  const roadmap       = val(4)  ?? { currentPhaseId: '', completedPhases: 0, phases: [] };
+  const debts         = val(5)  ?? { summary: { monthlyPayment: 0 } };
+  const income        = val(6)  ?? { summary: { activeSources: 0, currentMonthlyIncome: 0, targetMonthlyIncome: 0 } };
+  const tradingRisk   = val(7)  ?? { summary: { daily: { status: 'No capital' }, weekly: { status: 'No capital' }, monthly: { status: 'No capital' }, todayPnl: 0, monthPnl: 0 } };
+  const assets        = val(8)  ?? { summary: { totalAssets: 0, longTermAssets: 0, riskAssets: 0 } };
+  const recentTransactions = val(9) ?? [];
+  const emergencyState     = val(10) ?? { records: [] };
 
   const debtPressure = dashboard.netCashFlow > 0
     ? debts.summary.monthlyPayment / Math.max(1, dashboard.netCashFlow)
@@ -271,10 +292,13 @@ async function fetchReports(userId) {
   }
 
   const reports = await computeReports(userId);
-  await setDoc(getReportsSnapshotRef(userId), {
+  // Fire-and-forget — don't let snapshot write failure block the return
+  setDoc(getReportsSnapshotRef(userId), {
     ...reports,
     updatedAt: serverTimestamp(),
-  }, { merge: true });
+  }, { merge: true }).catch(err => {
+    console.warn('[reports] Failed to save snapshot:', err?.message);
+  });
 
   return reports;
 }

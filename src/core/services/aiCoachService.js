@@ -202,26 +202,27 @@ export function buildCoachState({ profile, reports, roadmap, locale = 'vi' }) {
   };
 }
 
-async function fetchAICoach(userId) {
+async function fetchAICoach(userId, locale) {
   const [profile, reports, roadmap] = await Promise.all([
     getUserProfile(userId),
     getReports(userId),
     getWealthRoadmap(userId),
   ]);
 
-  return buildCoachState({ profile, reports, roadmap, locale: profile.settings?.locale || 'vi' });
+  const effectiveLocale = locale || profile.settings?.locale || 'vi';
+  return buildCoachState({ profile, reports, roadmap, locale: effectiveLocale });
 }
 
 export function getCachedAICoach(userId) {
   return getCachedValue(getAICoachCacheKey(userId), AI_COACH_CACHE_TTL_MS);
 }
 
-export function getAICoach(userId, { forceFresh = false } = {}) {
+export function getAICoach(userId, { forceFresh = false, locale } = {}) {
   return loadWithCache({
     key: getAICoachCacheKey(userId),
     maxAgeMs: AI_COACH_CACHE_TTL_MS,
     forceFresh,
-    loader: () => fetchAICoach(userId),
+    loader: () => fetchAICoach(userId, locale),
   });
 }
 

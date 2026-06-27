@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-23 (v3.2 — Architecture Switch Complete)
+Last updated: 2026-06-27 (v3.3 — Stability & i18n fixes)
 
 ## Current Phase
 
