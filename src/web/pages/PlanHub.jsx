@@ -526,11 +526,73 @@ export default function PlanHub() {
   );
 }
 
+const RISK_COLOR = ['', 'text-zx-positive', 'text-zx-positive', 'text-zx-gold', 'text-zx-accent', 'text-zx-negative'];
+const RISK_GROUPS = { low: [1, 2], mid: [3], high: [4, 5] };
+const ASSET_TYPES = ['equity', 'balanced', 'bond', 'etf', 'money_market', 'flexible'];
+
+function ReturnVal({ value }) {
+  if (value == null) return <span className="text-zx-text-soft">—</span>;
+  const cls = value >= 0 ? 'text-zx-positive' : 'text-zx-negative';
+  return <span className={`font-semibold ${cls}`}>{value > 0 ? '+' : ''}{value}%</span>;
+}
+
+function SortTh({ col, label, sortKey, sortDir, onSort, align = 'left' }) {
+  const active = sortKey === col;
+  return (
+    <th onClick={() => onSort(col)}
+      className={`px-3 py-2.5 font-semibold text-[10px] uppercase tracking-[0.1em] cursor-pointer select-none whitespace-nowrap transition
+        ${active ? 'text-zx-accent' : 'text-zx-text-soft hover:text-zx-text'}
+        ${align === 'right' ? 'text-right' : 'text-left'}`}>
+      {label}
+      <span className="ml-1 opacity-60">{active ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}</span>
+    </th>
+  );
+}
+
+function FundFilterChip({ active, onClick, children }) {
+  return (
+    <button type="button" onClick={onClick}
+      className={`rounded-zx-pill border px-2.5 py-1 text-[11px] transition whitespace-nowrap ${
+        active
+          ? 'border-zx-accent bg-zx-accent/10 text-zx-accent font-semibold'
+          : 'border-zx-line text-zx-text-soft hover:border-zx-accent/50 hover:text-zx-text'
+      }`}>
+      {children}
+    </button>
+  );
+}
+
 function ReferenceFundList({ t }) {
   const [open, setOpen] = useState(false);
   const { data: funds } = useFundsData();
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [riskFilter, setRiskFilter] = useState('all');
+  const [sortKey, setSortKey] = useState('aumBillion');
+  const [sortDir, setSortDir] = useState('desc');
 
-  const RISK_COLOR = ['', 'text-zx-positive', 'text-zx-positive', 'text-zx-gold', 'text-zx-accent', 'text-zx-negative'];
+  function handleSort(col) {
+    if (sortKey === col) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(col);
+      setSortDir(['return1y', 'return3y', 'aumBillion'].includes(col) ? 'desc' : 'asc');
+    }
+  }
+
+  const visible = [...funds]
+    .filter(f => typeFilter === 'all' || f.assetType === typeFilter)
+    .filter(f => riskFilter === 'all' || RISK_GROUPS[riskFilter]?.includes(f.riskTier))
+    .sort((a, b) => {
+      let av, bv;
+      if (sortKey === 'return1y')  { av = a.historicalReturns?.['1y'] ?? -999; bv = b.historicalReturns?.['1y'] ?? -999; }
+      else if (sortKey === 'return3y') { av = a.historicalReturns?.['3y'] ?? -999; bv = b.historicalReturns?.['3y'] ?? -999; }
+      else if (sortKey === 'name') { av = a.name; bv = b.name; }
+      else { av = a[sortKey] ?? 0; bv = b[sortKey] ?? 0; }
+      if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+      return sortDir === 'asc' ? av - bv : bv - av;
+    });
+
+  const usedTypes = [...new Set(funds.map(f => f.assetType))];
 
   return (
     <div className="mt-8 border-t border-zx-line pt-6">
@@ -538,10 +600,9 @@ function ReferenceFundList({ t }) {
         className="flex items-center justify-between w-full text-left group">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft group-hover:text-zx-text transition">
           {t('planHub.funds.sectionTitle')}
+          <span className="ml-2 normal-case font-normal text-zx-text-soft/60">({funds.length})</span>
         </p>
-        {open
-          ? <ChevronUp className="h-4 w-4 text-zx-text-soft" />
-          : <ChevronDown className="h-4 w-4 text-zx-text-soft" />}
+        {open ? <ChevronUp className="h-4 w-4 text-zx-text-soft" /> : <ChevronDown className="h-4 w-4 text-zx-text-soft" />}
       </button>
 
       {open && (
@@ -550,73 +611,118 @@ function ReferenceFundList({ t }) {
             ⚠ {t('planHub.funds.disclaimer')}
           </p>
 
-          {/* Mobile: card list */}
-          <div className="md:hidden space-y-3">
-            {funds.map(fund => (
-              <div key={fund.id} className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-semibold text-sm text-zx-text">{fund.name}</p>
-                    <p className="text-xs text-zx-text-soft">{fund.manager}</p>
-                  </div>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zx-surface-2 text-zx-text-soft shrink-0">
-                    {t(`planHub.funds.assetType.${fund.assetType}`)}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                  <div>
-                    <p className="text-zx-text-soft">{t('planHub.funds.colAge')}</p>
-                    <p className="font-semibold text-zx-text">{fund.fundAgeYears}{t('planHub.funds.ageUnit')}</p>
-                  </div>
-                  <div>
-                    <p className="text-zx-text-soft">{t('planHub.funds.colAum')}</p>
-                    <p className="font-semibold text-zx-text">{fund.aumBillion.toLocaleString()} {t('planHub.funds.aumUnit')}</p>
-                  </div>
-                  <div>
-                    <p className="text-zx-text-soft">{t('planHub.funds.colRisk')}</p>
-                    <p className={`font-semibold ${RISK_COLOR[fund.riskTier] || ''}`}>
-                      {t('planHub.funds.riskTier', { n: fund.riskTier })}
-                    </p>
-                  </div>
-                </div>
-                <p className="text-[10px] text-zx-text-soft">{t('planHub.funds.colExpense')}: {fund.expenseRatioPct}{t('planHub.funds.expenseUnit')}</p>
-              </div>
-            ))}
+          {/* Filters */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-1.5">
+              <FundFilterChip active={typeFilter === 'all'} onClick={() => setTypeFilter('all')}>
+                {t('planHub.funds.filterAll')}
+              </FundFilterChip>
+              {usedTypes.map(type => (
+                <FundFilterChip key={type} active={typeFilter === type} onClick={() => setTypeFilter(type)}>
+                  {t(`planHub.funds.assetType.${type}`)}
+                </FundFilterChip>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { key: 'all', label: t('planHub.funds.filterAll') },
+                { key: 'low',  label: `${t('planHub.funds.riskLow')} (1–2)` },
+                { key: 'mid',  label: `${t('planHub.funds.riskMid')} (3)` },
+                { key: 'high', label: `${t('planHub.funds.riskHigh')} (4–5)` },
+              ].map(({ key, label }) => (
+                <FundFilterChip key={key} active={riskFilter === key} onClick={() => setRiskFilter(key)}>
+                  {label}
+                </FundFilterChip>
+              ))}
+            </div>
           </div>
 
-          {/* Desktop: table */}
-          <div className="hidden md:block overflow-x-auto rounded-zx border border-zx-line">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-zx-line bg-zx-surface-2">
-                  {['colName', 'colType', 'colAge', 'colAum', 'colExpense', 'colRisk'].map(col => (
-                    <th key={col} className="px-3 py-2.5 text-left font-semibold text-zx-text-soft uppercase tracking-[0.1em]">
-                      {t(`planHub.funds.${col}`)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zx-line">
-                {funds.map(fund => (
-                  <tr key={fund.id} className="bg-zx-surface hover:bg-zx-surface-2 transition">
-                    <td className="px-3 py-3">
-                      <p className="font-semibold text-zx-text">{fund.name}</p>
-                      <p className="text-zx-text-soft">{fund.manager}</p>
-                    </td>
-                    <td className="px-3 py-3 text-zx-text-soft">
+          {visible.length === 0 && (
+            <p className="text-sm text-zx-text-soft text-center py-4">{t('planHub.funds.noResults')}</p>
+          )}
+
+          {/* Mobile: cards */}
+          {visible.length > 0 && (
+            <div className="md:hidden space-y-3">
+              {visible.map(fund => (
+                <div key={fund.id} className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold text-sm text-zx-text">{fund.name}</p>
+                      <p className="text-xs text-zx-text-soft">{fund.manager}</p>
+                    </div>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zx-surface-2 text-zx-text-soft shrink-0">
                       {t(`planHub.funds.assetType.${fund.assetType}`)}
-                    </td>
-                    <td className="px-3 py-3 text-zx-text">{fund.fundAgeYears}{t('planHub.funds.ageUnit')}</td>
-                    <td className="px-3 py-3 text-zx-text">{fund.aumBillion.toLocaleString()} {t('planHub.funds.aumUnit')}</td>
-                    <td className="px-3 py-3 text-zx-text">{fund.expenseRatioPct}{t('planHub.funds.expenseUnit')}</td>
-                    <td className={`px-3 py-3 font-semibold ${RISK_COLOR[fund.riskTier] || ''}`}>
-                      {t('planHub.funds.riskTier', { n: fund.riskTier })}
-                    </td>
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                    <div>
+                      <p className="text-zx-text-soft">{t('planHub.funds.colRisk')}</p>
+                      <p className={`font-semibold ${RISK_COLOR[fund.riskTier] || ''}`}>{fund.riskTier}/5</p>
+                    </div>
+                    <div>
+                      <p className="text-zx-text-soft">{t('planHub.funds.colExpense')}</p>
+                      <p className="font-semibold text-zx-text">{fund.expenseRatioPct}%</p>
+                    </div>
+                    <div>
+                      <p className="text-zx-text-soft">{t('planHub.funds.col1y')}</p>
+                      <ReturnVal value={fund.historicalReturns?.['1y']} />
+                    </div>
+                    <div>
+                      <p className="text-zx-text-soft">{t('planHub.funds.col3y')}</p>
+                      <ReturnVal value={fund.historicalReturns?.['3y']} />
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-[10px] text-zx-text-soft">
+                    <span>{fund.fundAgeYears}{t('planHub.funds.ageUnit')} · {(fund.aumBillion ?? 0).toLocaleString()} {t('planHub.funds.aumUnit')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Desktop: table */}
+          {visible.length > 0 && (
+            <div className="hidden md:block overflow-x-auto rounded-zx border border-zx-line">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-zx-line bg-zx-surface-2">
+                    <SortTh col="name"         label={t('planHub.funds.colName')}    sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                    <th className="px-3 py-2.5 text-left text-[10px] font-semibold text-zx-text-soft uppercase tracking-[0.1em]">{t('planHub.funds.colType')}</th>
+                    <SortTh col="fundAgeYears" label={t('planHub.funds.colAge')}     sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+                    <SortTh col="aumBillion"   label={t('planHub.funds.colAum')}     sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+                    <SortTh col="expenseRatioPct" label={t('planHub.funds.colExpense')} sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+                    <SortTh col="riskTier"     label={t('planHub.funds.colRisk')}    sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+                    <SortTh col="return1y"     label={t('planHub.funds.col1y')}      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+                    <SortTh col="return3y"     label={t('planHub.funds.col3y')}      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-zx-line">
+                  {visible.map(fund => (
+                    <tr key={fund.id} className="bg-zx-surface hover:bg-zx-surface-2 transition">
+                      <td className="px-3 py-3">
+                        <p className="font-semibold text-zx-text">{fund.name}</p>
+                        <p className="text-zx-text-soft text-[11px]">{fund.manager}</p>
+                      </td>
+                      <td className="px-3 py-3">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zx-surface-2 text-zx-text-soft whitespace-nowrap">
+                          {t(`planHub.funds.assetType.${fund.assetType}`)}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-right text-zx-text-soft">{fund.fundAgeYears}{t('planHub.funds.ageUnit')}</td>
+                      <td className="px-3 py-3 text-right text-zx-text whitespace-nowrap">{(fund.aumBillion ?? 0).toLocaleString()} {t('planHub.funds.aumUnit')}</td>
+                      <td className="px-3 py-3 text-right text-zx-text">{fund.expenseRatioPct}%</td>
+                      <td className={`px-3 py-3 text-right font-semibold ${RISK_COLOR[fund.riskTier] || ''}`}>
+                        {fund.riskTier}/5
+                      </td>
+                      <td className="px-3 py-3 text-right"><ReturnVal value={fund.historicalReturns?.['1y']} /></td>
+                      <td className="px-3 py-3 text-right"><ReturnVal value={fund.historicalReturns?.['3y']} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <p className="text-[10px] text-zx-text-soft text-right">
             {t('planHub.funds.colSource')}: {funds[0]?.source?.split(' — ')[0] ?? 'Factsheet'}
