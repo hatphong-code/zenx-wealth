@@ -385,6 +385,7 @@ export default {
     tabImport: 'Import CSV',
     colName: 'Tên quỹ',
     colType: 'Loại',
+    colAum: 'AUM (tỷ ₫)',
     colExpense: 'Phí/năm',
     colRisk: 'Rủi ro',
     col1y: '1 năm',

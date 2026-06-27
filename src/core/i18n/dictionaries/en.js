@@ -385,6 +385,7 @@ export default {
     tabImport: 'Import CSV',
     colName: 'Fund',
     colType: 'Type',
+    colAum: 'AUM (bn ₫)',
     colExpense: 'Expense/yr',
     colRisk: 'Risk',
     col1y: '1 Year',

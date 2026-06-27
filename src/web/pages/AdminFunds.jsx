@@ -104,7 +104,7 @@ function FundListTab({ funds, refetch, t }) {
       <table className="w-full text-xs">
         <thead>
           <tr className="bg-zx-surface-2 border-b border-zx-line">
-            {['colName', 'colType', 'colExpense', 'colRisk', 'col1y', 'col3y', 'col5y', 'colUpdated', ''].map(k => (
+            {['colName', 'colType', 'colAum', 'colExpense', 'colRisk', 'col1y', 'col3y', 'col5y', 'colUpdated', ''].map(k => (
               <th key={k} className="px-3 py-2.5 text-left font-semibold text-zx-text-soft uppercase tracking-[0.1em] whitespace-nowrap">
                 {k ? t(`adminFunds.${k}`) : ''}
               </th>
@@ -129,6 +129,15 @@ function FundListTab({ funds, refetch, t }) {
                 </td>
                 <td className="px-3 py-3 text-zx-text-soft whitespace-nowrap">
                   {ASSET_TYPE_LABELS[fund.assetType]?.vi ?? fund.assetType}
+                </td>
+                <td className="px-3 py-3 text-right">
+                  {isEditing ? (
+                    <input type="number" step="1" value={editForm.aumBillion ?? ''}
+                      onChange={e => setEditForm(f => ({ ...f, aumBillion: e.target.value }))}
+                      className="w-20 rounded border border-zx-line bg-zx-bg px-2 py-1 text-xs text-right focus:outline-none focus:ring-1 focus:ring-zx-accent" />
+                  ) : (
+                    <span>{fund.aumBillion != null ? fund.aumBillion.toLocaleString() : '—'}</span>
+                  )}
                 </td>
                 <td className="px-3 py-3">
                   {isEditing ? (
