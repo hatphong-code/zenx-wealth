@@ -20,3 +20,8 @@ export async function adminResetUserOnboarding(targetUid) {
   const result = await updateUserFn({ targetUid, action: 'resetOnboarding' });
   return result.data;
 }
+
+export async function adminSetUserRole(targetUid, role) {
+  const result = await updateUserFn({ targetUid, action: 'setRole', role: role ?? null });
+  return result.data;
+}

@@ -47,6 +47,7 @@ export const adminListUsers = onCall({ region: REGION }, async (request) => {
       lastSignIn: u.metadata.lastSignInTime || null,
       subscriptionTier: profile.subscriptionTier || 'free',
       onboardingCompleted: Boolean(profile.onboardingCompleted),
+      role: profile.role || null,
     };
   });
 
@@ -77,6 +78,16 @@ export const adminUpdateUser = onCall({ region: REGION }, async (request) => {
   if (action === 'resetOnboarding') {
     await ref.set({ onboardingCompleted: false }, { merge: true });
     return { success: true, uid: targetUid };
+  }
+
+  if (action === 'setRole') {
+    const { role } = request.data || {};
+    const validRoles = ['moderator', null];
+    if (!validRoles.includes(role)) {
+      throw new HttpsError('invalid-argument', `Invalid role: ${role}`);
+    }
+    await ref.set({ role: role ?? null }, { merge: true });
+    return { success: true, uid: targetUid, role };
   }
 
   throw new HttpsError('invalid-argument', `Unknown action: ${action}`);
