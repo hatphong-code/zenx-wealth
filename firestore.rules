@@ -9,6 +9,11 @@ service cloud.firestore {
       return isSignedIn() && request.auth.token.email in ['hatphong@gmail.com'];
     }
 
+    function isModerator() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'moderator';
+    }
+
     // Users can only read/write their own data.
     match /users/{userId} {
       allow read, write: if request.auth.uid == userId;
@@ -57,6 +62,11 @@ service cloud.firestore {
     match /appConfig/{documentId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
+    }
+
+    match /funds/{fundId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || isModerator();
     }
 
     match /quotes/{quoteId} {
