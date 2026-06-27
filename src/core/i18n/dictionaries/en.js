@@ -188,6 +188,7 @@ export default {
       settings: 'Settings',
       admin_access: 'Users & Access',
       admin_settings: 'Content & Settings',
+      admin_funds: 'Fund Reference List',
       budget_templates: 'Budget Templates',
       import_transactions: 'Import CSV',
       health_score: 'Health Score',

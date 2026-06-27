@@ -188,6 +188,7 @@ export default {
       settings: 'Thiết lập',
       admin_access: 'Người dùng & Truy cập',
       admin_settings: 'Nội dung & Cài đặt',
+      admin_funds: 'Quỹ Đầu Tư Tham Khảo',
       budget_templates: 'Mẫu ngân sách',
       import_transactions: 'Nhập CSV',
       health_score: 'Điểm sức khỏe',

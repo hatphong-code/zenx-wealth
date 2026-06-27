@@ -176,6 +176,12 @@ const navGroups = [
         adminOnly: true,
         matches: (pathname) => pathname === '/admin/settings',
       },
+      {
+        to: '/admin/funds',
+        label: 'Quỹ Đầu Tư Tham Khảo',
+        moderatorAllowed: true,
+        matches: (pathname) => pathname === '/admin/funds',
+      },
     ],
   },
 ];
@@ -194,17 +200,18 @@ export default function AppNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { canAccess, isAdmin, subscriptionTier } = useFeatureAccess(user);
+  const { canAccess, isAdmin, isModerator, subscriptionTier } = useFeatureAccess(user);
 
   const visibleGroups = useMemo(() => navGroups
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => {
         if (item.adminOnly) return isAdmin;
+        if (item.moderatorAllowed) return isAdmin || isModerator;
         return canAccess(item.featureKey);
       }),
     }))
-    .filter((group) => group.items.length > 0), [canAccess, isAdmin]);
+    .filter((group) => group.items.length > 0), [canAccess, isAdmin, isModerator]);
 
   const activeGroup = useMemo(
     () => visibleGroups.find((group) => group.items.some((item) => item.matches(location.pathname))) || visibleGroups[0] || navGroups[0],

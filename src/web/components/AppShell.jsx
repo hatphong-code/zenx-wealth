@@ -33,7 +33,7 @@ const isTrack   = p => ['/track','/transactions','/transactions/new','/latte','/
 const isPlan    = p => ['/plan','/roadmap','/assets','/pay-yourself-first','/emergency','/debts','/income','/trading-risk','/budget-templates'].includes(p);
 const isReview  = p => ['/review','/weekly-review','/reports','/ai-coach','/health-score'].includes(p);
 const isProfile = p => ['/settings','/profile','/monthly-letter','/goal-tracking','/upgrade'].includes(p);
-const isAdminP  = p => ['/admin/access','/admin/settings'].includes(p);
+const isAdminP  = p => ['/admin/access','/admin/settings','/admin/funds'].includes(p);
 
 const SUB_ITEMS = {
   home:    [{ to: '/', featureKey: 'dashboard', matches: p => p === '/' }],
@@ -68,8 +68,9 @@ const SUB_ITEMS = {
     { to: '/upgrade',  featureKey: 'dashboard', matches: p => p === '/upgrade' },
   ],
   admin: [
-    { to: '/admin/access',   navKey: 'admin_access',   adminOnly: true, matches: p => p === '/admin/access' },
-    { to: '/admin/settings', navKey: 'admin_settings', adminOnly: true, matches: p => p === '/admin/settings' },
+    { to: '/admin/access',   navKey: 'admin_access',   adminOnly: true,        matches: p => p === '/admin/access' },
+    { to: '/admin/settings', navKey: 'admin_settings', adminOnly: true,        matches: p => p === '/admin/settings' },
+    { to: '/admin/funds',    navKey: 'admin_funds',    moderatorAllowed: true, matches: p => p === '/admin/funds' },
   ],
 };
 
@@ -88,14 +89,16 @@ const GROUP_MATCH = {
 function useNav() {
   const location = useLocation();
   const { user } = useAuth();
-  const { canAccess, isAdmin } = useFeatureAccess(user);
+  const { canAccess, isAdmin, isModerator } = useFeatureAccess(user);
 
   const visibleGroups = useMemo(() => NAV_GROUPS.map(g => ({
     ...g,
-    items: (SUB_ITEMS[g.id] || []).filter(item =>
-      item.adminOnly ? isAdmin : canAccess(item.featureKey)
-    ),
-  })).filter(g => g.items.length > 0), [canAccess, isAdmin]);
+    items: (SUB_ITEMS[g.id] || []).filter(item => {
+      if (item.adminOnly) return isAdmin;
+      if (item.moderatorAllowed) return isAdmin || isModerator;
+      return canAccess(item.featureKey);
+    }),
+  })).filter(g => g.items.length > 0), [canAccess, isAdmin, isModerator]);
 
   const activeGroup = useMemo(() =>
     visibleGroups.find(g => GROUP_MATCH[g.id]?.(location.pathname)) || visibleGroups[0],
