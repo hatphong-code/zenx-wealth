@@ -95,6 +95,14 @@ export function isAdminProfile(user, profile = {}) {
   return Boolean(profile.role === 'admin' || profile.isAdmin || isAdminEmail(user?.email || profile.email || ''));
 }
 
+export function isModeratorProfile(user, profile = {}) {
+  return !isAdminProfile(user, profile) && profile.role === 'moderator';
+}
+
+export async function setUserRole(targetUid, role) {
+  await setDoc(doc(db, 'users', targetUid), { role: role ?? null }, { merge: true });
+}
+
 export function isFeatureEnabled(featureKey, tier, accessControl) {
   const feature = featureCatalogByKey[featureKey];
   if (!feature) return false;

@@ -4,6 +4,7 @@ import {
   getAccessControl,
   isAdminProfile,
   isFeatureEnabled,
+  isModeratorProfile,
   normalizeSubscriptionTier,
 } from '../services/accessControlService';
 import { getCachedUserProfile, getUserProfile } from '../services/userService';
@@ -11,12 +12,14 @@ import { getCachedUserProfile, getUserProfile } from '../services/userService';
 function buildState(user, profile, accessControl) {
   const subscriptionTier = normalizeSubscriptionTier(profile?.subscriptionTier);
   const isAdmin = isAdminProfile(user, profile || {});
+  const isModerator = isModeratorProfile(user, profile || {});
 
   return {
     profile,
     accessControl,
     subscriptionTier,
     isAdmin,
+    isModerator,
   };
 }
 

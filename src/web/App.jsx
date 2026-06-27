@@ -35,6 +35,7 @@ const GoalTracking = lazy(() => import('./pages/GoalTracking'));
 const Settings = lazy(() => import('./pages/Settings'));
 const AdminAccessControl = lazy(() => import('./pages/AdminAccessControl'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
+const AdminFunds = lazy(() => import('./pages/AdminFunds'));
 const OnboardingFlow = lazy(() => import('./pages/OnboardingFlow'));
 const BudgetTemplates = lazy(() => import('./pages/BudgetTemplates'));
 const ImportTransactions = lazy(() => import('./pages/ImportTransactions'));
@@ -91,10 +92,10 @@ function LockedFeature({ featureKey, subscriptionTier, isAdmin }) {
   );
 }
 
-function PrivateRoute({ children, featureKey, adminOnly = false }) {
+function PrivateRoute({ children, featureKey, adminOnly = false, allowRoles }) {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const { canAccess, isAdmin, loading: accessLoading, subscriptionTier } = useFeatureAccess(user);
+  const { canAccess, isAdmin, isModerator, loading: accessLoading, subscriptionTier } = useFeatureAccess(user);
   const [onboardingDone, setOnboardingDone] = useState(null); // null=checking, true/false=known
 
   useEffect(() => {
@@ -118,6 +119,10 @@ function PrivateRoute({ children, featureKey, adminOnly = false }) {
   }
 
   if (adminOnly && !isAdmin) return <Navigate to="/" />;
+  if (allowRoles) {
+    const ok = (allowRoles.includes('admin') && isAdmin) || (allowRoles.includes('moderator') && isModerator);
+    if (!ok) return <Navigate to="/" />;
+  }
   if (featureKey && !adminOnly && !canAccess(featureKey)) {
     return <AppShell><LockedFeature featureKey={featureKey} subscriptionTier={subscriptionTier} isAdmin={isAdmin} /></AppShell>;
   }
@@ -184,6 +189,7 @@ export default function App() {
         <Route path="/settings" element={routeElement(<PrivateRoute featureKey="settings"><Settings /></PrivateRoute>)} />
         <Route path="/admin/access" element={routeElement(<PrivateRoute adminOnly><AdminAccessControl /></PrivateRoute>)} />
         <Route path="/admin/settings" element={routeElement(<PrivateRoute adminOnly><AdminSettings /></PrivateRoute>)} />
+        <Route path="/admin/funds" element={routeElement(<PrivateRoute allowRoles={['admin', 'moderator']}><AdminFunds /></PrivateRoute>)} />
         <Route path="/budget-templates" element={routeElement(<PrivateRoute featureKey="budget_templates"><BudgetTemplates /></PrivateRoute>)} />
         <Route path="/import" element={routeElement(<PrivateRoute featureKey="import_transactions"><ImportTransactions /></PrivateRoute>)} />
         <Route path="/health-score" element={routeElement(<PrivateRoute featureKey="health_score"><HealthScore /></PrivateRoute>)} />

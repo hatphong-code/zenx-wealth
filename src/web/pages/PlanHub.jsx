@@ -13,7 +13,7 @@ import { fmtShort, formatNumber } from '../../core/utils/formatters';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { calculateRequiredMonthlySaving, calculateFutureValue, applyDebtOverlay } from '../../core/services/financialCalculations';
-import { referenceFunds } from '../../core/data/referenceFunds';
+import { useFundsData } from '../../core/hooks/useFundsData';
 import NumericInput from '../components/ui/NumericInput';
 
 function HL() { return <div className="h-px bg-zx-line" />; }
@@ -528,6 +528,7 @@ export default function PlanHub() {
 
 function ReferenceFundList({ t }) {
   const [open, setOpen] = useState(false);
+  const { data: funds } = useFundsData();
 
   const RISK_COLOR = ['', 'text-zx-positive', 'text-zx-positive', 'text-zx-gold', 'text-zx-accent', 'text-zx-negative'];
 
@@ -551,7 +552,7 @@ function ReferenceFundList({ t }) {
 
           {/* Mobile: card list */}
           <div className="md:hidden space-y-3">
-            {referenceFunds.map(fund => (
+            {funds.map(fund => (
               <div key={fund.id} className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -596,7 +597,7 @@ function ReferenceFundList({ t }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zx-line">
-                {referenceFunds.map(fund => (
+                {funds.map(fund => (
                   <tr key={fund.id} className="bg-zx-surface hover:bg-zx-surface-2 transition">
                     <td className="px-3 py-3">
                       <p className="font-semibold text-zx-text">{fund.name}</p>
@@ -618,7 +619,7 @@ function ReferenceFundList({ t }) {
           </div>
 
           <p className="text-[10px] text-zx-text-soft text-right">
-            {t('planHub.funds.colSource')}: {referenceFunds[0]?.source?.split(' — ')[0]} — 2026-06
+            {t('planHub.funds.colSource')}: {funds[0]?.source?.split(' — ')[0] ?? 'Factsheet'}
           </p>
         </div>
       )}

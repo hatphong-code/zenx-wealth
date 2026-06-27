@@ -15,13 +15,14 @@ import {
   saveUserSubscriptionTier,
 } from '../../core/services/accessControlService';
 import { getApiSettings, saveApiSettings } from '../../core/services/adminSettingsService';
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
+import { collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from 'firebase/firestore/lite';
 import { db } from '../../core/services/firebaseDb';
 import { DEFAULT_PLAN_TEMPLATES, invalidatePlansCache } from '../../core/services/billingService';
 import { budgetTemplates as HARDCODED_TEMPLATES } from '../../core/data/budgetTemplates';
 import { getBudgetTemplates, saveBudgetTemplates } from '../../core/services/budgetTemplatesService';
 import { invalidateUserProfileCache } from '../../core/services/userService';
 import { adminListUsers, adminSetUserTier, adminResetUserOnboarding } from '../../core/services/adminUserService';
+import { setUserRole } from '../../core/services/accessControlService';
 
 /* ── Reusable pieces ── */
 function TierToggle({ checked, onChange }) {
@@ -703,6 +704,149 @@ function UserAvatar({ displayName, email }) {
   );
 }
 
+/* ── Tab: Roles / Moderators ── */
+function RolesTab({ t, currentUid }) {
+  const [moderators, setModerators] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [actionState, setActionState] = useState({});
+  const [confirm, setConfirm] = useState(null); // { uid, email, action: 'grant'|'revoke' }
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [modsSnap, usersResult] = await Promise.all([
+          getDocs(query(collection(db, 'users'), where('role', '==', 'moderator'))),
+          adminListUsers(),
+        ]);
+        setModerators(modsSnap.docs.map(d => ({ uid: d.id, ...d.data() })));
+        setUsers(usersResult.users || []);
+      } catch {
+        // ignore
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  async function handleConfirm() {
+    if (!confirm) return;
+    const { uid, email, action } = confirm;
+    setConfirm(null);
+    setActionState(s => ({ ...s, [uid]: 'loading' }));
+    try {
+      const newRole = action === 'grant' ? 'moderator' : null;
+      await setUserRole(uid, newRole);
+      if (action === 'grant') {
+        setModerators(prev => prev.some(m => m.uid === uid) ? prev : [...prev, { uid, email }]);
+      } else {
+        setModerators(prev => prev.filter(m => m.uid !== uid));
+      }
+      setActionState(s => ({ ...s, [uid]: 'done' }));
+      setTimeout(() => setActionState(s => ({ ...s, [uid]: null })), 2500);
+    } catch (err) {
+      setActionState(s => ({ ...s, [uid]: 'error:' + err.message }));
+    }
+  }
+
+  const modUids = new Set(moderators.map(m => m.uid));
+  const filteredUsers = users.filter(u =>
+    u.email?.toLowerCase().includes(search.toLowerCase()) && u.uid !== currentUid
+  );
+
+  if (loading) return <p className="text-sm text-zx-text-soft py-8">{t('adminRoles.loadingMods')}</p>;
+
+  return (
+    <div className="space-y-8">
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.action === 'grant'
+          ? t('adminRoles.confirmGrant', { email: confirm?.email })
+          : t('adminRoles.confirmRevoke', { email: confirm?.email })}
+        tone={confirm?.action === 'revoke' ? 'danger' : 'default'}
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirm(null)}
+      />
+
+      <p className="text-xs text-zx-text-soft bg-zx-surface-2 rounded-zx-sm px-3 py-2 leading-relaxed">
+        {t('adminRoles.hint')}
+        {' '}<a href="/admin/funds" className="text-zx-accent underline">/admin/funds</a>
+      </p>
+
+      {/* Current moderators */}
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
+          {t('adminRoles.sectionCurrent')}
+        </p>
+        {moderators.length === 0 ? (
+          <p className="text-sm text-zx-text-soft">{t('adminRoles.noCurrent')}</p>
+        ) : (
+          <div className="rounded-zx border border-zx-line divide-y divide-zx-line overflow-hidden">
+            {moderators.map(mod => (
+              <div key={mod.uid} className="flex items-center justify-between px-4 py-3 bg-zx-surface">
+                <div>
+                  <p className="text-sm text-zx-text">{mod.email || mod.uid}</p>
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-zx-accent bg-zx-accent/10 px-2 py-0.5 rounded-full">
+                    {t('adminRoles.roleLabel')}
+                  </span>
+                </div>
+                <button type="button"
+                  onClick={() => setConfirm({ uid: mod.uid, email: mod.email || mod.uid, action: 'revoke' })}
+                  disabled={actionState[mod.uid] === 'loading'}
+                  className="rounded-zx-sm border border-zx-negative/40 px-3 py-1.5 text-xs text-zx-negative hover:bg-zx-negative/10 disabled:opacity-50 transition">
+                  {actionState[mod.uid] === 'done' ? t('adminRoles.actionSuccess') : t('adminRoles.revokeBtn')}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Grant from user list */}
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
+          {t('adminRoles.sectionGrant')}
+        </p>
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+          placeholder={t('adminAccess.users.search')}
+          className="w-full mb-3 rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2 text-sm text-zx-text placeholder:text-zx-text-soft focus:outline-none focus:ring-2 focus:ring-zx-accent"
+        />
+        <div className="rounded-zx border border-zx-line divide-y divide-zx-line overflow-hidden">
+          {filteredUsers.slice(0, 20).map(u => {
+            const isMod = modUids.has(u.uid);
+            const st = actionState[u.uid];
+            return (
+              <div key={u.uid} className="flex items-center justify-between px-4 py-3 bg-zx-surface hover:bg-zx-surface-2 transition">
+                <div>
+                  <p className="text-sm text-zx-text">{u.email}</p>
+                  <p className="text-xs text-zx-text-soft">{u.subscriptionTier} · {u.uid.slice(0, 8)}…</p>
+                </div>
+                {isMod ? (
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-zx-accent bg-zx-accent/10 px-2 py-0.5 rounded-full">
+                    {t('adminRoles.roleLabel')}
+                  </span>
+                ) : (
+                  <button type="button"
+                    onClick={() => setConfirm({ uid: u.uid, email: u.email, action: 'grant' })}
+                    disabled={st === 'loading'}
+                    className="rounded-zx-sm border border-zx-line px-3 py-1.5 text-xs text-zx-text-soft hover:border-zx-accent hover:text-zx-accent disabled:opacity-50 transition">
+                    {st === 'done' ? t('adminRoles.actionSuccess') : t('adminRoles.grantBtn')}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+          {filteredUsers.length === 0 && (
+            <p className="px-4 py-4 text-sm text-zx-text-soft">{t('adminAccess.users.empty')}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function UsersTab({ t, currentUid }) {
   const [users, setUsers] = useState([]);
   const [nextPageToken, setNextPageToken] = useState(null);
@@ -1143,6 +1287,9 @@ export default function AdminAccessControl() {
             <Tab active={activeTab === 'users'} onClick={() => setActiveTab('users')}>
               {t('adminAccess.tabUsers')}
             </Tab>
+            <Tab active={activeTab === 'roles'} onClick={() => setActiveTab('roles')}>
+              {t('adminRoles.tabTitle')}
+            </Tab>
           </div>
 
           {activeTab === 'features' && (
@@ -1172,6 +1319,7 @@ export default function AdminAccessControl() {
           {activeTab === 'plans' && <PlansTab t={t} />}
           {activeTab === 'budget_templates' && <BudgetTemplatesTab t={t} />}
           {activeTab === 'users' && <UsersTab t={t} currentUid={user?.uid} />}
+          {activeTab === 'roles' && <RolesTab t={t} currentUid={user?.uid} />}
         </>
       )}
     </main>
