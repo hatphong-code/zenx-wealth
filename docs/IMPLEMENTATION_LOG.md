@@ -2,6 +2,15 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-29 — i18n fixes: month labels, interest rate badge, chart position
+
+- `formatMonthLabel` bỏ hardcode `vi-VN` → nhận `locale` param, map `vi→vi-VN` / `en→en-US`. Cả `MonthlyView` và header "Bắt đầu:" đều pass locale từ `useI18n()`.
+- Badge lãi suất sổ tiết kiệm `%/năm` → dùng `t('schedule.interestRateBadge', { rate })` (vi: `%/năm`, en: `%/year`).
+- `ComparisonChart` chuyển ra main page, render giữa progress card và tabs (không còn nằm trong cửa sổ Lịch sổ tiết kiệm). `scheduleEntries` được lift lên main component, truyền xuống cả chart lẫn `BankScheduleSection`.
+**Files:** `SavingsEscalatorPlan.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-29 — Smart savings book form + comparison chart
 
 **BankScheduleSection** nâng cấp: (1) Month selector dropdown 1..coastMonth với default = tháng hiện tại; (2) Smart defaults khi chọn tháng: label = `{planName} - Tháng N`, amount = số tiền dự kiến từ series, openDate = ngày 1 của tháng đó; (3) Thêm 2 field: `bankName` (tên ngân hàng) và `interestRate` (%/năm); (4) Auto-checkin khi lưu sổ: ghi nhận actualAmount cho tháng tương ứng trên bảng theo dõi.
