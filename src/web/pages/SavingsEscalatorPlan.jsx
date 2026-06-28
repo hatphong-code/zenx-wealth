@@ -279,7 +279,7 @@ function MonthlyView({ plan, series, checkins, currentPlanMonthIdx, onCheckin })
                                 <span className="text-[10px] font-semibold text-zx-gold">{t('savingsEscalator.plan.coastMonthLabel')}</span>
                               )}
                               {m.isCurrent && !m.isCoast && (
-                                <span className="text-[10px] font-semibold text-zx-accent">Tháng này</span>
+                                <span className="text-[10px] font-semibold text-zx-accent">{t('savingsEscalator.plan.thisMonth')}</span>
                               )}
                             </p>
                             <p className="text-xs text-zx-text-soft mt-0.5">
@@ -525,7 +525,7 @@ export default function SavingsEscalatorPlan() {
   if (!plan) {
     return (
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
-        <p className="text-sm text-zx-text-soft">Không tìm thấy kế hoạch.</p>
+        <p className="text-sm text-zx-text-soft">{t('savingsEscalator.plan.notFound')}</p>
       </main>
     );
   }
@@ -534,7 +534,11 @@ export default function SavingsEscalatorPlan() {
   const { coastMonth, coastAge } = result;
   const currency = params?.currency || 'VND';
   const totalPlanMonths = coastMonth;
-  const progressPct = Math.min(100, Math.round((currentPlanMonthIdx / totalPlanMonths) * 100));
+  const coastMonthKey = plan.executionStartDate ? addMonthsToKey(plan.executionStartDate, coastMonth - 1) : null;
+  const checkinCount = coastMonthKey
+    ? Object.keys(checkins).filter(k => k >= plan.executionStartDate && k <= coastMonthKey).length
+    : 0;
+  const progressPct = Math.min(100, totalPlanMonths > 0 ? Math.round((checkinCount / totalPlanMonths) * 100) : 0);
   const reachedCoast = currentPlanMonthIdx >= coastMonth;
 
   const scenarioLabels = {
@@ -669,7 +673,7 @@ export default function SavingsEscalatorPlan() {
               <span className="font-medium text-zx-text">
                 {reachedCoast
                   ? t('savingsEscalator.plan.progressDone')
-                  : t('savingsEscalator.plan.progressLabel', { current: currentPlanMonthIdx, total: totalPlanMonths })}
+                  : t('savingsEscalator.plan.progressLabel', { current: checkinCount, total: totalPlanMonths })}
               </span>
               <span className="font-bold text-zx-accent">{progressPct}%</span>
             </div>

@@ -624,7 +624,7 @@ export default function SavingsEscalator() {
       });
       navigate(`/savings-escalator/plan/${id}`);
     } catch (err) {
-      setSavePlanError(`Lỗi: ${err?.message || 'Không thể lưu kế hoạch. Thử lại sau.'}`);
+      setSavePlanError(t('savingsEscalator.savePlan.saveFailed'));
     } finally {
       setSavingPlan(false);
     }
@@ -1085,7 +1085,7 @@ export default function SavingsEscalator() {
                     >
                       <td className="px-4 py-2.5">
                         <span className="block text-sm text-zx-text-soft">
-                          {row.yr === 0 ? 'Bắt đầu' : `+${row.yr}`}
+                          {row.yr === 0 ? t('savingsEscalator.results.tableStart') : `+${row.yr}`}
                           {row.isCoastYear && (
                             <span className="ml-1.5 text-[10px] font-semibold text-zx-gold">{t('savingsEscalator.results.tableCoastMark')}</span>
                           )}
@@ -1134,7 +1134,7 @@ export default function SavingsEscalator() {
                 className="flex w-full items-center justify-center gap-1.5 border-t border-zx-line px-4 py-2.5 text-xs text-zx-text-soft hover:text-zx-text transition"
               >
                 {showFullTable ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                {showFullTable ? 'Thu gọn' : `Xem thêm ${tableRows.length - 11} năm`}
+                {showFullTable ? t('savingsEscalator.results.tableCollapse') : t('savingsEscalator.results.tableShowMore', { n: tableRows.length - 11 })}
               </button>
             )}
           </div>
