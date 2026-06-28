@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-28 (v3.7 — Fund Reference List Phase 2 complete + Admin Fund Management)
+Last updated: 2026-06-28 (v3.8 — Savings Escalator + Coast FI)
 
 ## Current Phase
 
@@ -52,6 +52,7 @@ Default hosting URL: https://zenx-wealth.web.app
 - Budget Templates (pre-built category structures by life phase) — all 5 templates now have consistent 6-key shape with `debtRepayment: 0`
 - Debt-Aware Allocation Overlay (`applyDebtOverlay`) — adjusts PYF allocation when bad debt exists, shown in PlanHub
 - Fund Reference List (Phase 2 complete) — 10 curated VN funds (`src/core/data/referenceFunds.js`) displayed in PlanHub collapsible section. Features: type/risk/manager filter chips, all columns sortable (name, manager, age, AUM, expense, risk, 1Y/3Y/5Y), fullName sub-line, mobile card layout. Return data populated for 7/10 funds from factsheets. Data corrections: SSI-IMF → SSIBF, MABF → MAGEF. `useFundsData` hook reads Firestore `funds` collection first, falls back to static file.
+- Savings Escalator + Coast FI (`/savings-escalator`, premium) — input form (7 fields: startMonthly, monthlyGrowthPct, monthlyExpense, fiMultiple 25–31×, currentAge, retirementAge, annualRatePct). Results: 4 stat cards, LineChart (continue-vs-coast lines + dashed FI target), yearly table with toggle, conclusion + disclaimer. Part C: savings account schedule (`users/{userId}/savingsSchedule`), 7-day maturity banner, `savingsScheduleReminder` notif pref. Engine: `buildGrowingContributionSeries`, `calculateFITarget`, `findCoastPoint` in `financialCalculations.js` with Decimal precision + 6 unit tests.
 - User Profile + Settings
 - Onboarding Flow (6 steps: theme → language → currency+goal → numbers+age → latte projection → summary; saves primaryGoal, ageRange, estimatedDailySaving) — 3-scenario chart (3%/8%/11%)
 - Welcome Screen (/welcome) — guided quickstart page after onboarding (3 CTA actions)
@@ -177,6 +178,7 @@ Handles: `500 triệu`, `1.5 tỷ`, `1,5 tỷ`, `tỷ rưỡi`, `2 tỷ rưỡi`
 /profile
 /settings
 /upgrade
+/savings-escalator     ← Savings Escalator + Coast FI (premium)
 /admin/access          ← 5-tab admin panel
 /admin/settings        ← standalone API settings (same content as admin tab)
 /admin/funds           ← fund reference list management (admin + moderator)
@@ -194,6 +196,7 @@ users/{userId}/accounts/{accountId}
 users/{userId}/roadmap/{phaseId}
 users/{userId}/weeklyReviews/{reviewId}
 users/{userId}/snapshots/{snapshotId}
+users/{userId}/savingsSchedule/{scheduleId} ← savings account maturity records
 users/{userId}/tradingRisk/{recordId}
 appConfig/access-control
 appConfig/api-settings        ← Claude key/model, Resend key/from, MoMo credentials

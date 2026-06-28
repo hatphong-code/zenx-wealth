@@ -311,10 +311,11 @@ export default function Settings() {
           {notificationsEnabled && (
             <div className="mt-4 border-t border-zx-line pt-4 space-y-3">
               {[
-                { key: 'weeklyReview',    label: t('settings.notifPrefs.weeklyReview'),    desc: t('settings.notifPrefs.weeklyReviewDesc') },
-                { key: 'transactionLog',  label: t('settings.notifPrefs.transactionLog'),  desc: t('settings.notifPrefs.transactionLogDesc') },
-                { key: 'milestones',      label: t('settings.notifPrefs.milestones'),      desc: t('settings.notifPrefs.milestonesDesc') },
-                { key: 'monthlyLetter',   label: t('settings.notifPrefs.monthlyLetter'),   desc: t('settings.notifPrefs.monthlyLetterDesc') },
+                { key: 'weeklyReview',             label: t('settings.notifPrefs.weeklyReview'),             desc: t('settings.notifPrefs.weeklyReviewDesc') },
+                { key: 'transactionLog',           label: t('settings.notifPrefs.transactionLog'),           desc: t('settings.notifPrefs.transactionLogDesc') },
+                { key: 'milestones',               label: t('settings.notifPrefs.milestones'),               desc: t('settings.notifPrefs.milestonesDesc') },
+                { key: 'monthlyLetter',            label: t('settings.notifPrefs.monthlyLetter'),            desc: t('settings.notifPrefs.monthlyLetterDesc') },
+                { key: 'savingsScheduleReminder',  label: t('settings.notifPrefs.savingsScheduleReminder'),  desc: t('settings.notifPrefs.savingsScheduleReminderDesc') },
               ].map(pref => (
                 <div key={pref.key} className="flex items-center justify-between gap-4">
                   <div className="min-w-0">

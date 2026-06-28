@@ -3,15 +3,18 @@ import {
   applyDebtOverlay,
   buildBalanceSheet,
   buildEmergencyCoverageTrend,
+  buildGrowingContributionSeries,
   buildLatteProjectionSeries,
   buildMonthlyCashFlowTrend,
   buildMonthlyCloseMetrics,
   calculateDashboardMetrics,
+  calculateFITarget,
   calculateFutureValue,
   calculateLatteMetrics,
   calculateRequiredMonthlySaving,
   calculateWeeklyMetrics,
   estimateNetWorthTrend,
+  findCoastPoint,
   normalizeLatteTopCategories,
   scoreFromSavingsRate,
 } from '../financialCalculations';
@@ -248,6 +251,73 @@ describe('applyDebtOverlay (Spec Debt-Aware)', () => {
     const result = applyDebtOverlay(base, { badDebt: 50_000_000, monthlyPayment: 10_000_000 }, 20_000_000);
     expect(result.emergencyFund).toBeGreaterThanOrEqual(5);
     expect(result.longTermAsset).toBeGreaterThanOrEqual(5);
+  });
+});
+
+describe('Savings Escalator + Coast FI (Spec savings-escalator-coast-fi)', () => {
+  it('calculateFITarget — 15M/month × 25 = 4.5 tỷ', () => {
+    expect(calculateFITarget({ monthlyExpense: 15_000_000, multiple: 25 })).toBe(4_500_000_000);
+    expect(calculateFITarget({ monthlyExpense: 15_000_000, multiple: 31 })).toBe(15_000_000 * 12 * 31);
+  });
+
+  it('buildGrowingContributionSeries — first entry zero, grows over time', () => {
+    const series = buildGrowingContributionSeries({
+      startMonthly: 9_000_000,
+      monthlyGrowthPct: 1,
+      annualRatePct: 6,
+      months: 24,
+    });
+    expect(series[0]).toMatchObject({ month: 0, year: 0, balance: 0, monthlyDeposit: 0 });
+    expect(series[1].balance).toBeGreaterThan(0);
+    expect(series[24].balance).toBeGreaterThan(series[12].balance);
+    // Month 1 deposit = 9M (no growth yet); with r=0.5%: b[1] = 9M
+    expect(series[1].balance).toBeCloseTo(9_000_000, -2);
+    // Month 2 deposit = 9M × 1.01 = 9.09M; b[2] = 9M × 1.005 + 9.09M
+    expect(series[2].balance).toBeCloseTo(9_000_000 * 1.005 + 9_090_000, -2);
+  });
+
+  it('buildGrowingContributionSeries — 0% rate returns sum of deposits', () => {
+    const series = buildGrowingContributionSeries({
+      startMonthly: 1_000_000,
+      monthlyGrowthPct: 0,
+      annualRatePct: 0,
+      months: 3,
+    });
+    // No growth, no interest: balance = m × 1M
+    expect(series[3].balance).toBeCloseTo(3_000_000, -1);
+  });
+
+  it('findCoastPoint — reference example: coast ≈ month 114 ± 5 (monthsToRetirement=240)', () => {
+    const fiTarget = calculateFITarget({ monthlyExpense: 15_000_000, multiple: 25 });
+    const result = findCoastPoint({
+      startMonthly: 9_000_000,
+      monthlyGrowthPct: 1,
+      annualRatePct: 6,
+      monthsToRetirement: 240,
+      fiTarget,
+    });
+    expect(result).not.toBeNull();
+    expect(result.coastMonth).toBeGreaterThanOrEqual(109);
+    expect(result.coastMonth).toBeLessThanOrEqual(125);
+    expect(result.projectedBalance).toBeGreaterThanOrEqual(fiTarget);
+    expect(result.balanceAtCoast).toBeGreaterThan(0);
+  });
+
+  it('findCoastPoint — returns null when target unreachable in limit', () => {
+    // Tiny deposit, huge target
+    const result = findCoastPoint({
+      startMonthly: 100,
+      monthlyGrowthPct: 0,
+      annualRatePct: 1,
+      monthsToRetirement: 12,
+      fiTarget: 1_000_000_000_000,
+    });
+    expect(result).toBeNull();
+  });
+
+  it('findCoastPoint — returns null for invalid input', () => {
+    expect(findCoastPoint({ startMonthly: 1_000_000, monthlyGrowthPct: 1, annualRatePct: 6, monthsToRetirement: 0, fiTarget: 1e9 })).toBeNull();
+    expect(findCoastPoint({ startMonthly: 1_000_000, monthlyGrowthPct: 1, annualRatePct: 6, monthsToRetirement: 240, fiTarget: 0 })).toBeNull();
   });
 });
 

@@ -346,6 +346,63 @@ export function buildLatteProjectionSeries(monthlyAmount, years = 20) {
   }));
 }
 
+// Savings Escalator + Coast FI (Spec savings-escalator-coast-fi)
+
+export function buildGrowingContributionSeries({ startMonthly, monthlyGrowthPct, annualRatePct, months }) {
+  const r = new Decimal(annualRatePct).div(100).div(12);
+  const g = new Decimal(monthlyGrowthPct).div(100);
+  const series = [{ month: 0, year: 0, balance: 0, monthlyDeposit: 0 }];
+  let balance = new Decimal(0);
+
+  for (let m = 1; m <= months; m++) {
+    const deposit = new Decimal(startMonthly).times(g.plus(1).pow(m - 1));
+    balance = balance.times(r.plus(1)).plus(deposit);
+    series.push({
+      month: m,
+      year: parseFloat((m / 12).toFixed(4)),
+      balance: balance.toNumber(),
+      monthlyDeposit: deposit.toNumber(),
+    });
+  }
+
+  return series;
+}
+
+export function calculateFITarget({ monthlyExpense, multiple = 25 }) {
+  return new Decimal(monthlyExpense).times(12).times(multiple).toNumber();
+}
+
+// Returns { coastMonth, balanceAtCoast, projectedBalance } or null if not found within limit
+export function findCoastPoint({ startMonthly, monthlyGrowthPct, annualRatePct, monthsToRetirement, fiTarget }) {
+  if (!monthsToRetirement || monthsToRetirement <= 0 || !fiTarget) return null;
+
+  const r = new Decimal(annualRatePct).div(100).div(12);
+  const g = new Decimal(monthlyGrowthPct).div(100);
+  const FI = new Decimal(fiTarget);
+  const limit = Math.min(monthsToRetirement, 600);
+
+  let balance = new Decimal(0);
+
+  for (let m = 1; m <= limit; m++) {
+    const deposit = new Decimal(startMonthly).times(g.plus(1).pow(m - 1));
+    balance = balance.times(r.plus(1)).plus(deposit);
+
+    const remaining = monthsToRetirement - m;
+    if (remaining <= 0) continue;
+
+    const projected = balance.times(r.plus(1).pow(remaining));
+    if (projected.gte(FI)) {
+      return {
+        coastMonth: m,
+        balanceAtCoast: balance.toNumber(),
+        projectedBalance: projected.toNumber(),
+      };
+    }
+  }
+
+  return null;
+}
+
 // Spec Debt-Aware Allocation Overlay
 // Floors PROPOSED — pending Hà Phong confirmation (see spec-debt-aware-allocation-overlay.md):
 //   emergencyFund floor: 5%  (mid_career already uses 5%; any less breaks emergency habit)

@@ -30,7 +30,7 @@ const NAV_GROUPS = [
 ];
 
 const isTrack   = p => ['/track','/transactions','/transactions/new','/latte','/import'].includes(p) || /^\/transactions\/[^/]+\/edit$/.test(p);
-const isPlan    = p => ['/plan','/roadmap','/assets','/pay-yourself-first','/emergency','/debts','/income','/trading-risk','/budget-templates'].includes(p);
+const isPlan    = p => ['/plan','/roadmap','/assets','/pay-yourself-first','/emergency','/debts','/income','/trading-risk','/budget-templates','/savings-escalator'].includes(p);
 const isReview  = p => ['/review','/weekly-review','/reports','/ai-coach','/health-score'].includes(p);
 const isProfile = p => ['/settings','/profile','/monthly-letter','/goal-tracking','/upgrade'].includes(p);
 const isAdminP  = p => ['/admin/access','/admin/settings','/admin/funds'].includes(p);
@@ -54,6 +54,7 @@ const SUB_ITEMS = {
     { to: '/assets',             featureKey: 'assets',                                 matches: p => p === '/assets' },
     { to: '/trading-risk',       featureKey: 'trading_risk',                           matches: p => p === '/trading-risk' },
     { to: '/budget-templates',   featureKey: 'budget_templates',                       matches: p => p === '/budget-templates' },
+    { to: '/savings-escalator', featureKey: 'savings_escalator',                       matches: p => p === '/savings-escalator' },
   ],
   review: [
     { to: '/review',        featureKey: 'weekly_review', navKey: 'review_hub', matches: p => p === '/review' },

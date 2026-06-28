@@ -31,6 +31,7 @@ const defaultSettings = {
     transactionLog: false,
     milestones: true,
     monthlyLetter: true,
+    savingsScheduleReminder: true,
   },
 };
 

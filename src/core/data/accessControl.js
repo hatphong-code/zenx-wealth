@@ -156,6 +156,14 @@ export const featureCatalog = [
     defaultAccess: { free: false, premium: true },
   },
   {
+    key: 'savings_escalator',
+    label: 'Savings Escalator',
+    description: 'Kế hoạch tích lũy lũy tiến và điểm dừng Coast FI.',
+    group: 'premium',
+    route: '/savings-escalator',
+    defaultAccess: { free: false, premium: true },
+  },
+  {
     key: 'admin_access',
     label: 'Bảng điều hành',
     description: 'Bật/tắt tính năng theo Free/Premium và test tier.',

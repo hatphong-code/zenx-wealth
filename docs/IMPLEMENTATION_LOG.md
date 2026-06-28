@@ -2,6 +2,16 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — Savings Escalator + Coast FI (spec-savings-escalator-coast-fi)
+
+**Part A — Engine (financialCalculations.js):** 3 pure functions with Decimal precision: `buildGrowingContributionSeries` (monthly balance series with growing deposits), `calculateFITarget` (monthlyExpense × 12 × multiple), `findCoastPoint` (first month where balance can self-grow to FI target by retirement). 6 new unit tests in calculations.test.js — all pass.
+**Part B — Page (/savings-escalator):** Input form (7 fields, NumericInput + select for FI multiple with expandable note). Results: 4 stat cards, LineChart (2 lines + dashed FI reference line, recharts), yearly table with show-more toggle, conclusion + fixed disclaimer.
+**Part C — Schedule reminders:** `savingsScheduleService.js` (Firestore subcollection `savingsSchedule`). Maturity banner shown in-app when any account is due within 7 days. New `savingsScheduleReminder` notif pref in userService + Settings.jsx.
+**Infra:** `savings_escalator` feature key (premium), AppShell plan nav + isPlan routing, App.jsx lazy route, i18n keys in vi.js + en.js.
+**Files:** `financialCalculations.js`, `calculations.test.js`, `savingsScheduleService.js`, `SavingsEscalator.jsx`, `App.jsx`, `AppShell.jsx`, `accessControl.js`, `userService.js`, `Settings.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — Fund Reference List Phase 2 complete + Admin Fund Management
 
 **PlanHub — Manager column & filter:** Separate "Công ty" column in desktop table (sortable). 3rd filter row: chip per company (VinaCapital, VCBF, SSIAM, Dragon Capital, Mirae Asset). Manager removed from name cell sub-line on desktop; kept on mobile card.
