@@ -111,11 +111,8 @@ function MaturityBanner({ upcoming, t }) {
           {upcoming.map(e => {
             const days = daysUntil(e.maturityDate);
             const msg = days === 0
-              ? t('savingsEscalator.schedule.bannerBodyToday').replace('{label}', e.label)
-              : t('savingsEscalator.schedule.bannerBody')
-                  .replace('{label}', e.label)
-                  .replace('{date}', formatDateVN(e.maturityDate))
-                  .replace('{days}', days);
+              ? t('savingsEscalator.schedule.bannerBodyToday', { label: e.label })
+              : t('savingsEscalator.schedule.bannerBody', { label: e.label, date: formatDateVN(e.maturityDate), days });
             return <p key={e.id} className="text-sm text-zx-text">{msg}</p>;
           })}
         </div>
@@ -160,7 +157,7 @@ function ScheduleSection({ userId, t, notifEnabled, currency }) {
   }
 
   async function handleDelete(entry) {
-    if (!window.confirm(t('savingsEscalator.schedule.deleteConfirm').replace('{label}', entry.label))) return;
+    if (!window.confirm(t('savingsEscalator.schedule.deleteConfirm', { label: entry.label }))) return;
     setDeletingId(entry.id);
     try {
       await deleteSavingsScheduleEntry(userId, entry.id);
@@ -567,9 +564,10 @@ export default function SavingsEscalator() {
                   highlight
                   label={t('savingsEscalator.results.coastPoint')}
                   value={`${plan.coastResult.coastMonth} tháng`}
-                  sub={t('savingsEscalator.results.coastPointUnit')
-                    .replace('{month}', plan.coastResult.coastMonth)
-                    .replace('{age}', Number(form.currentAge) + Math.floor(plan.coastResult.coastMonth / 12))}
+                  sub={t('savingsEscalator.results.coastPointUnit', {
+                    month: plan.coastResult.coastMonth,
+                    age: Number(form.currentAge) + Math.floor(plan.coastResult.coastMonth / 12),
+                  })}
                 />
                 <StatCard
                   label={t('savingsEscalator.results.balanceAtCoast')}
