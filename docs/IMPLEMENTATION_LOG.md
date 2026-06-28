@@ -2,6 +2,15 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — Fix progress %, hardcoded strings, missing EN i18n keys
+
+**Progress %**: Thanh tiến độ giờ tính theo số tháng đã ghi nhận thực tế (`checkinCount`), không còn tính theo thời gian trôi qua — hiển thị 0% khi chưa có bất kỳ ghi nhận nào. Label cũng cập nhật theo.
+**Hardcoded strings**: Fix 5 chuỗi hardcode VI trong `SavingsEscalator.jsx` + `SavingsEscalatorPlan.jsx` → đưa vào i18n.
+**Missing EN**: Thêm 8 key thiếu trong `en.js` cho `savePlan` (checking, block/warn behavioral gate messages, riskWarning, pendingBadge) + `saveFailed` cho cả vi+en + `thisMonth`/`notFound` cho plan detail + `tableStart`/`tableCollapse`/`tableShowMore` cho bảng kết quả.
+**Files:** `SavingsEscalator.jsx`, `SavingsEscalatorPlan.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — Edit & delete plan trên plan detail page
 
 **Edit inline**: Pencil + Trash2 icon buttons trong header của plan detail. Click Pencil → inline form thay thế plan name: text input cho tên + 4 channel type buttons → Save gọi `updateSavingsPlan` + update local state. Click Trash → ConfirmDialog → `deleteSavingsPlan` (xoá toàn bộ checkins subcollection trước, sau đó xoá plan doc) → navigate về list.
