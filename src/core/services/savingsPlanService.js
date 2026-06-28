@@ -159,6 +159,10 @@ export async function listSavingsPlans(userId) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+export async function updateSavingsPlan(userId, planId, fields) {
+  await setDoc(doc(db, 'users', userId, 'savingsPlans', planId), fields, { merge: true });
+}
+
 export async function updatePlanActiveScenario(userId, planId, scenario) {
   await setDoc(doc(db, 'users', userId, 'savingsPlans', planId), { activeScenario: scenario }, { merge: true });
 }

@@ -25,6 +25,7 @@ import {
   currentYearMonth,
   getMonthsElapsed,
   listSavingsPlans,
+  updateSavingsPlan,
 } from '../../core/services/savingsPlanService';
 import { fmtShort, formatMoney } from '../../core/utils/formatters';
 import { getCachedUserProfile, getUserProfile } from '../../core/services/userService';
@@ -442,6 +443,7 @@ export default function SavingsEscalator() {
   const [savePlanStartMonth, setSavePlanStartMonth] = useState(currentYearMonth());
   const [savingPlan, setSavingPlan] = useState(false);
   const [savePlanError, setSavePlanError] = useState('');
+  const [updatingChannelId, setUpdatingChannelId] = useState(null);
   const [planCheck, setPlanCheck] = useState(null);
   const [planCheckLoading, setPlanCheckLoading] = useState(false);
 
@@ -732,41 +734,75 @@ export default function SavingsEscalator() {
           </p>
           <div className="rounded-zx border border-zx-line bg-zx-surface divide-y divide-zx-line overflow-hidden">
             {savedPlans.map(sp => (
-              <button
-                key={sp.id}
-                type="button"
-                onClick={() => navigate(`/savings-escalator/plan/${sp.id}`)}
-                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-zx-surface-2 transition"
-              >
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-zx-text">{sp.name}</span>
-                    {sp.channelType && (
-                      <span className={`rounded-zx-pill border px-1.5 py-0.5 text-[10px] font-semibold ${(CHANNEL_CONFIG[sp.channelType] || CHANNEL_CONFIG.other).color}`}>
-                        {t(`savingsEscalator.savePlan.channelType.${sp.channelType}`, {}, sp.channelType)}
-                      </span>
-                    )}
-                    {sp.status === 'pending' && (
-                      <span className="text-[11px] font-semibold text-zx-maintain">
-                        {t('savingsEscalator.savePlan.pendingBadge')}
-                      </span>
-                    )}
+              <div key={sp.id}>
+                {/* Navigate row */}
+                <button
+                  type="button"
+                  onClick={() => navigate(`/savings-escalator/plan/${sp.id}`)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-zx-surface-2 transition"
+                >
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-medium text-zx-text">{sp.name}</span>
+                      {sp.channelType && (
+                        <span className={`rounded-zx-pill border px-1.5 py-0.5 text-[10px] font-semibold ${(CHANNEL_CONFIG[sp.channelType] || CHANNEL_CONFIG.other).color}`}>
+                          {t(`savingsEscalator.savePlan.channelType.${sp.channelType}`, {}, sp.channelType)}
+                        </span>
+                      )}
+                      {sp.status === 'pending' && (
+                        <span className="text-[11px] font-semibold text-zx-maintain">
+                          {t('savingsEscalator.savePlan.pendingBadge')}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-zx-text-soft mt-0.5">
+                      {sp.executionStartDate
+                        ? `Bắt đầu ${sp.executionStartDate.replace('-', '/')} · Coast tháng ${sp.result?.coastMonth}`
+                        : `Coast tháng ${sp.result?.coastMonth}`}
+                      {sp.activeScenario && (
+                        <span className="ml-2 font-medium text-zx-accent">
+                          {sp.activeScenario === 'continue' ? t('savingsEscalator.plan.scenarioPick1') :
+                           sp.activeScenario === 'maintain' ? t('savingsEscalator.plan.scenarioPick2') :
+                           t('savingsEscalator.plan.scenarioPick3')}
+                        </span>
+                      )}
+                    </p>
                   </div>
-                  <p className="text-xs text-zx-text-soft mt-0.5">
-                    {sp.executionStartDate
-                      ? `Bắt đầu ${sp.executionStartDate.replace('-', '/')} · Coast tháng ${sp.result?.coastMonth}`
-                      : `Coast tháng ${sp.result?.coastMonth}`}
-                    {sp.activeScenario && (
-                      <span className="ml-2 font-medium text-zx-accent">
-                        {sp.activeScenario === 'continue' ? t('savingsEscalator.plan.scenarioPick1') :
-                         sp.activeScenario === 'maintain' ? t('savingsEscalator.plan.scenarioPick2') :
-                         t('savingsEscalator.plan.scenarioPick3')}
-                      </span>
-                    )}
-                  </p>
-                </div>
-                <ChevronRight className="h-4 w-4 flex-shrink-0 text-zx-text-soft" />
-              </button>
+                  <ChevronRight className="h-4 w-4 flex-shrink-0 text-zx-text-soft" />
+                </button>
+
+                {/* Inline channel picker — only for plans missing channelType */}
+                {!sp.channelType && (
+                  <div className="px-4 pb-3 border-t border-zx-line/60 bg-zx-surface-2">
+                    <p className="text-[11px] text-zx-text-soft pt-2 mb-1.5">
+                      {t('savingsEscalator.savePlan.channelType.label')}
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                      {['bank', 'fund', 'bond', 'other'].map(type => (
+                        <button
+                          key={type}
+                          type="button"
+                          disabled={updatingChannelId === sp.id}
+                          onClick={async () => {
+                            setUpdatingChannelId(sp.id);
+                            try {
+                              await updateSavingsPlan(user.uid, sp.id, { channelType: type });
+                              setSavedPlans(prev => prev.map(p =>
+                                p.id === sp.id ? { ...p, channelType: type } : p
+                              ));
+                            } finally {
+                              setUpdatingChannelId(null);
+                            }
+                          }}
+                          className={`rounded-zx-sm border px-2 py-1.5 text-xs transition text-left disabled:opacity-50 ${CHANNEL_CONFIG[type].color} hover:opacity-80`}
+                        >
+                          {t(`savingsEscalator.savePlan.channelType.${type}`)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
           <button
