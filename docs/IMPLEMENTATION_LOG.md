@@ -2,6 +2,13 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — Chuyển channelType selector lên calculator form
+
+**UX refactor**: Channel type (bank/fund/bond/other) giờ chọn ở đầu calculator form thay vì save-plan sub-form — user biết đang tính cho kênh nào trước khi chạy số. Đổi kênh → auto-set `annualRatePct` (bank→7%, fund→10%, bond→8%) + clear kết quả cũ. Rate hint xuất hiện dưới field lãi suất. Form tự truyền `form.channelType` khi lưu plan — đã xoá `savePlanChannel` state.
+**Files:** `SavingsEscalator.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — channelType field cho savings plans
 
 **Field mới `channelType`** (bank / fund / bond / other): stored in Firestore, default `bank`.
