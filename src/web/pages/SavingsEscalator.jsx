@@ -3,6 +3,7 @@ import { AlertTriangle, CalendarClock, ChevronDown, ChevronUp, Flame, Info, Plus
 import { Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
+import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import {
   buildGrowingContributionSeries,
   calculateFITarget,
@@ -124,7 +125,8 @@ function MaturityBanner({ upcoming, t }) {
 
 // ── Schedule Section ──────────────────────────────────────────────────────────
 
-function ScheduleSection({ userId, t, notifEnabled }) {
+function ScheduleSection({ userId, t, notifEnabled, currency }) {
+  const { fmt } = useNumberFormat();
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -210,6 +212,9 @@ function ScheduleSection({ userId, t, notifEnabled }) {
                 onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
                 placeholder="0"
               />
+              {Number(form.amount) > 0 && (
+                <p className="mt-1 text-xs text-zx-text-soft">~ {fmt(form.amount, currency)}</p>
+              )}
             </div>
             <div>
               <label htmlFor="sch-open" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.schedule.openDate')}</label>
@@ -320,6 +325,7 @@ const BASE_FORM = {
 export default function SavingsEscalator() {
   const { user } = useAuth();
   const { t } = useI18n();
+  const { fmt } = useNumberFormat();
 
   const [form, setForm] = useState(() => ({ ...BASE_FORM, currentAge: deriveDefaultAge(user) }));
   const [plan, setPlan] = useState(null);
@@ -374,6 +380,9 @@ export default function SavingsEscalator() {
               step={500000}
               onChange={e => setField('startMonthly', e.target.value)}
             />
+            {Number(form.startMonthly) > 0 && (
+              <p className="mt-1 text-xs text-zx-text-soft">~ {fmt(form.startMonthly, currency)}</p>
+            )}
           </div>
 
           <div>
@@ -398,24 +407,33 @@ export default function SavingsEscalator() {
               step={500000}
               onChange={e => setField('monthlyExpense', e.target.value)}
             />
+            {Number(form.monthlyExpense) > 0 && (
+              <p className="mt-1 text-xs text-zx-text-soft">~ {fmt(form.monthlyExpense, currency)}</p>
+            )}
           </div>
 
           <div>
-            <label htmlFor="se-multiple" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.form.fiMultiple')}</label>
-            <select
-              id="se-multiple"
-              value={form.fiMultiple}
-              onChange={e => setField('fiMultiple', Number(e.target.value))}
-              className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-3 text-sm text-zx-text focus:outline-none focus:ring-2 focus:ring-zx-accent"
-            >
+            <span className="block text-sm text-zx-text-soft mb-2">{t('savingsEscalator.form.fiMultiple')}</span>
+            <div className="flex flex-wrap gap-1.5">
               {[25, 26, 27, 28, 29, 30, 31].map(v => (
-                <option key={v} value={v}>{v}×</option>
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setField('fiMultiple', v)}
+                  className={`rounded-zx-sm border px-3 py-2 text-sm font-semibold transition ${
+                    form.fiMultiple === v
+                      ? 'border-zx-accent bg-zx-accent-soft text-zx-accent'
+                      : 'border-zx-line bg-zx-surface text-zx-text-soft hover:border-zx-accent'
+                  }`}
+                >
+                  {v}×
+                </button>
               ))}
-            </select>
+            </div>
             <button
               type="button"
               onClick={() => setShowFiNote(v => !v)}
-              className="mt-1 flex items-center gap-1 text-[11px] text-zx-text-soft hover:text-zx-text transition"
+              className="mt-2 flex items-center gap-1 text-[11px] text-zx-text-soft hover:text-zx-text transition"
             >
               <Info className="h-3 w-3" />
               {t('savingsEscalator.form.fiMultiple25').split('—')[0].trim()} / {t('savingsEscalator.form.fiMultiple28').split('—')[0].trim()} / {t('savingsEscalator.form.fiMultiple31').split('—')[0].trim()}
@@ -649,7 +667,7 @@ export default function SavingsEscalator() {
 
       {/* Schedule Section */}
       {user && (
-        <ScheduleSection userId={user.uid} t={t} notifEnabled={notifEnabled} />
+        <ScheduleSection userId={user.uid} t={t} notifEnabled={notifEnabled} currency={currency} />
       )}
     </main>
   );
