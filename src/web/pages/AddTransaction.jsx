@@ -16,22 +16,9 @@ import { getUserProfile, updateUserSettings } from '../../core/services/userServ
 import { getCurrentWeekMeta, invalidateWeeklyReviewCache } from '../../core/services/weeklyReviewService';
 import { invalidateWealthRoadmapCache } from '../../core/services/wealthRoadmapService';
 import { invalidateAICoachCache } from '../../core/services/aiCoachService';
+import { isLikelyLatte } from '../../core/utils/latteDetection';
 
 const today = new Date().toISOString().slice(0, 10);
-
-// Categories that auto-trigger Latte Factor suggestion
-const LATTE_KEYWORDS = [
-  'cà phê', 'coffee', 'trà sữa', 'bubble tea', 'cafe',
-  'ăn ngoài', 'eat out', 'eating out', 'fast food', 'grab food', 'shopee food', 'baemin', 'giao đồ ăn',
-  'subscription', 'netflix', 'spotify', 'youtube', 'apple', 'game',
-  'mua sắm', 'shopping', 'tiện tay', 'impulse',
-  'snack', 'đồ ăn vặt', 'trà', 'nước ngọt',
-];
-
-function isLikelyLatte(category) {
-  const lower = category.toLowerCase();
-  return LATTE_KEYWORDS.some(k => lower.includes(k));
-}
 
 function HL() { return <div className="h-px bg-zx-line" />; }
 
