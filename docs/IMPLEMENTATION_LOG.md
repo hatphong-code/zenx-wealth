@@ -2,6 +2,15 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — Fund Reference List Phase 2 complete + Admin Fund Management
+
+**PlanHub — Manager column & filter:** Separate "Công ty" column in desktop table (sortable). 3rd filter row: chip per company (VinaCapital, VCBF, SSIAM, Dragon Capital, Mirae Asset). Manager removed from name cell sub-line on desktop; kept on mobile card.
+**AdminFunds — Filter:** Compact select dropdowns (Loại quỹ + Công ty) above table. Live count `x / y` funds shown.
+**AdminFunds — Thêm quỹ tab:** Full add-fund form: ID (auto-slug), name, fullName, manager, assetType, age, AUM, expense, riskTier, 1Y/3Y/5Y returns, source. Duplicate ID guard. Auto-navigates to list tab after save.
+**Files:** `AdminFunds.jsx`, `PlanHub.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — Fund Reference List Phase 2 (filters, sort, data cleanup)
 
 **UI enhancements (PlanHub):** Type/risk filter chips + sortable columns (name, age, AUM, expense, risk, 1Y/3Y/5Y). Added 5Y return column. fullName displayed below ticker. Desktop table: 9 columns. Mobile card: 5-col grid.

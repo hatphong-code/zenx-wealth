@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-28 (v3.6 — Fund Reference List Phase 2: filters, sort, data cleanup)
+Last updated: 2026-06-28 (v3.7 — Fund Reference List Phase 2 complete + Admin Fund Management)
 
 ## Current Phase
 
@@ -51,7 +51,7 @@ Default hosting URL: https://zenx-wealth.web.app
 - Financial Health Score (5-pillar composite metric)
 - Budget Templates (pre-built category structures by life phase) — all 5 templates now have consistent 6-key shape with `debtRepayment: 0`
 - Debt-Aware Allocation Overlay (`applyDebtOverlay`) — adjusts PYF allocation when bad debt exists, shown in PlanHub
-- Fund Reference List MVP (Phase 1) — 10 curated VN funds in PlanHub collapsible section (`src/core/data/referenceFunds.js`), card/table responsive, prominent disclaimer. Historical returns null pending manual factsheet curation.
+- Fund Reference List (Phase 2 complete) — 10 curated VN funds (`src/core/data/referenceFunds.js`) displayed in PlanHub collapsible section. Features: type/risk/manager filter chips, all columns sortable (name, manager, age, AUM, expense, risk, 1Y/3Y/5Y), fullName sub-line, mobile card layout. Return data populated for 7/10 funds from factsheets. Data corrections: SSI-IMF → SSIBF, MABF → MAGEF. `useFundsData` hook reads Firestore `funds` collection first, falls back to static file.
 - User Profile + Settings
 - Onboarding Flow (6 steps: theme → language → currency+goal → numbers+age → latte projection → summary; saves primaryGoal, ageRange, estimatedDailySaving) — 3-scenario chart (3%/8%/11%)
 - Welcome Screen (/welcome) — guided quickstart page after onboarding (3 CTA actions)
@@ -122,6 +122,15 @@ Default hosting URL: https://zenx-wealth.web.app
 | Plans & Billing | Monthly/yearly plan config + MoMo credentials — live preview panel updates in real-time |
 | Budget Templates | Full CRUD for budget templates — VI/EN names, allocation editor with live total validator, category lists |
 
+### Fund Management (`/admin/funds`)
+Moderator-accessible (admin + moderator roles). 3-tab interface:
+
+| Tab | Content |
+|-----|---------|
+| Danh sách quỹ | Filter by type + manager (select dropdowns, live count). Inline edit: returns (1Y/3Y/5Y), expense ratio, AUM, source. |
+| Thêm quỹ | Full form: ID (auto-slug), name, fullName, manager, assetType, age, AUM, expense, riskTier, 1Y/3Y/5Y, source. Duplicate ID guard. Auto-navigates to list on success. |
+| Import CSV | Paste or upload CSV, preview with validation, batch upsert to Firestore. Template download. |
+
 ### Recurring Detection
 - Auto-detects by category + amount + day-of-month (±3 day tolerance, 2+ occurrences)
 - **Persists to Firestore**: newly detected flags batch-written on first fetch
@@ -168,8 +177,9 @@ Handles: `500 triệu`, `1.5 tỷ`, `1,5 tỷ`, `tỷ rưỡi`, `2 tỷ rưỡi`
 /profile
 /settings
 /upgrade
-/admin/access          ← 4-tab admin panel
+/admin/access          ← 5-tab admin panel
 /admin/settings        ← standalone API settings (same content as admin tab)
+/admin/funds           ← fund reference list management (admin + moderator)
 ```
 
 ## Firestore Collections
@@ -189,6 +199,7 @@ appConfig/access-control
 appConfig/api-settings        ← Claude key/model, Resend key/from, MoMo credentials
 appConfig/billing-settings    ← plan pricing (monthly/yearly amounts, labels, days)
 momoPayments/{orderId}
+funds/{fundId}                ← reference fund list (managed via /admin/funds, fallback to referenceFunds.js)
 ```
 
 ## User Settings Shape
