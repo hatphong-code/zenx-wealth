@@ -534,7 +534,49 @@ export default function SavingsEscalator() {
         <p className="mt-1 text-sm text-zx-text-soft max-w-2xl">{t('savingsEscalator.subtitle')}</p>
       </div>
 
+      {/* Saved plans — shown prominently if user has existing plans */}
+      {user && savedPlans.length > 0 && (
+        <section className="space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft">
+            {t('savingsEscalator.savePlan.savedPlansTitle')}
+          </p>
+          <div className="rounded-zx border border-zx-line bg-zx-surface divide-y divide-zx-line overflow-hidden">
+            {savedPlans.map(sp => (
+              <button
+                key={sp.id}
+                type="button"
+                onClick={() => navigate(`/savings-escalator/plan/${sp.id}`)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-zx-surface-2 transition"
+              >
+                <div>
+                  <p className="text-sm font-medium text-zx-text">{sp.name}</p>
+                  <p className="text-xs text-zx-text-soft mt-0.5">
+                    Bắt đầu {sp.executionStartDate?.replace('-', '/')} · Coast tháng {sp.result?.coastMonth}
+                    {sp.activeScenario && (
+                      <span className="ml-2 font-medium text-zx-accent">
+                        {sp.activeScenario === 'continue' ? t('savingsEscalator.plan.scenarioPick1') :
+                         sp.activeScenario === 'maintain' ? t('savingsEscalator.plan.scenarioPick2') :
+                         t('savingsEscalator.plan.scenarioPick3')}
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 flex-shrink-0 text-zx-text-soft" />
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => document.getElementById('se-new-calc')?.scrollIntoView({ behavior: 'smooth' })}
+            className="text-xs text-zx-text-soft hover:text-zx-text transition underline underline-offset-2"
+          >
+            + Tính kế hoạch mới
+          </button>
+        </section>
+      )}
+
       {/* Input Form */}
+      <div id="se-new-calc">
       <form onSubmit={handleCalculate} className="rounded-zx border border-zx-line bg-zx-surface p-5 space-y-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
@@ -639,6 +681,7 @@ export default function SavingsEscalator() {
           {t('savingsEscalator.form.calculate')}
         </button>
       </form>
+      </div>
 
       {/* Results */}
       {plan && (
@@ -947,38 +990,6 @@ export default function SavingsEscalator() {
             </div>
           )}
         </div>
-      )}
-
-      {/* Saved plans list */}
-      {user && savedPlans.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="font-semibold text-zx-text">{t('savingsEscalator.savePlan.savedPlansTitle')}</h2>
-          <div className="rounded-zx border border-zx-line bg-zx-surface divide-y divide-zx-line overflow-hidden">
-            {savedPlans.map(sp => (
-              <button
-                key={sp.id}
-                type="button"
-                onClick={() => navigate(`/savings-escalator/plan/${sp.id}`)}
-                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-zx-surface-2 transition"
-              >
-                <div>
-                  <p className="text-sm font-medium text-zx-text">{sp.name}</p>
-                  <p className="text-xs text-zx-text-soft mt-0.5">
-                    Bắt đầu {sp.executionStartDate?.replace('-', '/')} · Coast tháng {sp.result?.coastMonth}
-                    {sp.activeScenario && (
-                      <span className="ml-2 text-zx-accent font-medium">
-                        {sp.activeScenario === 'continue' ? t('savingsEscalator.plan.scenarioPick1') :
-                         sp.activeScenario === 'maintain' ? t('savingsEscalator.plan.scenarioPick2') :
-                         t('savingsEscalator.plan.scenarioPick3')}
-                      </span>
-                    )}
-                  </p>
-                </div>
-                <ChevronRight className="h-4 w-4 flex-shrink-0 text-zx-text-soft" />
-              </button>
-            ))}
-          </div>
-        </section>
       )}
 
       {/* Divider */}
