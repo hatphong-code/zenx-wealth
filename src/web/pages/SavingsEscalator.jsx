@@ -683,15 +683,15 @@ export default function SavingsEscalator() {
             <h2 className="text-sm font-semibold text-zx-text">{t('savingsEscalator.results.conclusionTitle')}</h2>
             <p className="text-sm text-zx-text leading-relaxed">
               {plan.coastResult
-                ? t('savingsEscalator.results.conclusionFound')
-                    .replace('{pct}', form.monthlyGrowthPct)
-                    .replace('{months}', plan.coastResult.coastMonth)
-                    .replace('{years}', (plan.coastResult.coastMonth / 12).toFixed(1))
-                    .replace('{age}', Number(form.currentAge) + Math.floor(plan.coastResult.coastMonth / 12))
-                    .replace('{target}', fmt(plan.fiTarget, currency))
-                    .replace('{retirementAge}', form.retirementAge)
-                : t('savingsEscalator.results.conclusionNotFound')
-                    .replace('{years}', plan.years)
+                ? t('savingsEscalator.results.conclusionFound', {
+                    pct: form.monthlyGrowthPct,
+                    months: plan.coastResult.coastMonth,
+                    years: (plan.coastResult.coastMonth / 12).toFixed(1),
+                    age: Number(form.currentAge) + Math.floor(plan.coastResult.coastMonth / 12),
+                    target: fmt(plan.fiTarget, currency),
+                    retirementAge: form.retirementAge,
+                  })
+                : t('savingsEscalator.results.conclusionNotFound', { years: plan.years })
               }
             </p>
             <div className="flex items-start gap-2 rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3">
