@@ -2,6 +2,14 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — Portfolio aggregate view + FI target pre-populate
+
+**Portfolio summary card** (hiện khi ≥ 2 active plans): FI target chung, tổng gửi/tháng hiện tại, combined coast (tháng từ bây giờ — mỗi plan tăng theo rate riêng, sum projected finals vs fiTarget), so sánh với từng kênh đơn lẻ, mini LineChart (combined balance vs FI target ref line + vertical coast marker).
+**Pre-populate**: Khi load plans, điền sẵn `monthlyExpense` + `fiMultiple` từ plan mới nhất vào form calculator — đảm bảo plan #2 hướng đến cùng FI target. Note "Điền sẵn từ kế hoạch hiện tại" xuất hiện gần FiMultipleSelect.
+**Files:** `SavingsEscalator.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — Multi-plan behavioral gate cho SavingsEscalator
 
 **Behavioral gate:** `checkCanCreatePlan(userId, annualRatePct)` — kiểm tra điều kiện trước khi cho phép tạo plan thứ 4+: <3 active plans → luôn cho tạo; đã có pending plan → block; có plan <6 tháng → block; avg consistency <60% → block; avg <80% hoặc chưa có plan 12 tháng → tạo với `status='pending'`; đủ điều kiện → active.
