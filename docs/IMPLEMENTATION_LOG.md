@@ -2,6 +2,14 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — Edit & delete plan trên plan detail page
+
+**Edit inline**: Pencil + Trash2 icon buttons trong header của plan detail. Click Pencil → inline form thay thế plan name: text input cho tên + 4 channel type buttons → Save gọi `updateSavingsPlan` + update local state. Click Trash → ConfirmDialog → `deleteSavingsPlan` (xoá toàn bộ checkins subcollection trước, sau đó xoá plan doc) → navigate về list.
+**Label fix**: `startMonthly` → "Mức gửi hoặc đầu tư ban đầu / tháng" (vi+en).
+**Files:** `SavingsEscalatorPlan.jsx`, `savingsPlanService.js`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — Inline channel picker cho plans cũ không có channelType
 
 **`updateSavingsPlan(userId, planId, fields)`** — hàm mới trong service, patch bất kỳ field nào vào plan document (setDoc merge).

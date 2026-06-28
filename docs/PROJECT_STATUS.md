@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-28 (v3.15 — SavingsEscalator portfolio aggregate view)
+Last updated: 2026-06-28 (v3.16 — SavingsEscalator plan edit/delete)
 
 ## Current Phase
 
