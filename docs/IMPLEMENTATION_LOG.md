@@ -2,6 +2,16 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — Fund Reference List Phase 2 (filters, sort, data cleanup)
+
+**UI enhancements (PlanHub):** Type/risk filter chips + sortable columns (name, age, AUM, expense, risk, 1Y/3Y/5Y). Added 5Y return column. fullName displayed below ticker. Desktop table: 9 columns. Mobile card: 5-col grid.
+**Admin fix:** AUM column added to AdminFunds table (was in editForm but not displayed).
+**Data cleanup:** Replaced SSI-IMF (wrong — offshore US real estate) with SSIBF (bond, SSIAM). Replaced MABF (doesn't exist) with MAGEF (Mirae Asset equity, since 2019).
+**Return data populated:** 7/10 funds now have 1Y return; SSI-SCA is the most complete (1Y/3Y/5Y from factsheet to 31/05/2026).
+**Files:** `PlanHub.jsx`, `AdminFunds.jsx`, `referenceFunds.js`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-27 — Fund Reference List Phase 1
 
 **Phase 0 xác nhận:** vị trí = PlanHub section, data = static curated file (API approach requires undocumented fmarket endpoint + Python stack không match Node.js backend), auto_investing_started = giữ thủ công.

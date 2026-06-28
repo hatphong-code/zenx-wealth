@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-27 (v3.5 — Spec 1/5/6/7 + Debt-Aware Allocation + Fund Reference List MVP)
+Last updated: 2026-06-28 (v3.6 — Fund Reference List Phase 2: filters, sort, data cleanup)
 
 ## Current Phase
 
