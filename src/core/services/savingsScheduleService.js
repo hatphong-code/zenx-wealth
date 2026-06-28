@@ -12,8 +12,14 @@ export async function getSavingsSchedule(userId) {
     .sort((a, b) => (a.maturityDate || '').localeCompare(b.maturityDate || ''));
 }
 
+export async function getSavingsScheduleForPlan(userId, planId) {
+  const all = await getSavingsSchedule(userId);
+  return all.filter(e => e.planId === planId);
+}
+
 export async function addSavingsScheduleEntry(userId, entry) {
   const ref = await addDoc(scheduleCol(userId), {
+    planId: entry.planId || null,
     label: entry.label || '',
     openDate: entry.openDate || '',
     maturityDate: entry.maturityDate || '',

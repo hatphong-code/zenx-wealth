@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CheckCircle2, ChevronDown, ChevronUp, Circle, Pencil, Target, Trash2 } from 'lucide-react';
+import { CalendarClock, CheckCircle2, ChevronDown, ChevronUp, Circle, Pencil, PlusCircle, Target, Trash2 } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
@@ -17,7 +17,14 @@ import {
   updateSavingsPlan,
 } from '../../core/services/savingsPlanService';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { formatMoney } from '../../core/utils/formatters';
+import { formatMoney, fmtShort } from '../../core/utils/formatters';
+import {
+  addSavingsScheduleEntry,
+  deleteSavingsScheduleEntry,
+  daysUntil,
+  getSavingsScheduleForPlan,
+  getUpcomingMaturities,
+} from '../../core/services/savingsScheduleService';
 
 const CHANNEL_CONFIG = {
   bank: 'text-zx-accent border-zx-accent/40 bg-zx-accent/10',
@@ -25,6 +32,230 @@ const CHANNEL_CONFIG = {
   bond: 'text-zx-gold border-zx-gold/40 bg-zx-gold/10',
   other: 'text-zx-text-soft border-zx-line bg-zx-surface-2',
 };
+
+const MATURITY_WINDOW_DAYS = 7;
+
+function formatDateVN(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+// ── Bank schedule sub-components ─────────────────────────────────────────────
+
+function MaturityBanner({ upcoming, t }) {
+  if (!upcoming.length) return null;
+  return (
+    <div className="rounded-zx border border-zx-gold/40 bg-zx-gold/10 p-4">
+      <div className="flex items-start gap-3">
+        <CalendarClock className="h-4 w-4 flex-shrink-0 mt-0.5 text-zx-gold" />
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-zx-text">{t('savingsEscalator.schedule.bannerTitle')}</p>
+          {upcoming.map(e => {
+            const days = daysUntil(e.maturityDate);
+            const msg = days === 0
+              ? t('savingsEscalator.schedule.bannerBodyToday', { label: e.label })
+              : t('savingsEscalator.schedule.bannerBody', { label: e.label, date: formatDateVN(e.maturityDate), days });
+            return <p key={e.id} className="text-sm text-zx-text">{msg}</p>;
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BankScheduleSection({ userId, planId, t, currency }) {
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [form, setForm] = useState({ label: '', openDate: '', maturityDate: '', amount: '', note: '' });
+
+  useEffect(() => {
+    getSavingsScheduleForPlan(userId, planId)
+      .then(setEntries)
+      .finally(() => setLoading(false));
+  }, [userId, planId]);
+
+  const upcoming = useMemo(() => getUpcomingMaturities(entries, MATURITY_WINDOW_DAYS), [entries]);
+
+  async function handleSave(e) {
+    e.preventDefault();
+    if (!form.label || !form.maturityDate) return;
+    setSaving(true);
+    try {
+      const id = await addSavingsScheduleEntry(userId, { ...form, planId });
+      setEntries(prev => [...prev, { id, ...form, planId, amount: Number(form.amount) || 0 }]
+        .sort((a, b) => (a.maturityDate || '').localeCompare(b.maturityDate || '')));
+      setForm({ label: '', openDate: '', maturityDate: '', amount: '', note: '' });
+      setShowForm(false);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(entry) {
+    setDeletingId(entry.id);
+    try {
+      await deleteSavingsScheduleEntry(userId, entry.id);
+      setEntries(prev => prev.filter(e => e.id !== entry.id));
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  return (
+    <section className="space-y-4 pt-2">
+      <div className="h-px bg-zx-line" />
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-semibold text-zx-text">{t('savingsEscalator.schedule.title')}</h2>
+          <p className="text-sm text-zx-text-soft">{t('savingsEscalator.schedule.subtitle')}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowForm(v => !v)}
+          className="flex items-center gap-1.5 rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-1.5 text-sm text-zx-text-soft hover:text-zx-text transition"
+        >
+          <PlusCircle className="h-4 w-4" />
+          {t('savingsEscalator.schedule.add')}
+        </button>
+      </div>
+
+      <MaturityBanner upcoming={upcoming} t={t} />
+
+      {showForm && (
+        <form onSubmit={handleSave} className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="bk-label" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.schedule.labelField')}</label>
+              <input
+                id="bk-label"
+                required
+                value={form.label}
+                onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
+                placeholder={t('savingsEscalator.schedule.labelPlaceholder')}
+                className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text placeholder:text-zx-text-soft focus:outline-none focus:ring-2 focus:ring-zx-accent"
+              />
+            </div>
+            <div>
+              <label htmlFor="bk-amount" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.schedule.amount')}</label>
+              <input
+                id="bk-amount"
+                type="number"
+                min="0"
+                step="100000"
+                value={form.amount}
+                onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
+                placeholder="0"
+                className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text focus:outline-none focus:ring-2 focus:ring-zx-accent"
+              />
+              {Number(form.amount) > 0 && (
+                <p className="mt-1 text-xs text-zx-text-soft">~ {fmtShort(Number(form.amount))}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="bk-open" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.schedule.openDate')}</label>
+              <input
+                id="bk-open"
+                type="date"
+                value={form.openDate}
+                onChange={e => setForm(f => ({ ...f, openDate: e.target.value }))}
+                className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text focus:outline-none focus:ring-2 focus:ring-zx-accent"
+              />
+            </div>
+            <div>
+              <label htmlFor="bk-maturity" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.schedule.maturityDate')}</label>
+              <input
+                id="bk-maturity"
+                type="date"
+                required
+                value={form.maturityDate}
+                onChange={e => setForm(f => ({ ...f, maturityDate: e.target.value }))}
+                className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text focus:outline-none focus:ring-2 focus:ring-zx-accent"
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="bk-note" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.schedule.note')}</label>
+            <input
+              id="bk-note"
+              value={form.note}
+              onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
+              className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text focus:outline-none focus:ring-2 focus:ring-zx-accent"
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 rounded-zx-sm bg-zx-accent px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50 transition"
+            >
+              {saving ? t('savingsEscalator.schedule.saving') : t('savingsEscalator.schedule.save')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="rounded-zx-sm border border-zx-line px-4 py-2.5 text-sm text-zx-text-soft hover:text-zx-text transition"
+            >
+              {t('savingsEscalator.schedule.cancel')}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {loading ? (
+        <p className="text-sm text-zx-text-soft">{t('common.loading')}</p>
+      ) : entries.length === 0 ? (
+        <p className="text-sm text-zx-text-soft py-2">{t('savingsEscalator.schedule.empty')}</p>
+      ) : (
+        <div className="rounded-zx border border-zx-line bg-zx-surface overflow-hidden divide-y divide-zx-line">
+          {entries.map(entry => {
+            const days = daysUntil(entry.maturityDate);
+            const isUpcoming = days >= 0 && days <= MATURITY_WINDOW_DAYS;
+            const isOverdue = days < 0;
+            return (
+              <div
+                key={entry.id}
+                className={`flex items-start gap-3 px-4 py-3 ${isUpcoming ? 'bg-zx-gold/5' : ''}`}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-medium text-zx-text">{entry.label}</p>
+                    {isUpcoming && (
+                      <span className="text-[10px] font-semibold text-zx-gold">
+                        {days === 0 ? t('savingsEscalator.schedule.bannerBodyToday', { label: '' }).trim() : `${days}d`}
+                      </span>
+                    )}
+                    {isOverdue && (
+                      <span className="text-[10px] font-semibold text-zx-text-soft">{t('savingsEscalator.schedule.maturityDate')}</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-zx-text-soft mt-0.5">
+                    {entry.amount ? `${fmtShort(entry.amount)} · ` : ''}
+                    {entry.openDate ? `${t('savingsEscalator.schedule.openedOn', { date: formatDateVN(entry.openDate) })} · ` : ''}
+                    {t('savingsEscalator.schedule.matureOn', { date: formatDateVN(entry.maturityDate) })}
+                    {entry.note ? ` · ${entry.note}` : ''}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  aria-label={t('savingsEscalator.schedule.delete')}
+                  onClick={() => handleDelete(entry)}
+                  disabled={deletingId === entry.id}
+                  className="flex-shrink-0 p-1.5 text-zx-text-soft hover:text-zx-negative transition disabled:opacity-40"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
 
 function formatMonthKey(key) {
   if (!key) return '';
@@ -722,6 +953,15 @@ export default function SavingsEscalatorPlan() {
           )}
         </>
       )}
+      {plan.channelType === 'bank' && plan.status !== 'pending' && user?.uid && (
+        <BankScheduleSection
+          userId={user.uid}
+          planId={planId}
+          t={t}
+          currency={currency}
+        />
+      )}
+
       <ConfirmDialog
         open={confirmDelete}
         title={t('savingsEscalator.plan.deleteConfirmTitle')}
