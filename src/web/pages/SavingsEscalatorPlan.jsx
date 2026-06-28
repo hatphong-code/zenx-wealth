@@ -72,9 +72,17 @@ function BankScheduleSection({ userId, planId, plan, series, currentPlanMonthIdx
   function monthKeyFor(idx) {
     return addMonthsToKey(plan.executionStartDate, idx - 1);
   }
+  function autoLabel(idx, bankName = '') {
+    const pad = String(idx).padStart(2, '0');
+    const [y, m] = monthKeyFor(idx).split('-');
+    const datePart = `${m}/${y}`;
+    return bankName
+      ? `${plan.name} — T${pad} · ${bankName} · ${datePart}`
+      : `${plan.name} — T${pad} · ${datePart}`;
+  }
   function defaultFormFor(idx) {
     return {
-      label: `${plan.name} - Tháng ${idx}`,
+      label: autoLabel(idx),
       openDate: monthKeyFor(idx) + '-01',
       maturityDate: '',
       amount: String(Math.round(series[Math.min(idx, series.length - 1)]?.monthlyDeposit || 0)),
@@ -97,7 +105,7 @@ function BankScheduleSection({ userId, planId, plan, series, currentPlanMonthIdx
     setSelectedMonthIdx(idx);
     setForm(f => ({
       ...f,
-      label: `${plan.name} - Tháng ${idx}`,
+      label: autoLabel(idx, f.bankName),
       openDate: monthKeyFor(idx) + '-01',
       amount: String(Math.round(series[Math.min(idx, series.length - 1)]?.monthlyDeposit || 0)),
     }));
@@ -227,7 +235,7 @@ function BankScheduleSection({ userId, planId, plan, series, currentPlanMonthIdx
               <input
                 id="bk-bank"
                 value={form.bankName}
-                onChange={e => setForm(f => ({ ...f, bankName: e.target.value }))}
+                onChange={e => setForm(f => ({ ...f, bankName: e.target.value, label: autoLabel(selectedMonthIdx, e.target.value) }))}
                 placeholder={t('savingsEscalator.schedule.bankNamePlaceholder')}
                 className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text placeholder:text-zx-text-soft focus:outline-none focus:ring-2 focus:ring-zx-accent"
               />
