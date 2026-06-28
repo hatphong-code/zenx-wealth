@@ -1455,6 +1455,7 @@ export default {
       startedLabel: 'Started',
       tabMonthly: 'By month',
       tabYearly: 'By year',
+      tabPlan: 'Plan details',
       yearGroup: 'Year {year} · Age {ageStart}–{ageEnd}',
       yearGroupCoast: 'Year {year} · Age {ageStart}–{ageEnd} ← Coast point',
       monthLabel: 'Month {n}',

@@ -923,6 +923,170 @@ function YearlyView({ plan, series, checkins }) {
   );
 }
 
+// ── Plan summary (table + conclusion) ────────────────────────────────────────
+
+function PlanSummaryView({ plan, series }) {
+  const { t } = useI18n();
+  const { fmt } = useNumberFormat();
+  const currency = plan.params?.currency || 'VND';
+  const { annualRatePct, currentAge, monthlyGrowthPct, retirementAge } = plan.params;
+  const { coastMonth, balanceAtCoast, coastAge } = plan.result;
+  const totalYears = retirementAge - currentAge;
+  const r = annualRatePct / 100 / 12;
+  const depositAtCoast = series[Math.min(coastMonth, series.length - 1)]?.monthlyDeposit || 0;
+  const fiTarget = (plan.params.monthlyExpense || 0) * 12 * (plan.params.fiMultiple || 25);
+  const [showFull, setShowFull] = useState(false);
+
+  const tableRows = useMemo(() => Array.from({ length: totalYears + 1 }, (_, yr) => {
+    const m = yr * 12;
+    const dp = series[Math.min(m, series.length - 1)];
+    const continueBalance = dp.balance;
+    const monthsAfter = Math.max(0, m - coastMonth);
+
+    const coastBalance = m <= coastMonth
+      ? continueBalance
+      : balanceAtCoast * Math.pow(1 + r, monthsAfter);
+
+    const maintainBalance = m <= coastMonth
+      ? continueBalance
+      : r > 0
+        ? balanceAtCoast * Math.pow(1 + r, monthsAfter) + depositAtCoast * (Math.pow(1 + r, monthsAfter) - 1) / r
+        : balanceAtCoast + depositAtCoast * monthsAfter;
+
+    let annualDeposit = 0;
+    let firstMonthDeposit = 0;
+    if (yr > 0) {
+      const startM = (yr - 1) * 12 + 1;
+      for (let i = startM; i <= m; i++) annualDeposit += series[Math.min(i, series.length - 1)].monthlyDeposit;
+      firstMonthDeposit = series[Math.min(startM, series.length - 1)].monthlyDeposit;
+    }
+    const isCoastYear = m >= coastMonth && (m - 12) < coastMonth;
+    return { yr, age: currentAge + yr, continueBalance, maintainBalance, coastBalance, annualDeposit, firstMonthDeposit, isCoastYear };
+  }), [series, totalYears, coastMonth, balanceAtCoast, r, depositAtCoast, currentAge]);
+
+  const PREVIEW_ROWS = 11;
+  const visibleRows = showFull ? tableRows : tableRows.slice(0, PREVIEW_ROWS);
+  const finalRow = tableRows[totalYears];
+
+  const scenarios = [
+    {
+      borderColor: 'border-l-zx-positive', labelColor: 'text-zx-positive',
+      label: t('savingsEscalator.results.conclusionScenario1Label', { pct: monthlyGrowthPct }),
+      body: t('savingsEscalator.results.conclusionScenario1Body', { retirementAge, balance: fmt(finalRow?.continueBalance || 0, currency) }),
+    },
+    {
+      borderColor: 'border-l-zx-maintain', labelColor: 'text-zx-maintain',
+      label: t('savingsEscalator.results.conclusionScenario2Label', { deposit: fmt(depositAtCoast, currency), coastMonth }),
+      body: t('savingsEscalator.results.conclusionScenario2Body', { retirementAge, balance: fmt(finalRow?.maintainBalance || 0, currency) }),
+    },
+    {
+      borderColor: 'border-l-zx-gold', labelColor: 'text-zx-gold',
+      label: t('savingsEscalator.results.conclusionScenario3Label', { coastMonth, coastAge }),
+      body: t('savingsEscalator.results.conclusionScenario3Body', { retirementAge, balance: fmt(finalRow?.coastBalance || 0, currency) }),
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Key stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: t('savingsEscalator.results.fiTarget'), value: fmt(fiTarget, currency) },
+          { label: t('savingsEscalator.results.coastPoint'), value: t('savingsEscalator.results.coastPointUnit', { month: coastMonth, age: coastAge }) },
+          { label: t('savingsEscalator.results.balanceAtCoast'), value: fmt(balanceAtCoast, currency) },
+          { label: t('savingsEscalator.results.depositAtCoast'), value: fmt(depositAtCoast, currency) },
+        ].map(stat => (
+          <div key={stat.label} className="rounded-zx border border-zx-line bg-zx-surface p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zx-text-soft">{stat.label}</p>
+            <p className="mt-1 text-sm font-bold text-zx-text leading-snug">{stat.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Yearly projection table */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-zx-text">{t('savingsEscalator.results.tableTitle')}</h3>
+        <div className="rounded-zx border border-zx-line bg-zx-surface overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-zx-line bg-zx-surface-2">
+                  <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableYear')}</th>
+                  <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableAge')}</th>
+                  <th className="px-3 py-2.5 text-right text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableAnnualDeposit')}</th>
+                  <th className="px-3 py-2.5 text-right text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-positive">{t('savingsEscalator.results.tableBalanceContinue')}</th>
+                  <th className="px-3 py-2.5 text-right text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-maintain">{t('savingsEscalator.results.tableBalanceMaintain')}</th>
+                  <th className="px-3 py-2.5 text-right text-[10px] font-semibold uppercase tracking-[0.12em] text-zx-gold">{t('savingsEscalator.results.tableBalanceCoast')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zx-line">
+                {visibleRows.map(row => (
+                  <tr
+                    key={row.yr}
+                    className={`${row.isCoastYear ? 'bg-zx-gold/5' : 'hover:bg-zx-surface-2'}`}
+                  >
+                    <td className="px-3 py-2 text-sm font-medium text-zx-text">
+                      {row.yr === 0 ? t('savingsEscalator.results.tableStart') : `+${row.yr}`}
+                      {row.isCoastYear && <span className="ml-1 text-[10px] font-bold text-zx-gold">{t('savingsEscalator.results.tableCoastMark')}</span>}
+                    </td>
+                    <td className="px-3 py-2 text-sm text-zx-text-soft">{row.age}</td>
+                    <td className="px-3 py-2 text-right text-sm text-zx-text-soft">
+                      {row.yr === 0 ? '—' : (
+                        <span title={t('savingsEscalator.results.tableDepositFrom', { amount: fmt(row.firstMonthDeposit, currency) })}>
+                          {fmt(row.annualDeposit, currency)}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-right text-sm font-medium text-zx-positive">{fmt(row.continueBalance, currency)}</td>
+                    <td className="px-3 py-2 text-right text-sm font-medium text-zx-maintain">{fmt(row.maintainBalance, currency)}</td>
+                    <td className="px-3 py-2 text-right text-sm font-medium text-zx-gold">{fmt(row.coastBalance, currency)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {tableRows.length > PREVIEW_ROWS && (
+            <button
+              type="button"
+              onClick={() => setShowFull(v => !v)}
+              className="w-full py-2.5 text-xs font-medium text-zx-text-soft hover:text-zx-text border-t border-zx-line transition"
+            >
+              {showFull
+                ? t('savingsEscalator.results.tableCollapse')
+                : t('savingsEscalator.results.tableShowMore', { n: tableRows.length - PREVIEW_ROWS })}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Conclusion */}
+      <div className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-4">
+        <h3 className="text-sm font-semibold text-zx-text">{t('savingsEscalator.results.conclusionTitle')}</h3>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">
+          {t('savingsEscalator.results.conclusionCoastHeader', {
+            months: coastMonth,
+            years: (coastMonth / 12).toFixed(1),
+            age: coastAge,
+          })}
+        </p>
+        <div className="space-y-2">
+          {scenarios.map((s, i) => (
+            <div key={i} className={`rounded-zx-sm border-l-[3px] bg-zx-surface-2 py-3 pl-4 pr-3 ${s.borderColor}`}>
+              <p className={`text-[11px] font-bold mb-1.5 ${s.labelColor}`}>
+                {`0${i + 1} — `}{s.label}
+              </p>
+              <p className="text-sm text-zx-text leading-relaxed">{s.body}</p>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-start gap-2 rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3">
+          <p className="text-[11.5px] leading-relaxed text-zx-text-soft">{t('savingsEscalator.results.disclaimer')}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function SavingsEscalatorPlan() {
@@ -1217,7 +1381,11 @@ export default function SavingsEscalatorPlan() {
           )}
 
           <div className="flex gap-2 border-b border-zx-line">
-            {['monthly', 'yearly'].map(id => (
+            {[
+              { id: 'monthly', label: t('savingsEscalator.plan.tabMonthly') },
+              { id: 'yearly',  label: t('savingsEscalator.plan.tabYearly') },
+              { id: 'plan',    label: t('savingsEscalator.plan.tabPlan') },
+            ].map(({ id, label }) => (
               <button
                 key={id}
                 type="button"
@@ -1226,12 +1394,12 @@ export default function SavingsEscalatorPlan() {
                   tab === id ? 'border-zx-accent text-zx-accent' : 'border-transparent text-zx-text-soft hover:text-zx-text'
                 }`}
               >
-                {id === 'monthly' ? t('savingsEscalator.plan.tabMonthly') : t('savingsEscalator.plan.tabYearly')}
+                {label}
               </button>
             ))}
           </div>
 
-          {tab === 'monthly' ? (
+          {tab === 'monthly' && (
             <MonthlyView
               plan={plan}
               series={series}
@@ -1239,12 +1407,16 @@ export default function SavingsEscalatorPlan() {
               currentPlanMonthIdx={currentPlanMonthIdx}
               onCheckin={handleCheckin}
             />
-          ) : (
+          )}
+          {tab === 'yearly' && (
             <YearlyView
               plan={plan}
               series={series}
               checkins={checkins}
             />
+          )}
+          {tab === 'plan' && (
+            <PlanSummaryView plan={plan} series={series} />
           )}
         </>
       )}

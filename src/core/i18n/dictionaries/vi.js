@@ -1636,6 +1636,7 @@ export default {
       startedLabel: 'Bắt đầu',
       tabMonthly: 'Theo tháng',
       tabYearly: 'Theo năm',
+      tabPlan: 'Kế hoạch',
       yearGroup: 'Năm {year} · Tuổi {ageStart}–{ageEnd}',
       yearGroupCoast: 'Năm {year} · Tuổi {ageStart}–{ageEnd} ← Điểm Coast',
       monthLabel: 'Tháng {n}',
