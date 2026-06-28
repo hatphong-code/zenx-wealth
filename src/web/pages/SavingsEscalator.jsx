@@ -100,7 +100,7 @@ function computePlan({ startMonthly, monthlyGrowthPct, monthlyExpense, fiMultipl
     return { yr, age: currentAge + yr, continueBalance, maintainBalance, coastBalance, isCoastYear, isAfterCoastYear, annualDeposit, firstMonthDeposit };
   });
 
-  return { fiTarget, coastResult, chartData, tableRows, months, years };
+  return { fiTarget, coastResult, depositAtCoast, chartData, tableRows, months, years };
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -763,21 +763,57 @@ export default function SavingsEscalator() {
           </div>
 
           {/* Conclusion + Disclaimer */}
-          <div className="rounded-zx border border-zx-line bg-zx-surface p-5 space-y-3">
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-5 space-y-4">
             <h2 className="text-sm font-semibold text-zx-text">{t('savingsEscalator.results.conclusionTitle')}</h2>
-            <p className="text-sm text-zx-text leading-relaxed">
-              {plan.coastResult
-                ? t('savingsEscalator.results.conclusionFound', {
-                    pct: form.monthlyGrowthPct,
-                    months: plan.coastResult.coastMonth,
-                    years: (plan.coastResult.coastMonth / 12).toFixed(1),
-                    age: Number(form.currentAge) + Math.floor(plan.coastResult.coastMonth / 12),
-                    target: fmt(plan.fiTarget, currency),
-                    retirementAge: form.retirementAge,
-                  })
-                : t('savingsEscalator.results.conclusionNotFound', { years: plan.years })
-              }
-            </p>
+
+            {plan.coastResult ? (() => {
+              const coastAge = Number(form.currentAge) + Math.floor(plan.coastResult.coastMonth / 12);
+              const finalRow = plan.tableRows[plan.years];
+              const scenarios = [
+                {
+                  color: 'border-zx-accent/40 bg-zx-accent/5',
+                  labelColor: 'text-zx-accent',
+                  label: t('savingsEscalator.results.conclusionScenario1Label', { pct: form.monthlyGrowthPct }),
+                  body: t('savingsEscalator.results.conclusionScenario1Body', { retirementAge: form.retirementAge, balance: fmt(finalRow.continueBalance, currency) }),
+                },
+                {
+                  color: 'border-zx-gold/40 bg-zx-gold/5',
+                  labelColor: 'text-zx-gold',
+                  label: t('savingsEscalator.results.conclusionScenario2Label', { deposit: fmt(plan.depositAtCoast, currency), coastMonth: plan.coastResult.coastMonth }),
+                  body: t('savingsEscalator.results.conclusionScenario2Body', { retirementAge: form.retirementAge, balance: fmt(finalRow.maintainBalance, currency) }),
+                },
+                {
+                  color: 'border-zx-positive/40 bg-zx-positive/5',
+                  labelColor: 'text-zx-positive',
+                  label: t('savingsEscalator.results.conclusionScenario3Label', { coastMonth: plan.coastResult.coastMonth, coastAge }),
+                  body: t('savingsEscalator.results.conclusionScenario3Body', { retirementAge: form.retirementAge, balance: fmt(finalRow.coastBalance, currency) }),
+                },
+              ];
+              return (
+                <>
+                  <p className="text-xs font-semibold text-zx-text-soft uppercase tracking-[0.12em]">
+                    {t('savingsEscalator.results.conclusionCoastHeader', {
+                      months: plan.coastResult.coastMonth,
+                      years: (plan.coastResult.coastMonth / 12).toFixed(1),
+                      age: coastAge,
+                    })}
+                  </p>
+                  <div className="space-y-2">
+                    {scenarios.map((s, i) => (
+                      <div key={i} className={`rounded-zx-sm border p-3 ${s.color}`}>
+                        <p className={`text-[11px] font-semibold uppercase tracking-[0.1em] mb-1 ${s.labelColor}`}>{s.label}</p>
+                        <p className="text-sm text-zx-text leading-relaxed">{s.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              );
+            })() : (
+              <p className="text-sm text-zx-text leading-relaxed">
+                {t('savingsEscalator.results.conclusionNotFound', { years: plan.years })}
+              </p>
+            )}
+
             <div className="flex items-start gap-2 rounded-zx-sm border border-zx-line bg-zx-surface-2 p-3">
               <Flame className="h-3.5 w-3.5 flex-shrink-0 mt-0.5 text-zx-text-soft" />
               <p className="text-[11.5px] leading-relaxed text-zx-text-soft">{t('savingsEscalator.results.disclaimer')}</p>
