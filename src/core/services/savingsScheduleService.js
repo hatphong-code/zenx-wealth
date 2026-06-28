@@ -20,7 +20,10 @@ export async function getSavingsScheduleForPlan(userId, planId) {
 export async function addSavingsScheduleEntry(userId, entry) {
   const ref = await addDoc(scheduleCol(userId), {
     planId: entry.planId || null,
+    planMonthIdx: entry.planMonthIdx != null ? Number(entry.planMonthIdx) : null,
     label: entry.label || '',
+    bankName: entry.bankName || '',
+    interestRate: Number(entry.interestRate) || 0,
     openDate: entry.openDate || '',
     maturityDate: entry.maturityDate || '',
     amount: Number(entry.amount) || 0,

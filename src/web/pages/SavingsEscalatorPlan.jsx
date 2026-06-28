@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CalendarClock, CheckCircle2, ChevronDown, ChevronUp, Circle, Pencil, PlusCircle, Target, Trash2 } from 'lucide-react';
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
@@ -64,13 +65,32 @@ function MaturityBanner({ upcoming, t }) {
   );
 }
 
-function BankScheduleSection({ userId, planId, t, currency }) {
+function BankScheduleSection({ userId, planId, plan, series, checkins, currentPlanMonthIdx, t, currency, onCheckin }) {
+  const coastMonth = plan.result.coastMonth;
+  const defaultMonthIdx = Math.max(1, Math.min(currentPlanMonthIdx, coastMonth));
+
+  function monthKeyFor(idx) {
+    return addMonthsToKey(plan.executionStartDate, idx - 1);
+  }
+  function defaultFormFor(idx) {
+    return {
+      label: `${plan.name} - Tháng ${idx}`,
+      openDate: monthKeyFor(idx) + '-01',
+      maturityDate: '',
+      amount: String(Math.round(series[Math.min(idx, series.length - 1)]?.monthlyDeposit || 0)),
+      note: '',
+      bankName: '',
+      interestRate: '',
+    };
+  }
+
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
-  const [form, setForm] = useState({ label: '', openDate: '', maturityDate: '', amount: '', note: '' });
+  const [selectedMonthIdx, setSelectedMonthIdx] = useState(defaultMonthIdx);
+  const [form, setForm] = useState(() => defaultFormFor(defaultMonthIdx));
 
   useEffect(() => {
     getSavingsScheduleForPlan(userId, planId)
@@ -80,15 +100,51 @@ function BankScheduleSection({ userId, planId, t, currency }) {
 
   const upcoming = useMemo(() => getUpcomingMaturities(entries, MATURITY_WINDOW_DAYS), [entries]);
 
+  function handleMonthChange(newIdx) {
+    const idx = Number(newIdx);
+    setSelectedMonthIdx(idx);
+    setForm(f => ({
+      ...f,
+      label: `${plan.name} - Tháng ${idx}`,
+      openDate: monthKeyFor(idx) + '-01',
+      amount: String(Math.round(series[Math.min(idx, series.length - 1)]?.monthlyDeposit || 0)),
+    }));
+  }
+
+  function openForm() {
+    setForm(defaultFormFor(selectedMonthIdx));
+    setShowForm(true);
+  }
+
   async function handleSave(e) {
     e.preventDefault();
     if (!form.label || !form.maturityDate) return;
     setSaving(true);
     try {
-      const id = await addSavingsScheduleEntry(userId, { ...form, planId });
-      setEntries(prev => [...prev, { id, ...form, planId, amount: Number(form.amount) || 0 }]
-        .sort((a, b) => (a.maturityDate || '').localeCompare(b.maturityDate || '')));
-      setForm({ label: '', openDate: '', maturityDate: '', amount: '', note: '' });
+      const id = await addSavingsScheduleEntry(userId, {
+        ...form,
+        planId,
+        planMonthIdx: selectedMonthIdx,
+        bankName: form.bankName,
+        interestRate: Number(form.interestRate) || 0,
+        amount: Number(form.amount) || 0,
+      });
+
+      // Auto-checkin for the selected plan month
+      const monthKey = monthKeyFor(selectedMonthIdx);
+      const actualAmount = Number(form.amount) || 0;
+      const checkinNote = form.bankName ? `${form.bankName}` : '';
+      await addMonthlyCheckin(userId, planId, monthKey, { actualAmount, note: checkinNote });
+      onCheckin('month', monthKey, { actualAmount, note: checkinNote });
+
+      const newEntry = {
+        id, planId, planMonthIdx: selectedMonthIdx,
+        ...form,
+        bankName: form.bankName,
+        interestRate: Number(form.interestRate) || 0,
+        amount: actualAmount,
+      };
+      setEntries(prev => [...prev, newEntry].sort((a, b) => (a.maturityDate || '').localeCompare(b.maturityDate || '')));
       setShowForm(false);
     } finally {
       setSaving(false);
@@ -105,6 +161,8 @@ function BankScheduleSection({ userId, planId, t, currency }) {
     }
   }
 
+  const monthOptions = Array.from({ length: coastMonth }, (_, i) => i + 1);
+
   return (
     <section className="space-y-4 pt-2">
       <div className="h-px bg-zx-line" />
@@ -115,7 +173,7 @@ function BankScheduleSection({ userId, planId, t, currency }) {
         </div>
         <button
           type="button"
-          onClick={() => setShowForm(v => !v)}
+          onClick={openForm}
           className="flex items-center gap-1.5 rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-1.5 text-sm text-zx-text-soft hover:text-zx-text transition"
         >
           <PlusCircle className="h-4 w-4" />
@@ -123,10 +181,39 @@ function BankScheduleSection({ userId, planId, t, currency }) {
         </button>
       </div>
 
+      {!loading && (
+        <ComparisonChart
+          plan={plan}
+          series={series}
+          checkins={checkins}
+          entries={entries}
+          currentPlanMonthIdx={currentPlanMonthIdx}
+          t={t}
+          currency={currency}
+        />
+      )}
+
       <MaturityBanner upcoming={upcoming} t={t} />
 
       {showForm && (
         <form onSubmit={handleSave} className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-4">
+          {/* Month selector */}
+          <div>
+            <label htmlFor="bk-month" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.schedule.monthSelector')}</label>
+            <select
+              id="bk-month"
+              value={selectedMonthIdx}
+              onChange={e => handleMonthChange(e.target.value)}
+              className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text focus:outline-none focus:ring-2 focus:ring-zx-accent"
+            >
+              {monthOptions.map(n => (
+                <option key={n} value={n}>
+                  {t('savingsEscalator.schedule.monthOption', { n, key: monthKeyFor(n) })}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="bk-label" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.schedule.labelField')}</label>
@@ -154,6 +241,30 @@ function BankScheduleSection({ userId, planId, t, currency }) {
               {Number(form.amount) > 0 && (
                 <p className="mt-1 text-xs text-zx-text-soft">~ {fmtShort(Number(form.amount))}</p>
               )}
+            </div>
+            <div>
+              <label htmlFor="bk-bank" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.schedule.bankName')}</label>
+              <input
+                id="bk-bank"
+                value={form.bankName}
+                onChange={e => setForm(f => ({ ...f, bankName: e.target.value }))}
+                placeholder={t('savingsEscalator.schedule.bankNamePlaceholder')}
+                className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text placeholder:text-zx-text-soft focus:outline-none focus:ring-2 focus:ring-zx-accent"
+              />
+            </div>
+            <div>
+              <label htmlFor="bk-rate" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.schedule.interestRate')}</label>
+              <input
+                id="bk-rate"
+                type="number"
+                min="0"
+                max="30"
+                step="0.1"
+                value={form.interestRate}
+                onChange={e => setForm(f => ({ ...f, interestRate: e.target.value }))}
+                placeholder="0"
+                className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text focus:outline-none focus:ring-2 focus:ring-zx-accent"
+              />
             </div>
             <div>
               <label htmlFor="bk-open" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.schedule.openDate')}</label>
@@ -214,7 +325,6 @@ function BankScheduleSection({ userId, planId, t, currency }) {
           {entries.map(entry => {
             const days = daysUntil(entry.maturityDate);
             const isUpcoming = days >= 0 && days <= MATURITY_WINDOW_DAYS;
-            const isOverdue = days < 0;
             return (
               <div
                 key={entry.id}
@@ -223,13 +333,16 @@ function BankScheduleSection({ userId, planId, t, currency }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-medium text-zx-text">{entry.label}</p>
+                    {entry.bankName && (
+                      <span className="text-[10px] font-medium text-zx-text-soft">{entry.bankName}</span>
+                    )}
+                    {entry.interestRate > 0 && (
+                      <span className="text-[10px] font-semibold text-zx-accent">{entry.interestRate}%/năm</span>
+                    )}
                     {isUpcoming && (
                       <span className="text-[10px] font-semibold text-zx-gold">
                         {days === 0 ? t('savingsEscalator.schedule.bannerBodyToday', { label: '' }).trim() : `${days}d`}
                       </span>
-                    )}
-                    {isOverdue && (
-                      <span className="text-[10px] font-semibold text-zx-text-soft">{t('savingsEscalator.schedule.maturityDate')}</span>
                     )}
                   </div>
                   <p className="text-xs text-zx-text-soft mt-0.5">
@@ -254,6 +367,135 @@ function BankScheduleSection({ userId, planId, t, currency }) {
         </div>
       )}
     </section>
+  );
+}
+
+// ── Comparison chart ──────────────────────────────────────────────────────────
+
+function ComparisonChart({ plan, series, checkins, entries, currentPlanMonthIdx, t, currency }) {
+  const { annualRatePct, currentAge } = plan.params;
+  const { coastMonth, balanceAtCoast: plannedBalanceAtCoast } = plan.result;
+  const totalYears = plan.params.retirementAge - currentAge;
+  const totalMonths = totalYears * 12;
+  const planR = annualRatePct / 100 / 12;
+
+  const depositAtCoast = series[Math.min(coastMonth, series.length - 1)]?.monthlyDeposit || 0;
+
+  // Weighted average rate from saved books
+  const booksWithRate = entries.filter(e => e.interestRate > 0 && e.amount > 0);
+  const actualAnnualRatePct = booksWithRate.length > 0
+    ? booksWithRate.reduce((s, e) => s + e.interestRate * e.amount, 0) /
+      booksWithRate.reduce((s, e) => s + e.amount, 0)
+    : annualRatePct;
+  const actualR = actualAnnualRatePct / 100 / 12;
+  const ratesDiffer = Math.abs(actualAnnualRatePct - annualRatePct) > 0.01;
+
+  // Month-by-month simulation for actual scenarios
+  const actualYearly = useMemo(() => {
+    let acCont = 0, acMaint = 0, acCoast = 0;
+    const out = {};
+    for (let m = 1; m <= totalMonths; m++) {
+      const monthKey = addMonthsToKey(plan.executionStartDate, m - 1);
+      const checkin = checkins[monthKey];
+      const plannedDeposit = series[Math.min(m, series.length - 1)]?.monthlyDeposit || 0;
+      const actualDeposit = checkin
+        ? (checkin.actualAmount || 0)
+        : (m > currentPlanMonthIdx ? plannedDeposit : 0);
+      acCont = acCont * (1 + actualR) + actualDeposit;
+      acMaint = acMaint * (1 + actualR) + (m <= coastMonth ? actualDeposit : depositAtCoast);
+      acCoast = acCoast * (1 + actualR) + (m <= coastMonth ? actualDeposit : 0);
+      if (m % 12 === 0) out[m / 12] = { acCont, acMaint, acCoast };
+    }
+    return out;
+  }, [plan, series, checkins, currentPlanMonthIdx, actualR, coastMonth, depositAtCoast, totalMonths]);
+
+  const chartData = useMemo(() => Array.from({ length: totalYears + 1 }, (_, yr) => {
+    const m = yr * 12;
+    const dp = series[Math.min(m, series.length - 1)];
+    const planContinue = dp.balance;
+    const monthsAfter = Math.max(0, m - coastMonth);
+    const planCoast = m <= coastMonth
+      ? planContinue
+      : plannedBalanceAtCoast * Math.pow(1 + planR, monthsAfter);
+    const planMaintain = m <= coastMonth
+      ? planContinue
+      : planR > 0
+        ? plannedBalanceAtCoast * Math.pow(1 + planR, monthsAfter) + depositAtCoast * (Math.pow(1 + planR, monthsAfter) - 1) / planR
+        : plannedBalanceAtCoast + depositAtCoast * monthsAfter;
+    const actual = yr > 0 ? actualYearly[yr] : null;
+    return {
+      age: currentAge + yr,
+      planContinue,
+      planMaintain,
+      planCoast,
+      actualContinue: actual?.acCont,
+      actualMaintain: actual?.acMaint,
+      actualCoast: actual?.acCoast,
+    };
+  }), [series, actualYearly, totalYears, coastMonth, plannedBalanceAtCoast, planR, depositAtCoast, currentAge]);
+
+  if (entries.length === 0) {
+    return (
+      <div className="rounded-zx border border-zx-line bg-zx-surface p-4 text-center">
+        <p className="text-sm text-zx-text-soft">{t('savingsEscalator.schedule.chartNoBooks')}</p>
+      </div>
+    );
+  }
+
+  function fmtAxis(v) {
+    if (!v) return '';
+    if (v >= 1e9) return `${(v / 1e9).toFixed(1)}tỷ`;
+    if (v >= 1e6) return `${(v / 1e6).toFixed(0)}tr`;
+    return `${(v / 1e3).toFixed(0)}k`;
+  }
+
+  return (
+    <div className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-3">
+      <div>
+        <p className="text-sm font-semibold text-zx-text">{t('savingsEscalator.schedule.chartTitle')}</p>
+        {ratesDiffer && (
+          <p className="text-xs text-zx-accent mt-0.5">
+            {t('savingsEscalator.schedule.chartActualRate', { rate: actualAnnualRatePct.toFixed(1) })}
+          </p>
+        )}
+      </div>
+      {/* Legend */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+        <span className="flex items-center gap-1"><span className="inline-block w-6 border-t-2 border-dashed border-zx-positive" />{t('savingsEscalator.schedule.chartPlanContinue')}</span>
+        <span className="flex items-center gap-1"><span className="inline-block w-6 border-t-2 border-dashed border-zx-accent" />{t('savingsEscalator.schedule.chartPlanMaintain')}</span>
+        <span className="flex items-center gap-1"><span className="inline-block w-6 border-t-2 border-dashed border-zx-gold" />{t('savingsEscalator.schedule.chartPlanCoast')}</span>
+        <span className="flex items-center gap-1"><span className="inline-block w-6 border-t-2 border-zx-positive" />{t('savingsEscalator.schedule.chartActualContinue')}</span>
+        <span className="flex items-center gap-1"><span className="inline-block w-6 border-t-2 border-zx-accent" />{t('savingsEscalator.schedule.chartActualMaintain')}</span>
+        <span className="flex items-center gap-1"><span className="inline-block w-6 border-t-2 border-zx-gold" />{t('savingsEscalator.schedule.chartActualCoast')}</span>
+      </div>
+      <ResponsiveContainer width="100%" height={220}>
+        <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+          <XAxis dataKey="age" tick={{ fontSize: 11, fill: 'var(--zx-text-soft)' }} />
+          <YAxis tickFormatter={fmtAxis} tick={{ fontSize: 11, fill: 'var(--zx-text-soft)' }} width={48} />
+          <Tooltip
+            content={({ active, payload, label }) => {
+              if (!active || !payload?.length) return null;
+              return (
+                <div className="rounded-zx-sm border border-zx-line bg-zx-surface px-3 py-2 shadow-zx text-xs space-y-1">
+                  <p className="font-semibold text-zx-text">{t('savingsEscalator.schedule.chartAge', { n: label })}</p>
+                  {payload.map(p => p.value != null && (
+                    <p key={p.dataKey} style={{ color: p.color }}>{p.name}: {fmtShort(p.value)}</p>
+                  ))}
+                </div>
+              );
+            }}
+          />
+          {/* Planned (dashed) */}
+          <Line dataKey="planContinue" name={t('savingsEscalator.schedule.chartPlanContinue')} stroke="var(--zx-positive)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} connectNulls />
+          <Line dataKey="planMaintain" name={t('savingsEscalator.schedule.chartPlanMaintain')} stroke="var(--zx-accent)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} connectNulls />
+          <Line dataKey="planCoast" name={t('savingsEscalator.schedule.chartPlanCoast')} stroke="var(--zx-gold)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} connectNulls />
+          {/* Actual (solid) */}
+          <Line dataKey="actualContinue" name={t('savingsEscalator.schedule.chartActualContinue')} stroke="var(--zx-positive)" strokeWidth={2} dot={false} connectNulls />
+          <Line dataKey="actualMaintain" name={t('savingsEscalator.schedule.chartActualMaintain')} stroke="var(--zx-accent)" strokeWidth={2} dot={false} connectNulls />
+          <Line dataKey="actualCoast" name={t('savingsEscalator.schedule.chartActualCoast')} stroke="var(--zx-gold)" strokeWidth={2} dot={false} connectNulls />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
@@ -957,8 +1199,13 @@ export default function SavingsEscalatorPlan() {
         <BankScheduleSection
           userId={user.uid}
           planId={planId}
+          plan={plan}
+          series={series}
+          checkins={checkins}
+          currentPlanMonthIdx={currentPlanMonthIdx}
           t={t}
           currency={currency}
+          onCheckin={handleCheckin}
         />
       )}
 
