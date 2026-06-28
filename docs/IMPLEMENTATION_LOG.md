@@ -2,6 +2,16 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — Fix: Firestore rules + UX cho Execution Plan
+
+**Root cause:** `savingsPlans` và `checkins` subcollection không có rule trong `firestore.rules` — bị chặn bởi catch-all `allow read, write: if false`. Write âm thầm fail, không navigate, không feedback.
+**Fix rules:** Thêm `savingsSchedule/{entryId}`, `savingsPlans/{planId}`, `savingsPlans/{planId}/checkins/{monthKey}` vào `firestore.rules`. Deploy cả `firestore:rules` + `hosting`.
+**Fix UX:** Thêm `catch` vào `handleSavePlan` → hiển thị error message nếu Firestore lỗi.
+**UX:** Chuyển "Kế hoạch đã lưu" lên đầu trang `/savings-escalator` (trước form tính) + link "Tính kế hoạch mới" scroll xuống form.
+**Files:** `firestore.rules`, `SavingsEscalator.jsx`, `PlanHub.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — SavingsEscalator Execution Plan feature
 
 **savingsPlanService.js (new):** CRUD cho `users/{uid}/savingsPlans/{planId}` và subcollection `checkins/{monthKey}`. Functions: `createSavingsPlan`, `getSavingsPlan`, `listSavingsPlans`, `updatePlanActiveScenario`, `addMonthlyCheckin`, `getMonthlyCheckins`. Helpers: `currentYearMonth()`, `addMonthsToKey()`, `getCurrentPlanMonthIdx()`.
