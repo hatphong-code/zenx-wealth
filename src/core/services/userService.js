@@ -15,6 +15,7 @@ const defaultSettings = {
   monthlyEssentialExpense: 15000000,
   emergencyFundTargetMonths: 6,
   payYourselfFirstRate: 0.3,
+  dateOfBirth: null,
   allocationRule: {
     living: 55,
     emergencyFund: 15,

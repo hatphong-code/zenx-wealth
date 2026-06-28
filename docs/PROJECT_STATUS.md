@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-28 (v3.8 — Savings Escalator + Coast FI)
+Last updated: 2026-06-28 (v3.9 — DOB + age integration)
 
 ## Current Phase
 

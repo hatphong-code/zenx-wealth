@@ -4,7 +4,7 @@ import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { Save, UserCircle } from 'lucide-react';
-import { AGE_BRACKETS } from '../../core/data/latteOnboarding';
+import { AGE_BRACKETS, deriveAgeRangeFromDOB } from '../../core/data/latteOnboarding';
 import { Button } from '../components/ui/button';
 import { db } from '../../core/services/firebaseDb';
 import { formatMoney } from '../../core/utils/formatters';
@@ -46,6 +46,7 @@ function toForm(user, userData = {}) {
     monthlyEssentialExpense: String(settings.monthlyEssentialExpense || defaultSettings.monthlyEssentialExpense),
     emergencyFundTargetMonths: String(settings.emergencyFundTargetMonths || defaultSettings.emergencyFundTargetMonths),
     payYourselfFirstRate: String(Math.round((settings.payYourselfFirstRate || defaultSettings.payYourselfFirstRate) * 100)),
+    dateOfBirth: settings.dateOfBirth || '',
     ageRange: settings.ageRange || '22-29',
   };
 }
@@ -100,7 +101,14 @@ export default function Profile() {
   }, [user]);
 
   const updateField = (field, value) => {
-    setForm((current) => ({ ...current, [field]: value }));
+    setForm((current) => {
+      const next = { ...current, [field]: value };
+      if (field === 'dateOfBirth') {
+        const derived = deriveAgeRangeFromDOB(value);
+        if (derived) next.ageRange = derived;
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async (event) => {
@@ -149,6 +157,7 @@ export default function Profile() {
           monthlyEssentialExpense,
           emergencyFundTargetMonths,
           payYourselfFirstRate: payYourselfPercent / 100,
+          dateOfBirth: form.dateOfBirth || null,
           ageRange: form.ageRange,
         },
       };
@@ -284,24 +293,41 @@ export default function Profile() {
             </div>
 
             <div className="space-y-2">
+              <label htmlFor="profile-dob" className="block text-sm text-zx-text-soft">{t('profile.dateOfBirth')}</label>
+              <input
+                id="profile-dob"
+                type="date"
+                value={form.dateOfBirth}
+                onChange={e => updateField('dateOfBirth', e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text focus:outline-none focus:ring-2 focus:ring-zx-accent sm:w-48"
+              />
+              <p className="text-xs text-zx-text-soft">{t('profile.dateOfBirthHint')}</p>
+            </div>
+
+            <div className="space-y-2">
               <span className="text-sm text-zx-text-soft">{t('profile.ageRange')}</span>
               <div className="grid grid-cols-4 gap-2 mt-2">
                 {AGE_BRACKETS.map(bracket => (
                   <button
                     key={bracket}
                     type="button"
+                    disabled={!!form.dateOfBirth}
                     onClick={() => updateField('ageRange', bracket)}
                     className={`rounded-zx-sm border py-2.5 text-sm font-semibold transition ${
                       form.ageRange === bracket
                         ? 'border-zx-accent bg-zx-accent-soft text-zx-accent'
                         : 'border-zx-line bg-zx-surface text-zx-text-soft hover:border-zx-accent'
-                    }`}
+                    } disabled:cursor-default disabled:opacity-60`}
                   >
                     {bracket}
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-zx-text-soft">{t('profile.ageRangeHint')}</p>
+              {form.dateOfBirth
+                ? <p className="text-xs text-zx-accent">{t('profile.ageRangeFromDOB')}</p>
+                : <p className="text-xs text-zx-text-soft">{t('profile.ageRangeHint')}</p>
+              }
             </div>
           </section>
 

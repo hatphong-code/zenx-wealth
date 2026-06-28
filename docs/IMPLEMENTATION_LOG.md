@@ -2,6 +2,14 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — DOB + age integration (spec-dob-age-integration)
+
+**Part 1 — dateOfBirth in Profile:** `deriveAgeRangeFromDOB(dob)` + `calculateExactAge(dob)` + `AGE_RANGE_MIDPOINT` added to `latteOnboarding.js`. `dateOfBirth: null` added to `userService.js` defaults. `Profile.jsx`: native `type="date"` input (optional, not required); on change auto-derives `ageRange` from DOB; ageRange buttons disabled + labelled "Tự động tính từ ngày sinh" when DOB present. DOB saved to Firestore on submit.
+**Part 2 — SavingsEscalator age default:** `deriveDefaultAge(user)` helper: priority DOB (exact age) → ageRange midpoint → 30 fallback. `AGE_RANGE_MIDPOINT = { '<22': 19, '22-29': 25, '30-44': 37, '45+': 50 }`. Input remains editable.
+**Files:** `latteOnboarding.js`, `userService.js`, `Profile.jsx`, `SavingsEscalator.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — Savings Escalator + Coast FI (spec-savings-escalator-coast-fi)
 
 **Part A — Engine (financialCalculations.js):** 3 pure functions with Decimal precision: `buildGrowingContributionSeries` (monthly balance series with growing deposits), `calculateFITarget` (monthlyExpense × 12 × multiple), `findCoastPoint` (first month where balance can self-grow to FI target by retirement). 6 new unit tests in calculations.test.js — all pass.

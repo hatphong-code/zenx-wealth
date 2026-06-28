@@ -8,6 +8,7 @@ import {
   calculateFITarget,
   findCoastPoint,
 } from '../../core/services/financialCalculations';
+import { AGE_RANGE_MIDPOINT, calculateExactAge } from '../../core/data/latteOnboarding';
 import {
   addSavingsScheduleEntry,
   deleteSavingsScheduleEntry,
@@ -296,12 +297,22 @@ function ScheduleSection({ userId, t, notifEnabled }) {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_FORM = {
+function deriveDefaultAge(user) {
+  const dob = user?.settings?.dateOfBirth;
+  if (dob) {
+    const exact = calculateExactAge(dob);
+    if (exact !== null) return exact;
+  }
+  const range = user?.settings?.ageRange;
+  if (range && AGE_RANGE_MIDPOINT[range] !== undefined) return AGE_RANGE_MIDPOINT[range];
+  return 30;
+}
+
+const BASE_FORM = {
   startMonthly: 9000000,
   monthlyGrowthPct: 1,
   monthlyExpense: 15000000,
   fiMultiple: 25,
-  currentAge: 30,
   retirementAge: 50,
   annualRatePct: 6,
 };
@@ -310,7 +321,7 @@ export default function SavingsEscalator() {
   const { user } = useAuth();
   const { t } = useI18n();
 
-  const [form, setForm] = useState(DEFAULT_FORM);
+  const [form, setForm] = useState(() => ({ ...BASE_FORM, currentAge: deriveDefaultAge(user) }));
   const [plan, setPlan] = useState(null);
   const [showFiNote, setShowFiNote] = useState(false);
   const [showFullTable, setShowFullTable] = useState(false);
