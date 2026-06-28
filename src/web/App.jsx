@@ -43,6 +43,7 @@ const HealthScore = lazy(() => import('./pages/HealthScore'));
 const Upgrade = lazy(() => import('./pages/Upgrade'));
 const WelcomeScreen = lazy(() => import('./pages/WelcomeScreen'));
 const SavingsEscalator = lazy(() => import('./pages/SavingsEscalator'));
+const SavingsEscalatorPlan = lazy(() => import('./pages/SavingsEscalatorPlan'));
 
 class ChunkErrorBoundary extends Component {
   componentDidCatch(error) {
@@ -195,6 +196,7 @@ export default function App() {
         <Route path="/import" element={routeElement(<PrivateRoute featureKey="import_transactions"><ImportTransactions /></PrivateRoute>)} />
         <Route path="/health-score" element={routeElement(<PrivateRoute featureKey="health_score"><HealthScore /></PrivateRoute>)} />
         <Route path="/savings-escalator" element={routeElement(<PrivateRoute featureKey="savings_escalator"><SavingsEscalator /></PrivateRoute>)} />
+        <Route path="/savings-escalator/plan/:planId" element={routeElement(<PrivateRoute featureKey="savings_escalator"><SavingsEscalatorPlan /></PrivateRoute>)} />
         <Route path="/upgrade" element={routeElement(<PrivateRoute featureKey="dashboard"><Upgrade /></PrivateRoute>)} />
       </Routes>
     </BrowserRouter>

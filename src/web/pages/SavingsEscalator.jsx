@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, CalendarClock, ChevronDown, ChevronUp, Flame, Info, PlusCircle, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { AlertTriangle, CalendarClock, ChevronDown, ChevronRight, ChevronUp, Flame, Info, PlusCircle, Trash2 } from 'lucide-react';
 import { Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
@@ -17,6 +18,11 @@ import {
   getSavingsSchedule,
   getUpcomingMaturities,
 } from '../../core/services/savingsScheduleService';
+import {
+  createSavingsPlan,
+  currentYearMonth,
+  listSavingsPlans,
+} from '../../core/services/savingsPlanService';
 import { fmtShort, formatMoney } from '../../core/utils/formatters';
 import { getCachedUserProfile, getUserProfile } from '../../core/services/userService';
 import NumericInput from '../components/ui/NumericInput';
@@ -409,12 +415,23 @@ export default function SavingsEscalator() {
   const { user } = useAuth();
   const { t } = useI18n();
   const { fmt } = useNumberFormat();
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({ ...BASE_FORM, currentAge: 30 });
   const [plan, setPlan] = useState(null);
   const [showFiNote, setShowFiNote] = useState(false);
   const [showFullTable, setShowFullTable] = useState(false);
   const [ageSeeded, setAgeSeeded] = useState(false);
+
+  // Save plan state
+  const [showSavePlanForm, setShowSavePlanForm] = useState(false);
+  const [savePlanName, setSavePlanName] = useState('');
+  const [savePlanStartMonth, setSavePlanStartMonth] = useState(currentYearMonth());
+  const [savingPlan, setSavingPlan] = useState(false);
+
+  // Saved plans list
+  const [savedPlans, setSavedPlans] = useState([]);
+  const [plansLoaded, setPlansLoaded] = useState(false);
 
   useEffect(() => {
     if (!user?.uid || ageSeeded) return;
@@ -433,6 +450,14 @@ export default function SavingsEscalator() {
     if (cached) { apply(cached); return; }
     getUserProfile(user.uid).then(apply);
   }, [user?.uid, ageSeeded]);
+
+  useEffect(() => {
+    if (!user?.uid || plansLoaded) return;
+    listSavingsPlans(user.uid).then(list => {
+      setSavedPlans(list);
+      setPlansLoaded(true);
+    });
+  }, [user?.uid, plansLoaded]);
 
   const currency = user?.settings?.currency || 'VND';
   const notifEnabled = user?.settings?.notificationPrefs?.savingsScheduleReminder !== false;
@@ -454,6 +479,46 @@ export default function SavingsEscalator() {
     });
     setPlan(result);
     setShowFullTable(false);
+  }
+
+  async function handleSavePlan(e) {
+    e.preventDefault();
+    if (!plan?.coastResult || !user?.uid) return;
+    setSavingPlan(true);
+    try {
+      const planResult = {
+        fiTarget: plan.fiTarget,
+        coastMonth: plan.coastResult.coastMonth,
+        coastAge: Number(form.currentAge) + Math.floor(plan.coastResult.coastMonth / 12),
+        balanceAtCoast: plan.coastResult.balanceAtCoast,
+        depositAtCoast: plan.depositAtCoast,
+        years: plan.years,
+        scenarios: {
+          continueBalance: plan.tableRows[plan.years]?.continueBalance ?? 0,
+          maintainBalance: plan.tableRows[plan.years]?.maintainBalance ?? 0,
+          coastBalance: plan.tableRows[plan.years]?.coastBalance ?? 0,
+        },
+      };
+      const params = {
+        startMonthly: Number(form.startMonthly),
+        monthlyGrowthPct: Number(form.monthlyGrowthPct),
+        monthlyExpense: Number(form.monthlyExpense),
+        fiMultiple: Number(form.fiMultiple),
+        currentAge: Number(form.currentAge),
+        retirementAge: Number(form.retirementAge),
+        annualRatePct: Number(form.annualRatePct),
+        currency,
+      };
+      const id = await createSavingsPlan(user.uid, {
+        name: savePlanName || t('savingsEscalator.savePlan.namePlaceholder'),
+        params,
+        result: planResult,
+        executionStartDate: savePlanStartMonth,
+      });
+      navigate(`/savings-escalator/plan/${id}`);
+    } finally {
+      setSavingPlan(false);
+    }
   }
 
   const tableRows = plan?.tableRows ?? [];
@@ -821,7 +886,99 @@ export default function SavingsEscalator() {
               <p className="text-[11.5px] leading-relaxed text-zx-text-soft">{t('savingsEscalator.results.disclaimer')}</p>
             </div>
           </div>
+
+          {/* Save plan CTA — only show when coast was found */}
+          {plan.coastResult && user && (
+            <div className="rounded-zx border border-zx-line bg-zx-surface p-5 space-y-3">
+              <div>
+                <h2 className="font-semibold text-zx-text">{t('savingsEscalator.savePlan.sectionTitle')}</h2>
+                <p className="text-sm text-zx-text-soft mt-0.5">{t('savingsEscalator.savePlan.sectionSubtitle')}</p>
+              </div>
+              {!showSavePlanForm ? (
+                <button
+                  type="button"
+                  onClick={() => { setSavePlanName(''); setSavePlanStartMonth(currentYearMonth()); setShowSavePlanForm(true); }}
+                  className="rounded-zx-sm bg-zx-accent px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition"
+                >
+                  {t('savingsEscalator.savePlan.ctaButton')}
+                </button>
+              ) : (
+                <form onSubmit={handleSavePlan} className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="sp-name" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.savePlan.nameLabel')}</label>
+                      <input
+                        id="sp-name"
+                        value={savePlanName}
+                        onChange={e => setSavePlanName(e.target.value)}
+                        placeholder={t('savingsEscalator.savePlan.namePlaceholder')}
+                        className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text placeholder:text-zx-text-soft focus:outline-none focus:ring-2 focus:ring-zx-accent"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="sp-month" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.savePlan.startMonthLabel')}</label>
+                      <input
+                        id="sp-month"
+                        type="month"
+                        value={savePlanStartMonth}
+                        onChange={e => setSavePlanStartMonth(e.target.value)}
+                        className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text focus:outline-none focus:ring-2 focus:ring-zx-accent"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      type="submit"
+                      disabled={savingPlan}
+                      className="rounded-zx-sm bg-zx-accent px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50 transition"
+                    >
+                      {savingPlan ? t('savingsEscalator.savePlan.saving') : t('savingsEscalator.savePlan.save')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowSavePlanForm(false)}
+                      className="rounded-zx-sm border border-zx-line px-4 py-2.5 text-sm text-zx-text-soft hover:text-zx-text transition"
+                    >
+                      {t('savingsEscalator.savePlan.cancel')}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          )}
         </div>
+      )}
+
+      {/* Saved plans list */}
+      {user && savedPlans.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="font-semibold text-zx-text">{t('savingsEscalator.savePlan.savedPlansTitle')}</h2>
+          <div className="rounded-zx border border-zx-line bg-zx-surface divide-y divide-zx-line overflow-hidden">
+            {savedPlans.map(sp => (
+              <button
+                key={sp.id}
+                type="button"
+                onClick={() => navigate(`/savings-escalator/plan/${sp.id}`)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-zx-surface-2 transition"
+              >
+                <div>
+                  <p className="text-sm font-medium text-zx-text">{sp.name}</p>
+                  <p className="text-xs text-zx-text-soft mt-0.5">
+                    Bắt đầu {sp.executionStartDate?.replace('-', '/')} · Coast tháng {sp.result?.coastMonth}
+                    {sp.activeScenario && (
+                      <span className="ml-2 text-zx-accent font-medium">
+                        {sp.activeScenario === 'continue' ? t('savingsEscalator.plan.scenarioPick1') :
+                         sp.activeScenario === 'maintain' ? t('savingsEscalator.plan.scenarioPick2') :
+                         t('savingsEscalator.plan.scenarioPick3')}
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 flex-shrink-0 text-zx-text-soft" />
+              </button>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Divider */}
