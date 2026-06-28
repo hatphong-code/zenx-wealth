@@ -59,15 +59,33 @@ function computePlan({ startMonthly, monthlyGrowthPct, monthlyExpense, fiMultipl
     return { age: currentAge + yr, continueLine, coastLine };
   });
 
+  // Deposit amount at the coast point (used for "maintain flat" scenario)
+  const depositAtCoast = coastResult
+    ? series[Math.min(coastResult.coastMonth, series.length - 1)].monthlyDeposit
+    : 0;
+
   // Yearly table rows
   const tableRows = Array.from({ length: years + 1 }, (_, yr) => {
     const m = yr * 12;
     const dp = series[Math.min(m, series.length - 1)];
     const isCoastYear = coastResult && m >= coastResult.coastMonth && (m - 12) < coastResult.coastMonth;
+    const isAfterCoastYear = !!(coastResult && !isCoastYear && m > coastResult.coastMonth);
+
     const continueBalance = dp.balance;
+
     const coastBalance = (!coastResult || m <= coastResult.coastMonth)
       ? continueBalance
       : coastResult.balanceAtCoast * Math.pow(1 + r, m - coastResult.coastMonth);
+
+    let maintainBalance;
+    if (!coastResult || m <= coastResult.coastMonth) {
+      maintainBalance = continueBalance;
+    } else {
+      const monthsAfter = m - coastResult.coastMonth;
+      maintainBalance = r > 0
+        ? coastResult.balanceAtCoast * Math.pow(1 + r, monthsAfter) + depositAtCoast * (Math.pow(1 + r, monthsAfter) - 1) / r
+        : coastResult.balanceAtCoast + depositAtCoast * monthsAfter;
+    }
 
     let annualDeposit = 0;
     let firstMonthDeposit = 0;
@@ -78,9 +96,8 @@ function computePlan({ startMonthly, monthlyGrowthPct, monthlyExpense, fiMultipl
       }
       firstMonthDeposit = series[Math.min(startM, series.length - 1)].monthlyDeposit;
     }
-    const isAfterCoastYear = !!(coastResult && !isCoastYear && m > coastResult.coastMonth);
 
-    return { yr, age: currentAge + yr, continueBalance, coastBalance, isCoastYear, annualDeposit, firstMonthDeposit, isAfterCoastYear };
+    return { yr, age: currentAge + yr, continueBalance, maintainBalance, coastBalance, isCoastYear, isAfterCoastYear, annualDeposit, firstMonthDeposit };
   });
 
   return { fiTarget, coastResult, chartData, tableRows, months, years };
@@ -670,11 +687,11 @@ export default function SavingsEscalator() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-zx-line bg-zx-surface-2">
-                    <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableYear')}</th>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableAge')}</th>
+                    <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableYearAge')}</th>
                     {plan.coastResult ? (
                       <>
                         <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-accent">{t('savingsEscalator.results.tableBalanceContinue')}</th>
+                        <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-gold">{t('savingsEscalator.results.tableBalanceMaintain')}</th>
                         <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-positive">{t('savingsEscalator.results.tableBalanceCoast')}</th>
                       </>
                     ) : (
@@ -689,17 +706,22 @@ export default function SavingsEscalator() {
                       key={row.yr}
                       className={row.isCoastYear ? 'bg-zx-positive/5' : 'hover:bg-zx-surface-2'}
                     >
-                      <td className="px-4 py-2.5 text-zx-text-soft">
-                        {row.yr === 0 ? 'Bắt đầu' : `+${row.yr}`}
-                        {row.isCoastYear && (
-                          <span className="ml-2 text-[10px] font-semibold text-zx-positive">{t('savingsEscalator.results.tableCoastMark')}</span>
-                        )}
+                      <td className="px-4 py-2.5">
+                        <span className="block text-sm text-zx-text-soft">
+                          {row.yr === 0 ? 'Bắt đầu' : `+${row.yr}`}
+                          {row.isCoastYear && (
+                            <span className="ml-1.5 text-[10px] font-semibold text-zx-positive">{t('savingsEscalator.results.tableCoastMark')}</span>
+                          )}
+                        </span>
+                        <span className="block text-xs text-zx-text-soft">{t('savingsEscalator.results.tableAge')} {row.age}</span>
                       </td>
-                      <td className="px-4 py-2.5 text-zx-text">{row.age}</td>
                       {plan.coastResult ? (
                         <>
                           <td className="px-4 py-2.5 text-right font-medium text-zx-text">{fmt(row.continueBalance, currency)}</td>
-                          <td className={`px-4 py-2.5 text-right font-medium ${row.isCoastYear || row.continueBalance !== row.coastBalance ? 'text-zx-positive' : 'text-zx-text-soft'}`}>
+                          <td className={`px-4 py-2.5 text-right font-medium ${row.isAfterCoastYear || row.isCoastYear ? 'text-zx-gold' : 'text-zx-text-soft'}`}>
+                            {fmt(row.maintainBalance, currency)}
+                          </td>
+                          <td className={`px-4 py-2.5 text-right font-medium ${row.isAfterCoastYear || row.isCoastYear ? 'text-zx-positive' : 'text-zx-text-soft'}`}>
                             {fmt(row.coastBalance, currency)}
                           </td>
                         </>
