@@ -171,10 +171,10 @@ function MonthlyView({ plan, series, checkins, currentPlanMonthIdx, onCheckin })
 
   function getPlannedDeposit(monthIdx) {
     if (monthIdx <= coastMonth) {
-      return series[monthIdx - 1]?.monthlyDeposit || 0;
+      return series[monthIdx]?.monthlyDeposit || 0;
     }
     const scenario = plan.activeScenario;
-    if (scenario === 'continue') return series[Math.min(monthIdx - 1, series.length - 1)]?.monthlyDeposit || 0;
+    if (scenario === 'continue') return series[Math.min(monthIdx, series.length - 1)]?.monthlyDeposit || 0;
     if (scenario === 'maintain') return depositAtCoast;
     return 0;
   }
@@ -334,9 +334,9 @@ function YearlyView({ plan, series, checkins }) {
   const totalYears = params.retirementAge - params.currentAge;
 
   function getPlannedDeposit(monthIdx) {
-    if (monthIdx <= coastMonth) return series[monthIdx - 1]?.monthlyDeposit || 0;
+    if (monthIdx <= coastMonth) return series[monthIdx]?.monthlyDeposit || 0;
     const s = plan.activeScenario;
-    if (s === 'continue') return series[Math.min(monthIdx - 1, series.length - 1)]?.monthlyDeposit || 0;
+    if (s === 'continue') return series[Math.min(monthIdx, series.length - 1)]?.monthlyDeposit || 0;
     if (s === 'maintain') return depositAtCoast;
     return 0;
   }
