@@ -428,6 +428,7 @@ export default function SavingsEscalator() {
   const [savePlanName, setSavePlanName] = useState('');
   const [savePlanStartMonth, setSavePlanStartMonth] = useState(currentYearMonth());
   const [savingPlan, setSavingPlan] = useState(false);
+  const [savePlanError, setSavePlanError] = useState('');
 
   // Saved plans list
   const [savedPlans, setSavedPlans] = useState([]);
@@ -485,6 +486,7 @@ export default function SavingsEscalator() {
     e.preventDefault();
     if (!plan?.coastResult || !user?.uid) return;
     setSavingPlan(true);
+    setSavePlanError('');
     try {
       const planResult = {
         fiTarget: plan.fiTarget,
@@ -516,6 +518,8 @@ export default function SavingsEscalator() {
         executionStartDate: savePlanStartMonth,
       });
       navigate(`/savings-escalator/plan/${id}`);
+    } catch (err) {
+      setSavePlanError(`Lỗi: ${err?.message || 'Không thể lưu kế hoạch. Thử lại sau.'}`);
     } finally {
       setSavingPlan(false);
     }
@@ -985,6 +989,9 @@ export default function SavingsEscalator() {
                       {t('savingsEscalator.savePlan.cancel')}
                     </button>
                   </div>
+                  {savePlanError && (
+                    <p className="text-xs text-zx-negative">{savePlanError}</p>
+                  )}
                 </form>
               )}
             </div>
