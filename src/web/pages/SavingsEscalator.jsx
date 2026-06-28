@@ -690,9 +690,9 @@ export default function SavingsEscalator() {
                     <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableYearAge')}</th>
                     {plan.coastResult ? (
                       <>
-                        <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-accent">{t('savingsEscalator.results.tableBalanceContinue')}</th>
-                        <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-gold">{t('savingsEscalator.results.tableBalanceMaintain')}</th>
-                        <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-positive">{t('savingsEscalator.results.tableBalanceCoast')}</th>
+                        <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-positive">{t('savingsEscalator.results.tableBalanceContinue')}</th>
+                        <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-accent">{t('savingsEscalator.results.tableBalanceMaintain')}</th>
+                        <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-gold">{t('savingsEscalator.results.tableBalanceCoast')}</th>
                       </>
                     ) : (
                       <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableBalance')}</th>
@@ -704,13 +704,13 @@ export default function SavingsEscalator() {
                   {visibleRows.map(row => (
                     <tr
                       key={row.yr}
-                      className={row.isCoastYear ? 'bg-zx-positive/5' : 'hover:bg-zx-surface-2'}
+                      className={row.isCoastYear ? 'bg-zx-gold/5' : 'hover:bg-zx-surface-2'}
                     >
                       <td className="px-4 py-2.5">
                         <span className="block text-sm text-zx-text-soft">
                           {row.yr === 0 ? 'Bắt đầu' : `+${row.yr}`}
                           {row.isCoastYear && (
-                            <span className="ml-1.5 text-[10px] font-semibold text-zx-positive">{t('savingsEscalator.results.tableCoastMark')}</span>
+                            <span className="ml-1.5 text-[10px] font-semibold text-zx-gold">{t('savingsEscalator.results.tableCoastMark')}</span>
                           )}
                         </span>
                         <span className="block text-xs text-zx-text-soft">{t('savingsEscalator.results.tableAge')} {row.age}</span>
@@ -718,10 +718,10 @@ export default function SavingsEscalator() {
                       {plan.coastResult ? (
                         <>
                           <td className="px-4 py-2.5 text-right font-medium text-zx-text">{fmt(row.continueBalance, currency)}</td>
-                          <td className={`px-4 py-2.5 text-right font-medium ${row.isAfterCoastYear || row.isCoastYear ? 'text-zx-gold' : 'text-zx-text-soft'}`}>
+                          <td className={`px-4 py-2.5 text-right font-medium ${row.isAfterCoastYear || row.isCoastYear ? 'text-zx-accent' : 'text-zx-text-soft'}`}>
                             {fmt(row.maintainBalance, currency)}
                           </td>
-                          <td className={`px-4 py-2.5 text-right font-medium ${row.isAfterCoastYear || row.isCoastYear ? 'text-zx-positive' : 'text-zx-text-soft'}`}>
+                          <td className={`px-4 py-2.5 text-right font-medium ${row.isAfterCoastYear || row.isCoastYear ? 'text-zx-gold' : 'text-zx-text-soft'}`}>
                             {fmt(row.coastBalance, currency)}
                           </td>
                         </>
@@ -771,20 +771,20 @@ export default function SavingsEscalator() {
               const finalRow = plan.tableRows[plan.years];
               const scenarios = [
                 {
-                  borderColor: 'border-l-zx-accent',
-                  labelColor: 'text-zx-accent',
+                  borderColor: 'border-l-zx-positive',
+                  labelColor: 'text-zx-positive',
                   label: t('savingsEscalator.results.conclusionScenario1Label', { pct: form.monthlyGrowthPct }),
                   body: t('savingsEscalator.results.conclusionScenario1Body', { retirementAge: form.retirementAge, balance: fmt(finalRow.continueBalance, currency) }),
                 },
                 {
-                  borderColor: 'border-l-zx-gold',
-                  labelColor: 'text-zx-gold',
+                  borderColor: 'border-l-zx-accent',
+                  labelColor: 'text-zx-accent',
                   label: t('savingsEscalator.results.conclusionScenario2Label', { deposit: fmt(plan.depositAtCoast, currency), coastMonth: plan.coastResult.coastMonth }),
                   body: t('savingsEscalator.results.conclusionScenario2Body', { retirementAge: form.retirementAge, balance: fmt(finalRow.maintainBalance, currency) }),
                 },
                 {
-                  borderColor: 'border-l-zx-positive',
-                  labelColor: 'text-zx-positive',
+                  borderColor: 'border-l-zx-gold',
+                  labelColor: 'text-zx-gold',
                   label: t('savingsEscalator.results.conclusionScenario3Label', { coastMonth: plan.coastResult.coastMonth, coastAge }),
                   body: t('savingsEscalator.results.conclusionScenario3Body', { retirementAge: form.retirementAge, balance: fmt(finalRow.coastBalance, currency) }),
                 },
