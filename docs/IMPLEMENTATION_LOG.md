@@ -2,6 +2,17 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — Multi-plan behavioral gate cho SavingsEscalator
+
+**Behavioral gate:** `checkCanCreatePlan(userId, annualRatePct)` — kiểm tra điều kiện trước khi cho phép tạo plan thứ 4+: <3 active plans → luôn cho tạo; đã có pending plan → block; có plan <6 tháng → block; avg consistency <60% → block; avg <80% hoặc chưa có plan 12 tháng → tạo với `status='pending'`; đủ điều kiện → active.
+**Auto-activation:** `activatePendingPlans(userId)` — re-evaluate pending plans khi avg consistency ≥ 80%, set `executionStartDate = currentMonth`. Gọi tự động khi load trang `/savings-escalator` và `/savings-escalator/plan/:planId`.
+**UI SavingsEscalator:** CTA "Lưu kế hoạch" giờ chạy check trước → hiển thị block message (nếu bị chặn) hoặc form + warn message (nếu được tạo pending). Badge "Chờ kích hoạt" trong danh sách kế hoạch.
+**UI SavingsEscalatorPlan:** Pending banner thay thế progress + tabs. Hiển thị "Đã kích hoạt!" banner nếu vừa auto-activate khi vào trang. Guard `currentPlanMonthIdx` khỏi null `executionStartDate`.
+**i18n:** Thêm `pendingTitle`, `pendingBody`, `justActivated`, `checking`, `block*`, `warn*`, `riskWarning`, `pendingBadge` vào vi.js + en.js.
+**Files:** `savingsPlanService.js`, `SavingsEscalator.jsx`, `SavingsEscalatorPlan.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — Fix: Firestore rules + UX cho Execution Plan
 
 **Root cause:** `savingsPlans` và `checkins` subcollection không có rule trong `firestore.rules` — bị chặn bởi catch-all `allow read, write: if false`. Write âm thầm fail, không navigate, không feedback.
