@@ -133,10 +133,11 @@ function StatCard({ label, value, sub, highlight }) {
 }
 
 function ChartTooltipContent({ active, payload, label, currency }) {
+  const { t } = useI18n();
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-zx-sm border border-zx-line bg-zx-surface px-3 py-2 shadow-zx text-xs space-y-1">
-      <p className="font-semibold text-zx-text">{`Tuổi ${label}`}</p>
+      <p className="font-semibold text-zx-text">{t('savingsEscalator.results.chartAge', { n: label })}</p>
       {payload.map(p => (
         <p key={p.dataKey} style={{ color: p.color }}>{p.name}: {formatMoney(p.value, currency)}</p>
       ))}
@@ -320,8 +321,8 @@ function ScheduleSection({ userId, t, notifEnabled, currency }) {
                 <p className="text-sm font-medium text-zx-text">{entry.label}</p>
                 <p className="text-xs text-zx-text-soft mt-0.5">
                   {entry.amount ? `${fmtShort(entry.amount)} · ` : ''}
-                  {entry.openDate ? `Mở ${formatDateVN(entry.openDate)} · ` : ''}
-                  Đáo hạn {formatDateVN(entry.maturityDate)}
+                  {entry.openDate ? `${t('savingsEscalator.schedule.openedOn', { date: formatDateVN(entry.openDate) })} · ` : ''}
+                  {t('savingsEscalator.schedule.matureOn', { date: formatDateVN(entry.maturityDate) })}
                   {entry.note ? ` · ${entry.note}` : ''}
                 </p>
               </div>

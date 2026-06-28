@@ -28,6 +28,7 @@ const defaultNotificationPrefs = {
   transactionLog: false,
   milestones: true,
   monthlyLetter: true,
+  savingsScheduleReminder: true,
 };
 
 const emptyForm = {
