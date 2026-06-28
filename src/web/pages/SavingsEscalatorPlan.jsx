@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CalendarClock, CheckCircle2, ChevronDown, ChevronUp, Circle, Pencil, PlusCircle, Target, Trash2 } from 'lucide-react';
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
@@ -350,14 +350,16 @@ function BankScheduleSection({ userId, planId, plan, series, currentPlanMonthIdx
 
 // ── Comparison chart ──────────────────────────────────────────────────────────
 
-function ComparisonChart({ plan, series, checkins, entries, currentPlanMonthIdx, t, currency }) {
-  const { annualRatePct, currentAge } = plan.params;
-  const { coastMonth, balanceAtCoast: plannedBalanceAtCoast } = plan.result;
+function ComparisonChart({ plan, series, checkins, entries, currentPlanMonthIdx, t }) {
+  const { annualRatePct, currentAge, monthlyExpense, fiMultiple } = plan.params;
+  const { coastMonth, balanceAtCoast: plannedBalanceAtCoast, coastAge } = plan.result;
   const totalYears = plan.params.retirementAge - currentAge;
   const totalMonths = totalYears * 12;
   const planR = annualRatePct / 100 / 12;
-
   const depositAtCoast = series[Math.min(coastMonth, series.length - 1)]?.monthlyDeposit || 0;
+  const fiTarget = (monthlyExpense || 0) * 12 * (fiMultiple || 25);
+
+  const [compScenario, setCompScenario] = useState(plan.activeScenario || 'continue');
 
   // Weighted average rate from saved books
   const booksWithRate = entries.filter(e => e.interestRate > 0 && e.amount > 0);
@@ -367,8 +369,8 @@ function ComparisonChart({ plan, series, checkins, entries, currentPlanMonthIdx,
     : annualRatePct;
   const actualR = actualAnnualRatePct / 100 / 12;
   const ratesDiffer = Math.abs(actualAnnualRatePct - annualRatePct) > 0.01;
+  const hasActualData = Object.keys(checkins).length > 0 || entries.length > 0;
 
-  // Month-by-month simulation for actual scenarios
   const actualYearly = useMemo(() => {
     let acCont = 0, acMaint = 0, acCoast = 0;
     const out = {};
@@ -385,7 +387,7 @@ function ComparisonChart({ plan, series, checkins, entries, currentPlanMonthIdx,
       if (m % 12 === 0) out[m / 12] = { acCont, acMaint, acCoast };
     }
     return out;
-  }, [plan, series, checkins, currentPlanMonthIdx, actualR, coastMonth, depositAtCoast, totalMonths]);
+  }, [plan.executionStartDate, series, checkins, currentPlanMonthIdx, actualR, coastMonth, depositAtCoast, totalMonths]);
 
   const chartData = useMemo(() => Array.from({ length: totalYears + 1 }, (_, yr) => {
     const m = yr * 12;
@@ -400,25 +402,26 @@ function ComparisonChart({ plan, series, checkins, entries, currentPlanMonthIdx,
       : planR > 0
         ? plannedBalanceAtCoast * Math.pow(1 + planR, monthsAfter) + depositAtCoast * (Math.pow(1 + planR, monthsAfter) - 1) / planR
         : plannedBalanceAtCoast + depositAtCoast * monthsAfter;
+
+    // Band: fill between coast (bottom) and continue (top)
+    const bandBase = planCoast;
+    const bandDelta = Math.max(0, planContinue - planCoast);
+    // Selected planned line
+    const planSelected = compScenario === 'continue' ? planContinue : compScenario === 'maintain' ? planMaintain : planCoast;
+
     const actual = yr > 0 ? actualYearly[yr] : null;
+    const actualBalance = actual
+      ? (compScenario === 'continue' ? actual.acCont : compScenario === 'maintain' ? actual.acMaint : actual.acCoast)
+      : null;
+
     return {
       age: currentAge + yr,
-      planContinue,
-      planMaintain,
-      planCoast,
-      actualContinue: actual?.acCont,
-      actualMaintain: actual?.acMaint,
-      actualCoast: actual?.acCoast,
+      bandBase,
+      bandDelta,
+      planSelected,
+      actualBalance: hasActualData ? actualBalance : null,
     };
-  }), [series, actualYearly, totalYears, coastMonth, plannedBalanceAtCoast, planR, depositAtCoast, currentAge]);
-
-  if (entries.length === 0) {
-    return (
-      <div className="rounded-zx border border-zx-line bg-zx-surface p-4 text-center">
-        <p className="text-sm text-zx-text-soft">{t('savingsEscalator.schedule.chartNoBooks')}</p>
-      </div>
-    );
-  }
+  }), [series, actualYearly, totalYears, coastMonth, plannedBalanceAtCoast, planR, depositAtCoast, currentAge, compScenario, hasActualData]);
 
   function fmtAxis(v) {
     if (!v) return '';
@@ -427,51 +430,102 @@ function ComparisonChart({ plan, series, checkins, entries, currentPlanMonthIdx,
     return `${(v / 1e3).toFixed(0)}k`;
   }
 
+  const scenarioOptions = [
+    { key: 'continue', label: t('savingsEscalator.plan.scenarioPick1') },
+    { key: 'maintain', label: t('savingsEscalator.plan.scenarioPick2') },
+    { key: 'coast',    label: t('savingsEscalator.plan.scenarioPick3') },
+  ];
+
   return (
     <div className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-3">
-      <div>
-        <p className="text-sm font-semibold text-zx-text">{t('savingsEscalator.schedule.chartTitle')}</p>
-        {ratesDiffer && (
-          <p className="text-xs text-zx-accent mt-0.5">
-            {t('savingsEscalator.schedule.chartActualRate', { rate: actualAnnualRatePct.toFixed(1) })}
-          </p>
+      {/* Header: title + scenario toggle */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-sm font-semibold text-zx-text">{t('savingsEscalator.schedule.chartTitle')}</p>
+          {ratesDiffer && hasActualData && (
+            <p className="text-xs text-zx-text-soft mt-0.5">
+              {t('savingsEscalator.schedule.chartActualRate', { rate: actualAnnualRatePct.toFixed(1) })}
+            </p>
+          )}
+        </div>
+        <div className="flex gap-1">
+          {scenarioOptions.map(s => (
+            <button
+              key={s.key}
+              type="button"
+              onClick={() => setCompScenario(s.key)}
+              className={`rounded-zx-pill px-2.5 py-1 text-[11px] font-semibold transition ${
+                compScenario === s.key
+                  ? 'bg-zx-accent text-white'
+                  : 'border border-zx-line text-zx-text-soft hover:text-zx-text'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Mini legend */}
+      <div className="flex gap-4 text-[11px] text-zx-text-soft">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-5 border-t-2 border-dashed border-zx-accent" />
+          {t('savingsEscalator.schedule.chartLegendPlan')}
+        </span>
+        {hasActualData && (
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-5 border-t-2 border-zx-positive" />
+            {t('savingsEscalator.schedule.chartLegendActual')}
+          </span>
         )}
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-5 border-t border-zx-gold" />
+          {t('savingsEscalator.schedule.chartLegendTarget')}
+        </span>
       </div>
-      {/* Legend */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
-        <span className="flex items-center gap-1"><span className="inline-block w-6 border-t-2 border-dashed border-zx-positive" />{t('savingsEscalator.schedule.chartPlanContinue')}</span>
-        <span className="flex items-center gap-1"><span className="inline-block w-6 border-t-2 border-dashed border-zx-accent" />{t('savingsEscalator.schedule.chartPlanMaintain')}</span>
-        <span className="flex items-center gap-1"><span className="inline-block w-6 border-t-2 border-dashed border-zx-gold" />{t('savingsEscalator.schedule.chartPlanCoast')}</span>
-        <span className="flex items-center gap-1"><span className="inline-block w-6 border-t-2 border-zx-positive" />{t('savingsEscalator.schedule.chartActualContinue')}</span>
-        <span className="flex items-center gap-1"><span className="inline-block w-6 border-t-2 border-zx-accent" />{t('savingsEscalator.schedule.chartActualMaintain')}</span>
-        <span className="flex items-center gap-1"><span className="inline-block w-6 border-t-2 border-zx-gold" />{t('savingsEscalator.schedule.chartActualCoast')}</span>
-      </div>
+
       <ResponsiveContainer width="100%" height={220}>
-        <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+        <ComposedChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="planBandFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--zx-accent)" stopOpacity={0.18} />
+              <stop offset="100%" stopColor="var(--zx-accent)" stopOpacity={0.04} />
+            </linearGradient>
+          </defs>
           <XAxis dataKey="age" tick={{ fontSize: 11, fill: 'var(--zx-text-soft)' }} />
           <YAxis tickFormatter={fmtAxis} tick={{ fontSize: 11, fill: 'var(--zx-text-soft)' }} width={48} />
           <Tooltip
             content={({ active, payload, label }) => {
               if (!active || !payload?.length) return null;
+              const planPt = payload.find(p => p.dataKey === 'planSelected');
+              const actualPt = payload.find(p => p.dataKey === 'actualBalance');
               return (
                 <div className="rounded-zx-sm border border-zx-line bg-zx-surface px-3 py-2 shadow-zx text-xs space-y-1">
                   <p className="font-semibold text-zx-text">{t('savingsEscalator.schedule.chartAge', { n: label })}</p>
-                  {payload.map(p => p.value != null && (
-                    <p key={p.dataKey} style={{ color: p.color }}>{p.name}: {fmtShort(p.value)}</p>
-                  ))}
+                  {planPt?.value != null && (
+                    <p style={{ color: 'var(--zx-accent)' }}>{t('savingsEscalator.schedule.chartLegendPlan')}: {fmtShort(planPt.value)}</p>
+                  )}
+                  {actualPt?.value != null && (
+                    <p style={{ color: 'var(--zx-positive)' }}>{t('savingsEscalator.schedule.chartLegendActual')}: {fmtShort(actualPt.value)}</p>
+                  )}
                 </div>
               );
             }}
           />
-          {/* Planned (dashed) */}
-          <Line dataKey="planContinue" name={t('savingsEscalator.schedule.chartPlanContinue')} stroke="var(--zx-positive)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} connectNulls />
-          <Line dataKey="planMaintain" name={t('savingsEscalator.schedule.chartPlanMaintain')} stroke="var(--zx-accent)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} connectNulls />
-          <Line dataKey="planCoast" name={t('savingsEscalator.schedule.chartPlanCoast')} stroke="var(--zx-gold)" strokeWidth={1.5} strokeDasharray="5 3" dot={false} connectNulls />
-          {/* Actual (solid) */}
-          <Line dataKey="actualContinue" name={t('savingsEscalator.schedule.chartActualContinue')} stroke="var(--zx-positive)" strokeWidth={2} dot={false} connectNulls />
-          <Line dataKey="actualMaintain" name={t('savingsEscalator.schedule.chartActualMaintain')} stroke="var(--zx-accent)" strokeWidth={2} dot={false} connectNulls />
-          <Line dataKey="actualCoast" name={t('savingsEscalator.schedule.chartActualCoast')} stroke="var(--zx-gold)" strokeWidth={2} dot={false} connectNulls />
-        </LineChart>
+          {/* Confidence band: stacked area from planCoast to planContinue */}
+          <Area dataKey="bandBase" stackId="band" stroke="none" fill="transparent" legendType="none" isAnimationActive={false} />
+          <Area dataKey="bandDelta" stackId="band" stroke="none" fill="url(#planBandFill)" legendType="none" isAnimationActive={false} />
+          {/* FI target horizontal reference */}
+          {fiTarget > 0 && (
+            <ReferenceLine y={fiTarget} stroke="var(--zx-gold)" strokeWidth={1.5} strokeDasharray="4 3" />
+          )}
+          {/* Coast point vertical reference */}
+          <ReferenceLine x={coastAge} stroke="var(--zx-text-soft)" strokeWidth={1} strokeDasharray="3 3" strokeOpacity={0.4} />
+          {/* Selected planned scenario line */}
+          <Line dataKey="planSelected" stroke="var(--zx-accent)" strokeWidth={2} strokeDasharray="5 3" dot={false} connectNulls legendType="none" />
+          {/* Actual line */}
+          <Line dataKey="actualBalance" stroke="var(--zx-positive)" strokeWidth={2.5} dot={false} connectNulls legendType="none" />
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );
