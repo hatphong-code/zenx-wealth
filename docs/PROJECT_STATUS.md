@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-29 (v3.18 — SavingsEscalator Plan Detail complete)
+Last updated: 2026-06-29 (v3.19 — Dashboard savings journey + upcoming panel)
 
 ## Current Phase
 
@@ -32,7 +32,7 @@ Default hosting URL: https://zenx-wealth.web.app
 - PWA: service worker, web manifest, offline-first cache
 
 ### Financial Modules (all routes live)
-- Dashboard (2-column desktop layout)
+- Dashboard (2-column desktop layout) — **v3.19**: "Hành trình kế hoạch" section (active Coast FI plan cards with progress, deposit, consistency, FI target, balance at coast, check-in status); "Sắp xảy ra" panel in right column (upcoming maturities ≤7 days + pending monthly check-ins, premium only)
 - Transactions (list, add, edit) — search + sort + category/flag filters + filtered totals
 - Latte Factor engine + Convert→Emergency Fund flow
 - Pay Yourself First (allocation rule + progress)

@@ -2,6 +2,17 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-29 — Dashboard: Hành trình kế hoạch + Sắp xảy ra
+
+**Left column — "Hành trình kế hoạch"**: Mỗi active Coast FI plan hiển thị 1 card sau Debt widget. Card gồm: tên plan + tuổi Coast (header phải, vàng), channel type, thanh tiến độ (check-ins/coastMonth %), 1 dòng inline "Gửi tháng này · Nhất quán", và 2 số động lực "Mục tiêu FI" (vàng) + "Số dư tại Coast" (xanh). Check-in status tháng hiện tại ở cuối. Consistency tô màu theo ngưỡng ≥80% xanh / ≥60% vàng / <60% đỏ.
+
+**Right column — "Sắp xảy ra"**: Panel mới giữa Weekly Focus và Quick Access — tổng hợp sổ tiết kiệm đáo hạn ≤7 ngày (dot đỏ nếu hôm nay/ngày mai) và check-in tháng hiện tại chưa hoàn thành của từng plan. Tối đa 5 items, tự ẩn khi rỗng.
+
+Data load: `listSavingsPlans` + `getMonthlyCheckins` (mỗi plan) + `getSavingsSchedule` — chạy 1 lần khi mount, chỉ khi premium.
+**Files:** `Dashboard.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-29 — Smart auto-label cho sổ tiết kiệm
 
 Format: `{planName} — T{NN} · {bankName} · {MM/YYYY}`. Zero-padded tháng (T01..T12) để sắp xếp alphabetical đúng thứ tự; có tên plan để nhận dạng rõ khi hiển thị ngoài plan detail (overview, reminder); có tên ngân hàng và ngày mở để tra cứu nhanh. Label tự cập nhật live khi user gõ tên ngân hàng. Nếu chưa có tên ngân hàng thì bỏ qua phần đó.
