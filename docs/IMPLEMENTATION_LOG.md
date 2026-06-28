@@ -2,6 +2,13 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-29 — Smart auto-label cho sổ tiết kiệm
+
+Format: `{planName} — T{NN} · {bankName} · {MM/YYYY}`. Zero-padded tháng (T01..T12) để sắp xếp alphabetical đúng thứ tự; có tên plan để nhận dạng rõ khi hiển thị ngoài plan detail (overview, reminder); có tên ngân hàng và ngày mở để tra cứu nhanh. Label tự cập nhật live khi user gõ tên ngân hàng. Nếu chưa có tên ngân hàng thì bỏ qua phần đó.
+**Files:** `SavingsEscalatorPlan.jsx`
+
+---
+
 ## 2026-06-29 — Tab "Kế hoạch" trên Plan Detail + chart band+toggle
 
 **Tab thứ 3 "Kế hoạch"**: user có thể xem lại toàn bộ chi tiết kế hoạch gốc mà không cần quay lại trang calculator — 4 stat cards (FI target / coast point / balance / deposit at coast), bảng chiếu năm với 3 cột kịch bản, nhận xét 3 kịch bản, disclaimer. Tái sử dụng toàn bộ `results.*` i18n keys.
