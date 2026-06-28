@@ -1541,6 +1541,9 @@ export default {
       annualRatePct: 'Lãi suất kỳ vọng / năm (%)',
       calculate: 'Tính kế hoạch',
       fiPreFilled: 'Điền sẵn từ kế hoạch hiện tại — đảm bảo cùng mục tiêu FI.',
+      rateHint_bank: 'Tiết kiệm ngân hàng thường 6–8%/năm',
+      rateHint_fund: 'Chứng chỉ quỹ cổ phiếu VN thường 8–12%/năm (lịch sử)',
+      rateHint_bond: 'Trái phiếu doanh nghiệp thường 7–10%/năm',
     },
     portfolio: {
       title: 'Tổng quan danh mục',

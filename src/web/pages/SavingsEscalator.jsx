@@ -414,8 +414,11 @@ const BASE_FORM = {
   monthlyExpense: 15000000,
   fiMultiple: 25,
   retirementAge: 60,
-  annualRatePct: 6,
+  annualRatePct: 7,
+  channelType: 'bank',
 };
+
+const CHANNEL_DEFAULT_RATES = { bank: 7, fund: 10, bond: 8, other: null };
 
 function deriveDefaultRetirementAge(currentAge) {
   return Math.max(currentAge + 15, 60);
@@ -439,7 +442,6 @@ export default function SavingsEscalator() {
   const [savePlanStartMonth, setSavePlanStartMonth] = useState(currentYearMonth());
   const [savingPlan, setSavingPlan] = useState(false);
   const [savePlanError, setSavePlanError] = useState('');
-  const [savePlanChannel, setSavePlanChannel] = useState('bank');
   const [planCheck, setPlanCheck] = useState(null);
   const [planCheckLoading, setPlanCheckLoading] = useState(false);
 
@@ -556,6 +558,16 @@ export default function SavingsEscalator() {
     setForm(f => ({ ...f, [key]: val }));
   }
 
+  function handleChannelChange(type) {
+    const defaultRate = CHANNEL_DEFAULT_RATES[type];
+    setForm(f => ({
+      ...f,
+      channelType: type,
+      ...(defaultRate != null ? { annualRatePct: defaultRate } : {}),
+    }));
+    if (plan) setPlan(null);
+  }
+
   function handleCalculate(e) {
     e.preventDefault();
     const result = computePlan({
@@ -606,7 +618,7 @@ export default function SavingsEscalator() {
         result: planResult,
         executionStartDate: savePlanStartMonth,
         status: planCheck?.newStatus || 'active',
-        channelType: savePlanChannel,
+        channelType: form.channelType,
       });
       navigate(`/savings-escalator/plan/${id}`);
     } catch (err) {
@@ -770,6 +782,27 @@ export default function SavingsEscalator() {
       {/* Input Form */}
       <div id="se-new-calc">
       <form onSubmit={handleCalculate} className="rounded-zx border border-zx-line bg-zx-surface p-5 space-y-5">
+        {/* Channel type selector */}
+        <div>
+          <p className="text-sm text-zx-text-soft mb-2">{t('savingsEscalator.savePlan.channelType.label')}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {['bank', 'fund', 'bond', 'other'].map(type => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => handleChannelChange(type)}
+                className={`rounded-zx-sm border px-3 py-2.5 text-sm transition text-left ${
+                  form.channelType === type
+                    ? CHANNEL_CONFIG[type].color + ' font-semibold'
+                    : 'border-zx-line text-zx-text-soft hover:border-zx-accent/50 hover:text-zx-text'
+                }`}
+              >
+                {t(`savingsEscalator.savePlan.channelType.${type}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
           <div>
@@ -866,6 +899,11 @@ export default function SavingsEscalator() {
               step={0.5}
               onChange={e => setField('annualRatePct', e.target.value)}
             />
+            {form.channelType && form.channelType !== 'other' && (
+              <p className="mt-1 text-[11px] text-zx-text-soft">
+                {t(`savingsEscalator.form.rateHint_${form.channelType}`)}
+              </p>
+            )}
           </div>
         </div>
 
@@ -1146,7 +1184,6 @@ export default function SavingsEscalator() {
                   onClick={async () => {
                     setSavePlanName('');
                     setSavePlanStartMonth(currentYearMonth());
-                    setSavePlanChannel('bank');
                     setPlanCheck(null);
                     setPlanCheckLoading(true);
                     try {
@@ -1177,26 +1214,6 @@ export default function SavingsEscalator() {
                       {t('savingsEscalator.savePlan.riskWarning', { pct: form.annualRatePct })}
                     </div>
                   )}
-                  <div>
-                    <p className="text-sm text-zx-text-soft mb-2">{t('savingsEscalator.savePlan.channelType.label')}</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {['bank', 'fund', 'bond', 'other'].map(type => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => setSavePlanChannel(type)}
-                          className={`rounded-zx-sm border px-3 py-2 text-left text-sm transition ${
-                            savePlanChannel === type
-                              ? CHANNEL_CONFIG[type].color + ' font-semibold'
-                              : 'border-zx-line text-zx-text-soft hover:border-zx-accent/50 hover:text-zx-text'
-                          }`}
-                        >
-                          {t(`savingsEscalator.savePlan.channelType.${type}`)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label htmlFor="sp-name" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.savePlan.nameLabel')}</label>

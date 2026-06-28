@@ -1360,6 +1360,9 @@ export default {
       annualRatePct: 'Expected annual return (%)',
       calculate: 'Calculate plan',
       fiPreFilled: 'Pre-filled from existing plan — ensures same FI target.',
+      rateHint_bank: 'Bank savings typically 6–8%/year',
+      rateHint_fund: 'Vietnamese equity funds typically 8–12%/year (historical)',
+      rateHint_bond: 'Corporate bonds typically 7–10%/year',
     },
     portfolio: {
       title: 'Portfolio overview',
