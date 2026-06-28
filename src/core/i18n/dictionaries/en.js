@@ -762,6 +762,7 @@ export default {
       toggleHide: 'Collapse',
       disclaimer: 'Reference list based on transparent criteria — not personalised investment advice. Review official factsheets before making any investment decision.',
       colName: 'Fund',
+      colManager: 'Manager',
       colType: 'Type',
       colAge: 'Age',
       colAum: 'AUM',

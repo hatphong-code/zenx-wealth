@@ -774,6 +774,7 @@ export default {
       toggleHide: 'Thu gọn',
       disclaimer: 'Danh sách tham khảo dựa trên tiêu chí minh bạch, không phải khuyến nghị cá nhân hoá. Kiểm tra factsheet chính thức trước khi đưa ra quyết định đầu tư.',
       colName: 'Quỹ',
+      colManager: 'Công ty',
       colType: 'Loại',
       colAge: 'Tuổi',
       colAum: 'AUM',

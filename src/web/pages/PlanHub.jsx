@@ -567,6 +567,7 @@ function ReferenceFundList({ t }) {
   const { data: funds } = useFundsData();
   const [typeFilter, setTypeFilter] = useState('all');
   const [riskFilter, setRiskFilter] = useState('all');
+  const [managerFilter, setManagerFilter] = useState('all');
   const [sortKey, setSortKey] = useState('aumBillion');
   const [sortDir, setSortDir] = useState('desc');
 
@@ -582,18 +583,21 @@ function ReferenceFundList({ t }) {
   const visible = [...funds]
     .filter(f => typeFilter === 'all' || f.assetType === typeFilter)
     .filter(f => riskFilter === 'all' || RISK_GROUPS[riskFilter]?.includes(f.riskTier))
+    .filter(f => managerFilter === 'all' || f.manager === managerFilter)
     .sort((a, b) => {
       let av, bv;
       if (sortKey === 'return1y')  { av = a.historicalReturns?.['1y'] ?? -999; bv = b.historicalReturns?.['1y'] ?? -999; }
       else if (sortKey === 'return3y') { av = a.historicalReturns?.['3y'] ?? -999; bv = b.historicalReturns?.['3y'] ?? -999; }
       else if (sortKey === 'return5y') { av = a.historicalReturns?.['5y'] ?? -999; bv = b.historicalReturns?.['5y'] ?? -999; }
       else if (sortKey === 'name') { av = a.name; bv = b.name; }
+      else if (sortKey === 'manager') { av = a.manager; bv = b.manager; }
       else { av = a[sortKey] ?? 0; bv = b[sortKey] ?? 0; }
       if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
       return sortDir === 'asc' ? av - bv : bv - av;
     });
 
   const usedTypes = [...new Set(funds.map(f => f.assetType))];
+  const usedManagers = [...new Set(funds.map(f => f.manager))].sort();
 
   return (
     <div className="mt-8 border-t border-zx-line pt-6">
@@ -633,6 +637,16 @@ function ReferenceFundList({ t }) {
               ].map(({ key, label }) => (
                 <FundFilterChip key={key} active={riskFilter === key} onClick={() => setRiskFilter(key)}>
                   {label}
+                </FundFilterChip>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <FundFilterChip active={managerFilter === 'all'} onClick={() => setManagerFilter('all')}>
+                {t('planHub.funds.filterAll')}
+              </FundFilterChip>
+              {usedManagers.map(m => (
+                <FundFilterChip key={m} active={managerFilter === m} onClick={() => setManagerFilter(m)}>
+                  {m}
                 </FundFilterChip>
               ))}
             </div>
@@ -694,6 +708,7 @@ function ReferenceFundList({ t }) {
                 <thead>
                   <tr className="border-b border-zx-line bg-zx-surface-2">
                     <SortTh col="name"         label={t('planHub.funds.colName')}    sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                    <SortTh col="manager"      label={t('planHub.funds.colManager')} sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
                     <th className="px-3 py-2.5 text-left text-[10px] font-semibold text-zx-text-soft uppercase tracking-[0.1em]">{t('planHub.funds.colType')}</th>
                     <SortTh col="fundAgeYears" label={t('planHub.funds.colAge')}     sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
                     <SortTh col="aumBillion"   label={t('planHub.funds.colAum')}     sortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
@@ -707,11 +722,11 @@ function ReferenceFundList({ t }) {
                 <tbody className="divide-y divide-zx-line">
                   {visible.map(fund => (
                     <tr key={fund.id} className="bg-zx-surface hover:bg-zx-surface-2 transition">
-                      <td className="px-3 py-3 max-w-[220px]">
+                      <td className="px-3 py-3 max-w-[200px]">
                         <p className="font-semibold text-zx-text">{fund.name}</p>
                         {fund.fullName && <p className="text-[11px] text-zx-text leading-snug truncate">{fund.fullName}</p>}
-                        <p className="text-zx-text-soft text-[11px]">{fund.manager}</p>
                       </td>
+                      <td className="px-3 py-3 text-xs text-zx-text-soft whitespace-nowrap">{fund.manager}</td>
                       <td className="px-3 py-3">
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zx-surface-2 text-zx-text-soft whitespace-nowrap">
                           {t(`planHub.funds.assetType.${fund.assetType}`)}
