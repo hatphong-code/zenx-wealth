@@ -23,6 +23,7 @@ import {
   checkCanCreatePlan,
   createSavingsPlan,
   currentYearMonth,
+  getMonthsElapsed,
   listSavingsPlans,
 } from '../../core/services/savingsPlanService';
 import { fmtShort, formatMoney } from '../../core/utils/formatters';
@@ -467,11 +468,81 @@ export default function SavingsEscalator() {
       }
       setSavedPlans(list);
       setPlansLoaded(true);
+      // Pre-populate fiMultiple + monthlyExpense from most recent active plan
+      const activePlan = list.find(p => (p.status ?? 'active') === 'active');
+      if (activePlan?.params) {
+        setForm(f => ({
+          ...f,
+          monthlyExpense: activePlan.params.monthlyExpense ?? f.monthlyExpense,
+          fiMultiple: activePlan.params.fiMultiple ?? f.fiMultiple,
+        }));
+      }
     })();
   }, [user?.uid, plansLoaded]);
 
   const currency = user?.settings?.currency || 'VND';
   const notifEnabled = user?.settings?.notificationPrefs?.savingsScheduleReminder !== false;
+
+  const portfolioSummary = useMemo(() => {
+    const activePlans = savedPlans.filter(p => (p.status ?? 'active') === 'active');
+    if (activePlans.length < 2) return null;
+    const refPlan = activePlans[0];
+    const fiTarget = refPlan.result?.fiTarget;
+    const { retirementAge, currentAge } = refPlan.params || {};
+    if (!fiTarget || !retirementAge || !currentAge) return null;
+
+    const totalPlanMonths = (retirementAge - currentAge) * 12;
+    const allSeries = activePlans.map(p =>
+      buildGrowingContributionSeries({
+        startMonthly: p.params.startMonthly,
+        monthlyGrowthPct: p.params.monthlyGrowthPct,
+        annualRatePct: p.params.annualRatePct,
+        months: totalPlanMonths,
+      })
+    );
+    const planElapsed = activePlans.map(p => getMonthsElapsed(p.executionStartDate));
+    const refElapsed = planElapsed[0];
+    const monthsToRetirement = Math.max(0, totalPlanMonths - refElapsed);
+
+    // Combined coast: first t (months from now) where sum of projected finals >= fiTarget
+    let combinedCoastFromNow = null;
+    for (let t = 0; t <= monthsToRetirement; t++) {
+      let projectedFinal = 0;
+      for (let pi = 0; pi < activePlans.length; pi++) {
+        const r = (activePlans[pi].params.annualRatePct || 7) / 100 / 12;
+        const idx = Math.min(planElapsed[pi] + t, allSeries[pi].length - 1);
+        const balance = allSeries[pi][idx]?.balance || 0;
+        projectedFinal += balance * Math.pow(1 + r, monthsToRetirement - t);
+      }
+      if (projectedFinal >= fiTarget) { combinedCoastFromNow = t; break; }
+    }
+
+    // Individual coast months from now
+    const individualCoastFromNow = activePlans.map((p, pi) => {
+      const cm = p.result?.coastMonth;
+      return cm != null ? Math.max(0, cm - planElapsed[pi]) : null;
+    });
+
+    // Chart: combined balance per year from now
+    const chartYears = Math.min(30, Math.ceil(monthsToRetirement / 12));
+    const chartData = Array.from({ length: chartYears + 1 }, (_, yr) => {
+      const t = yr * 12;
+      let combined = 0;
+      for (let pi = 0; pi < activePlans.length; pi++) {
+        const idx = Math.min(planElapsed[pi] + t, allSeries[pi].length - 1);
+        combined += allSeries[pi][idx]?.balance || 0;
+      }
+      return { year: yr, balance: Math.round(combined) };
+    });
+
+    // Total monthly deposit right now
+    const totalMonthlyNow = activePlans.reduce((sum, p, pi) => {
+      const idx = Math.min(planElapsed[pi], allSeries[pi].length - 1);
+      return sum + (allSeries[pi][idx]?.monthlyDeposit || p.params.startMonthly);
+    }, 0);
+
+    return { fiTarget, totalMonthlyNow, combinedCoastFromNow, individualCoastFromNow, chartData, planCount: activePlans.length };
+  }, [savedPlans]);
 
   function setField(key, val) {
     setForm(f => ({ ...f, [key]: val }));
@@ -548,6 +619,87 @@ export default function SavingsEscalator() {
         <h1 className="mt-1 font-zx-head text-2xl font-bold text-zx-text">{t('savingsEscalator.title')}</h1>
         <p className="mt-1 text-sm text-zx-text-soft max-w-2xl">{t('savingsEscalator.subtitle')}</p>
       </div>
+
+      {/* Portfolio summary — only when ≥ 2 active plans */}
+      {portfolioSummary && (
+        <section className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft">
+              {t('savingsEscalator.portfolio.title')}
+            </p>
+            <span className="text-[11px] text-zx-text-soft">
+              {t('savingsEscalator.portfolio.planCount', { n: portfolioSummary.planCount })}
+            </span>
+          </div>
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-4">
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <p className="text-[11px] text-zx-text-soft mb-1">{t('savingsEscalator.portfolio.fiTarget')}</p>
+                <p className="font-bold text-zx-text">{fmtShort(portfolioSummary.fiTarget)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-zx-text-soft mb-1">{t('savingsEscalator.portfolio.totalMonthly')}</p>
+                <p className="font-bold text-zx-accent">
+                  {fmtShort(portfolioSummary.totalMonthlyNow)}<span className="text-xs font-normal text-zx-text-soft">/th</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-zx-text-soft mb-1">{t('savingsEscalator.portfolio.combinedCoast')}</p>
+                <p className={`font-bold ${portfolioSummary.combinedCoastFromNow === 0 ? 'text-zx-positive' : 'text-zx-text'}`}>
+                  {portfolioSummary.combinedCoastFromNow === 0
+                    ? t('savingsEscalator.portfolio.alreadyCoast')
+                    : portfolioSummary.combinedCoastFromNow == null
+                    ? '—'
+                    : t('savingsEscalator.portfolio.monthsAway', { n: portfolioSummary.combinedCoastFromNow })}
+                </p>
+                <p className="text-[11px] text-zx-text-soft mt-0.5 leading-snug">
+                  {portfolioSummary.individualCoastFromNow.map((m, i) =>
+                    m == null ? null
+                    : m === 0 ? t('savingsEscalator.portfolio.channelCoasted', { n: i + 1 })
+                    : t('savingsEscalator.portfolio.channelMonths', { n: i + 1, months: m })
+                  ).filter(Boolean).join(' · ')}
+                </p>
+              </div>
+            </div>
+            {/* Chart */}
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={portfolioSummary.chartData} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
+                  <XAxis dataKey="year" tick={{ fontSize: 10 }} tickFormatter={v => `+${v}n`} />
+                  <YAxis hide domain={[0, portfolioSummary.fiTarget * 1.1]} />
+                  <Tooltip
+                    formatter={v => fmtShort(v)}
+                    labelFormatter={v => `+${v} năm`}
+                    contentStyle={{ fontSize: 12 }}
+                  />
+                  <ReferenceLine
+                    y={portfolioSummary.fiTarget}
+                    stroke="var(--zx-accent)"
+                    strokeDasharray="4 2"
+                    label={{ value: 'FI', position: 'insideRight', fontSize: 10, fill: 'var(--zx-accent)', dy: -6 }}
+                  />
+                  {portfolioSummary.combinedCoastFromNow != null && portfolioSummary.combinedCoastFromNow > 0 && (
+                    <ReferenceLine
+                      x={Math.ceil(portfolioSummary.combinedCoastFromNow / 12)}
+                      stroke="var(--zx-positive)"
+                      strokeDasharray="3 2"
+                    />
+                  )}
+                  <Line
+                    type="monotone"
+                    dataKey="balance"
+                    stroke="var(--zx-positive)"
+                    strokeWidth={2}
+                    dot={false}
+                    name={t('savingsEscalator.portfolio.chartBalance')}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Saved plans — shown prominently if user has existing plans */}
       {user && savedPlans.length > 0 && (
@@ -656,6 +808,9 @@ export default function SavingsEscalator() {
             </button>
             {showFiNote && (
               <p className="mt-1 text-[11px] text-zx-text-soft leading-snug">{t('savingsEscalator.form.fiMultipleNote')}</p>
+            )}
+            {savedPlans.some(p => (p.status ?? 'active') === 'active') && (
+              <p className="mt-1 text-[11px] text-zx-text-soft">{t('savingsEscalator.form.fiPreFilled')}</p>
             )}
           </div>
 
