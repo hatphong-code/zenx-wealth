@@ -535,7 +535,7 @@ export default function SavingsEscalator() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <StatCard
               label={t('savingsEscalator.results.fiTarget')}
-              value={fmtShort(plan.fiTarget)}
+              value={fmt(plan.fiTarget, currency)}
             />
             {plan.coastResult ? (
               <>
@@ -549,12 +549,13 @@ export default function SavingsEscalator() {
                 />
                 <StatCard
                   label={t('savingsEscalator.results.balanceAtCoast')}
-                  value={fmtShort(plan.coastResult.balanceAtCoast)}
+                  value={fmt(plan.coastResult.balanceAtCoast, currency)}
                 />
                 <StatCard
                   label={t('savingsEscalator.results.depositAtCoast')}
-                  value={fmtShort(
-                    Number(form.startMonthly) * Math.pow(1 + Number(form.monthlyGrowthPct) / 100, plan.coastResult.coastMonth - 1)
+                  value={fmt(
+                    Number(form.startMonthly) * Math.pow(1 + Number(form.monthlyGrowthPct) / 100, plan.coastResult.coastMonth - 1),
+                    currency
                   )}
                   sub={`tháng ${plan.coastResult.coastMonth}`}
                 />
@@ -656,9 +657,9 @@ export default function SavingsEscalator() {
                         )}
                       </td>
                       <td className="px-4 py-2.5 text-zx-text">{row.age}</td>
-                      <td className="px-4 py-2.5 text-right font-medium text-zx-text">{fmtShort(row.balance)}</td>
+                      <td className="px-4 py-2.5 text-right font-medium text-zx-text">{fmt(row.balance, currency)}</td>
                       <td className="px-4 py-2.5 text-right text-zx-text-soft">
-                        {row.yr === 0 ? '—' : fmtShort(row.monthlyDeposit)}
+                        {row.yr === 0 ? '—' : fmt(row.monthlyDeposit, currency)}
                       </td>
                     </tr>
                   ))}
@@ -687,7 +688,7 @@ export default function SavingsEscalator() {
                     .replace('{months}', plan.coastResult.coastMonth)
                     .replace('{years}', (plan.coastResult.coastMonth / 12).toFixed(1))
                     .replace('{age}', Number(form.currentAge) + Math.floor(plan.coastResult.coastMonth / 12))
-                    .replace('{target}', fmtShort(plan.fiTarget))
+                    .replace('{target}', fmt(plan.fiTarget, currency))
                     .replace('{retirementAge}', form.retirementAge)
                 : t('savingsEscalator.results.conclusionNotFound')
                     .replace('{years}', plan.years)
