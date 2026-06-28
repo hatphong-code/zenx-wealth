@@ -2,6 +2,15 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-29 — Tab "Kế hoạch" trên Plan Detail + chart band+toggle
+
+**Tab thứ 3 "Kế hoạch"**: user có thể xem lại toàn bộ chi tiết kế hoạch gốc mà không cần quay lại trang calculator — 4 stat cards (FI target / coast point / balance / deposit at coast), bảng chiếu năm với 3 cột kịch bản, nhận xét 3 kịch bản, disclaimer. Tái sử dụng toàn bộ `results.*` i18n keys.
+
+**ComparisonChart redesign**: thay 6 đường rời thành band + toggle. Vùng tô mờ giữa coast (sàn) và continue (trần) thể hiện dải kế hoạch. 3 pill button chọn kịch bản so sánh → highlight 1 đường kế hoạch dashed. 1 đường thực tế solid. Reference lines: FI target ngang (gold) + coast point dọc. Mini legend 3 mục.
+**Files:** `SavingsEscalatorPlan.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-29 — i18n fixes: month labels, interest rate badge, chart position
 
 - `formatMonthLabel` bỏ hardcode `vi-VN` → nhận `locale` param, map `vi→vi-VN` / `en→en-US`. Cả `MonthlyView` và header "Bắt đầu:" đều pass locale từ `useI18n()`.
