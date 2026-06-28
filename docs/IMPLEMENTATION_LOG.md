@@ -2,6 +2,14 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — Lịch sổ tiết kiệm (Savings Account Schedule) — hoàn thành
+
+Feature đã được build sẵn từ trước (service, Firestore rules, ScheduleSection component, MaturityBanner, i18n). Session này activate bằng các fix còn thiếu: thêm `savingsScheduleReminder: true` vào `defaultNotificationPrefs` trong Settings.jsx; fix 3 hardcoded VI strings (openedOn, matureOn trong danh sách entry; chartAge trong chart tooltip); thêm i18n keys tương ứng vào cả vi.js và en.js.
+**Tính năng hoạt động:** Thêm/xóa sổ tiết kiệm, banner cảnh báo 7 ngày trước đáo hạn, toggle notification pref trong Settings.
+**Files:** `SavingsEscalator.jsx`, `Settings.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — Fix progress %, hardcoded strings, missing EN i18n keys
 
 **Progress %**: Thanh tiến độ giờ tính theo số tháng đã ghi nhận thực tế (`checkinCount`), không còn tính theo thời gian trôi qua — hiển thị 0% khi chưa có bất kỳ ghi nhận nào. Label cũng cập nhật theo.
