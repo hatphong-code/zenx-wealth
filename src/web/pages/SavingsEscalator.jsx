@@ -64,13 +64,11 @@ function computePlan({ startMonthly, monthlyGrowthPct, monthlyExpense, fiMultipl
     const m = yr * 12;
     const dp = series[Math.min(m, series.length - 1)];
     const isCoastYear = coastResult && m >= coastResult.coastMonth && (m - 12) < coastResult.coastMonth;
-    return {
-      yr,
-      age: currentAge + yr,
-      balance: dp.balance,
-      monthlyDeposit: dp.monthlyDeposit,
-      isCoastYear,
-    };
+    const continueBalance = dp.balance;
+    const coastBalance = (!coastResult || m <= coastResult.coastMonth)
+      ? continueBalance
+      : coastResult.balanceAtCoast * Math.pow(1 + r, m - coastResult.coastMonth);
+    return { yr, age: currentAge + yr, continueBalance, coastBalance, isCoastYear };
   });
 
   return { fiTarget, coastResult, chartData, tableRows, months, years };
@@ -662,27 +660,39 @@ export default function SavingsEscalator() {
                   <tr className="border-b border-zx-line bg-zx-surface-2">
                     <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableYear')}</th>
                     <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableAge')}</th>
-                    <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableBalance')}</th>
-                    <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableDeposit')}</th>
+                    {plan.coastResult ? (
+                      <>
+                        <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-accent">{t('savingsEscalator.results.tableBalanceContinue')}</th>
+                        <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-positive">{t('savingsEscalator.results.tableBalanceCoast')}</th>
+                      </>
+                    ) : (
+                      <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableBalance')}</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zx-line">
                   {visibleRows.map(row => (
                     <tr
                       key={row.yr}
-                      className={row.isCoastYear ? 'bg-zx-accent/5' : 'hover:bg-zx-surface-2'}
+                      className={row.isCoastYear ? 'bg-zx-positive/5' : 'hover:bg-zx-surface-2'}
                     >
                       <td className="px-4 py-2.5 text-zx-text-soft">
                         {row.yr === 0 ? 'Bắt đầu' : `+${row.yr}`}
                         {row.isCoastYear && (
-                          <span className="ml-2 text-[10px] font-semibold text-zx-accent">{t('savingsEscalator.results.tableCoastMark')}</span>
+                          <span className="ml-2 text-[10px] font-semibold text-zx-positive">{t('savingsEscalator.results.tableCoastMark')}</span>
                         )}
                       </td>
                       <td className="px-4 py-2.5 text-zx-text">{row.age}</td>
-                      <td className="px-4 py-2.5 text-right font-medium text-zx-text">{fmt(row.balance, currency)}</td>
-                      <td className="px-4 py-2.5 text-right text-zx-text-soft">
-                        {row.yr === 0 ? '—' : fmt(row.monthlyDeposit, currency)}
-                      </td>
+                      {plan.coastResult ? (
+                        <>
+                          <td className="px-4 py-2.5 text-right font-medium text-zx-text">{fmt(row.continueBalance, currency)}</td>
+                          <td className={`px-4 py-2.5 text-right font-medium ${row.isCoastYear || row.continueBalance !== row.coastBalance ? 'text-zx-positive' : 'text-zx-text-soft'}`}>
+                            {fmt(row.coastBalance, currency)}
+                          </td>
+                        </>
+                      ) : (
+                        <td className="px-4 py-2.5 text-right font-medium text-zx-text">{fmt(row.continueBalance, currency)}</td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
