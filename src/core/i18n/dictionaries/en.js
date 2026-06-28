@@ -321,6 +321,13 @@ export default {
       channelFund: 'Investment fund',
       channelBond: 'Bond',
       channelOther: 'Other channel',
+      thisMonthDeposit: 'This month',
+      consistency: 'Consistency',
+      monthsRemaining: 'Remaining',
+      monthsRemainingValue: '{n} months',
+      coastReached: 'Coast reached!',
+      coastAge: 'Coast age',
+      coastAgeValue: 'Age {age}',
     },
     upcoming: {
       title: 'Upcoming',

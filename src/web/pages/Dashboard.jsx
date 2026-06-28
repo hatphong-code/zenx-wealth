@@ -12,7 +12,7 @@ import { useTransactionsData } from '../../core/hooks/useTransactionsData';
 import { formatNumber } from '../../core/utils/formatters';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import DailyQuoteCard from '../components/DailyQuoteCard';
-import { listSavingsPlans, getMonthlyCheckins, getCurrentPlanMonthIdx, addMonthsToKey } from '../../core/services/savingsPlanService';
+import { listSavingsPlans, getMonthlyCheckins, getCurrentPlanMonthIdx, addMonthsToKey, getMonthsElapsed } from '../../core/services/savingsPlanService';
 import { getSavingsSchedule, getUpcomingMaturities, daysUntil } from '../../core/services/savingsScheduleService';
 
 /* ── tiny components ── */
@@ -249,7 +249,7 @@ const CHANNEL_I18N = {
   other: 'dashboard.savingsJourney.channelOther',
 };
 
-function SavingsJourneySection({ plans, checkinsByPlanId, t }) {
+function SavingsJourneySection({ plans, checkinsByPlanId, t, fmt, currency }) {
   if (!plans.length) return null;
   return (
     <section className="pt-6">
@@ -268,12 +268,22 @@ function SavingsJourneySection({ plans, checkinsByPlanId, t }) {
             : '';
           const thisMonthChecked = currentMonthKey ? !!checkins[currentMonthKey] : false;
           const channelKey = CHANNEL_I18N[plan.channelType] || CHANNEL_I18N.other;
+
+          const monthsElapsed = plan.executionStartDate ? getMonthsElapsed(plan.executionStartDate) : 0;
+          const consistency = monthsElapsed > 0 ? Math.min(100, Math.round((checkinCount / monthsElapsed) * 100)) : 100;
+          const monthsRemaining = Math.max(0, totalMonths - currentMonthIdx);
+          const coastAge = plan.result?.coastAge;
+          const thisMonthDeposit = plan.params?.startMonthly
+            ? plan.params.startMonthly * Math.pow(1 + (plan.params.monthlyGrowthPct || 0) / 100, currentMonthIdx - 1)
+            : 0;
+
           return (
             <Link
               key={plan.id}
               to={`/savings-escalator/plan/${plan.id}`}
               className="block rounded-zx border border-zx-line bg-zx-surface p-4 group hover:border-zx-accent transition"
             >
+              {/* Header */}
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-zx-text group-hover:text-zx-accent transition truncate">
@@ -283,7 +293,9 @@ function SavingsJourneySection({ plans, checkinsByPlanId, t }) {
                 </div>
                 <ArrowRight className="h-3.5 w-3.5 text-zx-text-soft opacity-0 group-hover:opacity-100 transition mt-0.5 flex-shrink-0" />
               </div>
-              <div className="space-y-2">
+
+              {/* Progress */}
+              <div className="space-y-1.5 mb-3">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-zx-text-soft">
                     {t('dashboard.savingsJourney.monthProgress', { current: checkinCount, total: totalMonths })}
@@ -293,12 +305,52 @@ function SavingsJourneySection({ plans, checkinsByPlanId, t }) {
                 <div className="h-1.5 rounded-full bg-zx-surface-2 overflow-hidden">
                   <div className="h-full rounded-full bg-zx-accent transition-all" style={{ width: `${pct}%` }} />
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className={`h-3.5 w-3.5 flex-shrink-0 ${thisMonthChecked ? 'text-zx-positive' : 'text-zx-line'}`} />
-                  <span className={`text-[11px] font-medium ${thisMonthChecked ? 'text-zx-positive' : 'text-zx-text-soft'}`}>
-                    {t(thisMonthChecked ? 'dashboard.savingsJourney.checkedIn' : 'dashboard.savingsJourney.notCheckedIn')}
-                  </span>
+              </div>
+
+              {/* 2×2 rich stats */}
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 pt-3 border-t border-zx-line mb-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
+                    {t('dashboard.savingsJourney.thisMonthDeposit')}
+                  </p>
+                  <p className="text-sm font-semibold text-zx-text">{fmt(thisMonthDeposit, currency)}</p>
                 </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
+                    {t('dashboard.savingsJourney.consistency')}
+                  </p>
+                  <p className={`text-sm font-semibold ${consistency >= 80 ? 'text-zx-positive' : consistency >= 60 ? 'text-zx-gold' : 'text-zx-accent'}`}>
+                    {consistency}%
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
+                    {t('dashboard.savingsJourney.monthsRemaining')}
+                  </p>
+                  <p className="text-sm font-semibold text-zx-text">
+                    {monthsRemaining > 0
+                      ? t('dashboard.savingsJourney.monthsRemainingValue', { n: monthsRemaining })
+                      : t('dashboard.savingsJourney.coastReached')}
+                  </p>
+                </div>
+                {coastAge != null && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
+                      {t('dashboard.savingsJourney.coastAge')}
+                    </p>
+                    <p className="text-sm font-semibold text-zx-gold">
+                      {t('dashboard.savingsJourney.coastAgeValue', { age: coastAge })}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Check-in status */}
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className={`h-3.5 w-3.5 flex-shrink-0 ${thisMonthChecked ? 'text-zx-positive' : 'text-zx-line'}`} />
+                <span className={`text-[11px] font-medium ${thisMonthChecked ? 'text-zx-positive' : 'text-zx-text-soft'}`}>
+                  {t(thisMonthChecked ? 'dashboard.savingsJourney.checkedIn' : 'dashboard.savingsJourney.notCheckedIn')}
+                </span>
               </div>
             </Link>
           );
@@ -718,6 +770,8 @@ export default function Dashboard() {
               plans={savingsData.plans}
               checkinsByPlanId={savingsData.checkinsByPlanId}
               t={t}
+              fmt={fmt}
+              currency={currency}
             />
           )}
 

@@ -321,6 +321,13 @@ export default {
       channelFund: 'Quỹ đầu tư',
       channelBond: 'Trái phiếu',
       channelOther: 'Kênh khác',
+      thisMonthDeposit: 'Gửi tháng này',
+      consistency: 'Nhất quán',
+      monthsRemaining: 'Còn lại',
+      monthsRemainingValue: '{n} tháng',
+      coastReached: 'Đã đến Coast!',
+      coastAge: 'Tuổi Coast',
+      coastAgeValue: '{age} tuổi',
     },
     upcoming: {
       title: 'Sắp xảy ra',
