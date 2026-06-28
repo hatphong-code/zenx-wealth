@@ -2,6 +2,13 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-29 — Lịch sổ tiết kiệm → chuyển vào Plan Detail (bank only)
+
+Redesign: `ScheduleSection` rời trên trang chính → `BankScheduleSection` gắn vào `/savings-escalator/plan/:planId`, chỉ hiện khi `channelType === 'bank'` và plan đang active. Mỗi schedule entry giờ lưu `planId`; `getSavingsScheduleForPlan(userId, planId)` query đúng sổ của plan đó. Đúng với câu chuyện thang sổ tiết kiệm: user xem plan → thấy lịch gửi tiền từng tháng → thấy các sổ đang mở ngay bên dưới, tất cả là 1 câu chuyện liên tục.
+**Files:** `savingsScheduleService.js`, `SavingsEscalatorPlan.jsx`, `SavingsEscalator.jsx`
+
+---
+
 ## 2026-06-28 — Lịch sổ tiết kiệm (Savings Account Schedule) — hoàn thành
 
 Feature đã được build sẵn từ trước (service, Firestore rules, ScheduleSection component, MaturityBanner, i18n). Session này activate bằng các fix còn thiếu: thêm `savingsScheduleReminder: true` vào `defaultNotificationPrefs` trong Settings.jsx; fix 3 hardcoded VI strings (openedOn, matureOn trong danh sách entry; chartAge trong chart tooltip); thêm i18n keys tương ứng vào cả vi.js và en.js.
