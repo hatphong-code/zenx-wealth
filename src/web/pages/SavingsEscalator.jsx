@@ -18,6 +18,7 @@ import {
   getUpcomingMaturities,
 } from '../../core/services/savingsScheduleService';
 import { fmtShort, formatMoney } from '../../core/utils/formatters';
+import { getCachedUserProfile, getUserProfile } from '../../core/services/userService';
 import NumericInput from '../components/ui/NumericInput';
 
 const MATURITY_WINDOW_DAYS = 7;
@@ -381,10 +382,25 @@ export default function SavingsEscalator() {
   const { t } = useI18n();
   const { fmt } = useNumberFormat();
 
-  const [form, setForm] = useState(() => ({ ...BASE_FORM, currentAge: deriveDefaultAge(user) }));
+  const [form, setForm] = useState({ ...BASE_FORM, currentAge: 30 });
   const [plan, setPlan] = useState(null);
   const [showFiNote, setShowFiNote] = useState(false);
   const [showFullTable, setShowFullTable] = useState(false);
+  const [ageSeeded, setAgeSeeded] = useState(false);
+
+  useEffect(() => {
+    if (!user?.uid || ageSeeded) return;
+    const cached = getCachedUserProfile(user.uid);
+    if (cached) {
+      setForm(f => ({ ...f, currentAge: deriveDefaultAge(cached) }));
+      setAgeSeeded(true);
+      return;
+    }
+    getUserProfile(user.uid).then(profile => {
+      setForm(f => ({ ...f, currentAge: deriveDefaultAge(profile) }));
+      setAgeSeeded(true);
+    });
+  }, [user?.uid, ageSeeded]);
 
   const currency = user?.settings?.currency || 'VND';
   const notifEnabled = user?.settings?.notificationPrefs?.savingsScheduleReminder !== false;
