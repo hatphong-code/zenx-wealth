@@ -1,5 +1,6 @@
-﻿import { Link } from 'react-router-dom';
-import { ArrowRight, Coffee, Lock, PiggyBank, Plus, Shield, Wallet } from 'lucide-react';
+﻿import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, CheckCircle2, Coffee, Lock, PiggyBank, Plus, Shield, Wallet } from 'lucide-react';
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useAuth } from '../../core/auth/useAuth';
 import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
@@ -11,6 +12,8 @@ import { useTransactionsData } from '../../core/hooks/useTransactionsData';
 import { formatNumber } from '../../core/utils/formatters';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import DailyQuoteCard from '../components/DailyQuoteCard';
+import { listSavingsPlans, getMonthlyCheckins, getCurrentPlanMonthIdx, addMonthsToKey } from '../../core/services/savingsPlanService';
+import { getSavingsSchedule, getUpcomingMaturities, daysUntil } from '../../core/services/savingsScheduleService';
 
 /* ── tiny components ── */
 
@@ -237,6 +240,137 @@ function TxRow({ tx, fmt, currency, locale }) {
   );
 }
 
+/* ── savings journey card ── */
+
+const CHANNEL_I18N = {
+  bank: 'dashboard.savingsJourney.channelBank',
+  fund: 'dashboard.savingsJourney.channelFund',
+  bond: 'dashboard.savingsJourney.channelBond',
+  other: 'dashboard.savingsJourney.channelOther',
+};
+
+function SavingsJourneySection({ plans, checkinsByPlanId, t }) {
+  if (!plans.length) return null;
+  return (
+    <section className="pt-6">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zx-text-soft mb-3">
+        {t('dashboard.savingsJourney.title')}
+      </p>
+      <div className="space-y-3">
+        {plans.map(plan => {
+          const checkins = checkinsByPlanId[plan.id] || {};
+          const checkinCount = Object.keys(checkins).length;
+          const totalMonths = plan.result?.coastMonth || 0;
+          const pct = totalMonths > 0 ? Math.min(100, Math.round((checkinCount / totalMonths) * 100)) : 0;
+          const currentMonthIdx = plan.executionStartDate ? getCurrentPlanMonthIdx(plan.executionStartDate) : 1;
+          const currentMonthKey = plan.executionStartDate
+            ? addMonthsToKey(plan.executionStartDate, currentMonthIdx - 1)
+            : '';
+          const thisMonthChecked = currentMonthKey ? !!checkins[currentMonthKey] : false;
+          const channelKey = CHANNEL_I18N[plan.channelType] || CHANNEL_I18N.other;
+          return (
+            <Link
+              key={plan.id}
+              to={`/savings-escalator/plan/${plan.id}`}
+              className="block rounded-zx border border-zx-line bg-zx-surface p-4 group hover:border-zx-accent transition"
+            >
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-zx-text group-hover:text-zx-accent transition truncate">
+                    {plan.name}
+                  </p>
+                  <p className="text-xs text-zx-text-soft mt-0.5">{t(channelKey)}</p>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5 text-zx-text-soft opacity-0 group-hover:opacity-100 transition mt-0.5 flex-shrink-0" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-zx-text-soft">
+                    {t('dashboard.savingsJourney.monthProgress', { current: checkinCount, total: totalMonths })}
+                  </span>
+                  <span className="font-semibold text-zx-accent">{pct}%</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-zx-surface-2 overflow-hidden">
+                  <div className="h-full rounded-full bg-zx-accent transition-all" style={{ width: `${pct}%` }} />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className={`h-3.5 w-3.5 flex-shrink-0 ${thisMonthChecked ? 'text-zx-positive' : 'text-zx-line'}`} />
+                  <span className={`text-[11px] font-medium ${thisMonthChecked ? 'text-zx-positive' : 'text-zx-text-soft'}`}>
+                    {t(thisMonthChecked ? 'dashboard.savingsJourney.checkedIn' : 'dashboard.savingsJourney.notCheckedIn')}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/* ── upcoming section ── */
+
+function UpcomingSection({ plans, checkinsByPlanId, savingsBooks, t }) {
+  const items = [];
+
+  getUpcomingMaturities(savingsBooks, 7).forEach(book => {
+    const days = daysUntil(book.maturityDate);
+    items.push({
+      key: `m-${book.id}`,
+      urgent: days <= 1,
+      primary: days === 0
+        ? t('dashboard.upcoming.maturityToday')
+        : t('dashboard.upcoming.maturityDays', { n: days }),
+      secondary: book.label || book.bankName || '—',
+      to: '/savings-escalator',
+    });
+  });
+
+  plans.forEach(plan => {
+    if (!plan.executionStartDate) return;
+    const checkins = checkinsByPlanId[plan.id] || {};
+    const idx = getCurrentPlanMonthIdx(plan.executionStartDate);
+    const monthKey = addMonthsToKey(plan.executionStartDate, idx - 1);
+    if (!checkins[monthKey]) {
+      items.push({
+        key: `ci-${plan.id}`,
+        urgent: false,
+        primary: t('dashboard.upcoming.pendingCheckin', { month: idx }),
+        secondary: plan.name,
+        to: `/savings-escalator/plan/${plan.id}`,
+      });
+    }
+  });
+
+  if (!items.length) return null;
+
+  return (
+    <>
+      <div className="h-px bg-zx-line" />
+      <section className="pt-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zx-text-soft mb-2">
+          {t('dashboard.upcoming.title')}
+        </p>
+        <div>
+          {items.slice(0, 5).map((item, i) => (
+            <div key={item.key}>
+              {i > 0 && <div className="h-px bg-zx-line" />}
+              <Link to={item.to} className="flex items-start gap-3 py-2.5 group">
+                <span className={`mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${item.urgent ? 'bg-zx-accent' : 'bg-zx-maintain'}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-zx-text-soft">{item.primary}</p>
+                  <p className="text-sm text-zx-text truncate group-hover:text-zx-accent transition">{item.secondary}</p>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5 text-zx-text-soft/40 flex-shrink-0 mt-1" />
+              </Link>
+            </div>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}
+
 /* ── main component ── */
 
 export default function Dashboard() {
@@ -317,6 +451,24 @@ export default function Dashboard() {
     { to: '/reports',          labelKey: 'dashboard.actions.reports',         featureKey: 'reports' },
     ...(!isPremium ? [{ to: '/upgrade', labelKey: 'dashboard.actions.upgrade', featureKey: 'dashboard' }] : []),
   ].filter(a => canAccess(a.featureKey));
+
+  const [savingsData, setSavingsData] = useState(null);
+  useEffect(() => {
+    if (!isPremium || !user?.uid) return;
+    let cancelled = false;
+    (async () => {
+      const allPlans = await listSavingsPlans(user.uid);
+      const activePlans = allPlans.filter(p => (p.status ?? 'active') === 'active');
+      const [checkinResults, books] = await Promise.all([
+        Promise.all(activePlans.map(p => getMonthlyCheckins(user.uid, p.id))),
+        getSavingsSchedule(user.uid),
+      ]);
+      const checkinsByPlanId = {};
+      activePlans.forEach((p, i) => { checkinsByPlanId[p.id] = checkinResults[i]; });
+      if (!cancelled) setSavingsData({ plans: activePlans, checkinsByPlanId, books });
+    })();
+    return () => { cancelled = true; };
+  }, [user?.uid, isPremium]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
@@ -560,6 +712,15 @@ export default function Dashboard() {
             </section>
           )}
 
+          {/* ── Premium: Savings Escalator journey ── */}
+          {isPremium && savingsData?.plans?.length > 0 && (
+            <SavingsJourneySection
+              plans={savingsData.plans}
+              checkinsByPlanId={savingsData.checkinsByPlanId}
+              t={t}
+            />
+          )}
+
         </div>
 
         {/* ── Right column: focus + quick access ── */}
@@ -598,6 +759,16 @@ export default function Dashboard() {
               </div>
             ))}
           </section>
+
+          {/* ── Upcoming reminders ── */}
+          {savingsData && (
+            <UpcomingSection
+              plans={savingsData.plans}
+              checkinsByPlanId={savingsData.checkinsByPlanId}
+              savingsBooks={savingsData.books}
+              t={t}
+            />
+          )}
 
           <HL />
 

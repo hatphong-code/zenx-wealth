@@ -312,6 +312,22 @@ export default {
       item2: 'Transfer {amount} to emergency fund',
       askCoach: 'Ask coach',
     },
+    savingsJourney: {
+      title: 'Plan execution',
+      monthProgress: 'Month {current}/{total}',
+      checkedIn: 'Checked in this month',
+      notCheckedIn: 'Not checked in yet',
+      channelBank: 'Bank deposit',
+      channelFund: 'Investment fund',
+      channelBond: 'Bond',
+      channelOther: 'Other channel',
+    },
+    upcoming: {
+      title: 'Upcoming',
+      maturityToday: 'Book matures today',
+      maturityDays: 'Book matures in {n} days',
+      pendingCheckin: 'Month {month} check-in pending',
+    },
   },
   locked: {
     badge: '{tier} access',

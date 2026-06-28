@@ -312,6 +312,22 @@ export default {
       item2: 'Chuyển {amount} sang quỹ dự phòng',
       askCoach: 'Hỏi trợ lý',
     },
+    savingsJourney: {
+      title: 'Hành trình kế hoạch',
+      monthProgress: 'Tháng {current}/{total}',
+      checkedIn: 'Đã ghi nhận tháng này',
+      notCheckedIn: 'Chưa ghi nhận tháng này',
+      channelBank: 'Tiền gửi ngân hàng',
+      channelFund: 'Quỹ đầu tư',
+      channelBond: 'Trái phiếu',
+      channelOther: 'Kênh khác',
+    },
+    upcoming: {
+      title: 'Sắp xảy ra',
+      maturityToday: 'Sổ đáo hạn hôm nay',
+      maturityDays: 'Sổ đáo hạn sau {n} ngày',
+      pendingCheckin: 'Tháng {month} chưa ghi nhận',
+    },
   },
   locked: {
     badge: '{tier} access',
