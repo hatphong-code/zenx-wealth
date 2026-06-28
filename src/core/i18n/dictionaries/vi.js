@@ -753,6 +753,7 @@ export default {
       income: 'Tăng thu nhập',
       assets: 'Tài sản',
       trading: 'Rủi ro đầu tư',
+      savingsEscalator: 'Coast FI — Tích lũy thang leo',
     },
     reverseGoal: {
       title: 'Tính ngược mục tiêu dài hạn',
@@ -1524,6 +1525,7 @@ export default {
     badge: 'Kế hoạch tích lũy',
     title: 'Tích lũy và Tự do tài chính (Coast FI)',
     subtitle: 'Nhập mức gửi ban đầu và tỷ lệ tăng mỗi tháng để tìm điểm dừng Coast FI — thời điểm số dư tự đủ lớn để đạt mục tiêu FI mà không cần gửi thêm.',
+    planItemSub: 'Tìm điểm Coast FI và theo dõi tiến độ từng tháng.',
     form: {
       startMonthly: 'Mức gửi ban đầu / tháng',
       monthlyGrowthPct: 'Tỷ lệ tăng mỗi tháng (%)',

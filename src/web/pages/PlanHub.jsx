@@ -382,6 +382,14 @@ export default function PlanHub() {
       status: stats.emergencyMonths >= stats.targetMonths ? 'upcoming' : 'locked',
       featureKey: 'trading_risk',
     },
+    {
+      key: 'savingsEscalator', label: t('planHub.items.savingsEscalator'),
+      value: null,
+      sub: t('savingsEscalator.planItemSub'),
+      to: '/savings-escalator',
+      status: 'upcoming',
+      featureKey: 'savings_escalator',
+    },
   ];
 
   return (

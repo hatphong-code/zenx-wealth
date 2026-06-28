@@ -741,6 +741,7 @@ export default {
       income: 'Income Builder',
       assets: 'Assets',
       trading: 'Trading Risk',
+      savingsEscalator: 'Coast FI — Savings Escalator',
     },
     reverseGoal: {
       title: 'Reverse Long-term Goal Calculator',
@@ -1341,6 +1342,7 @@ export default {
   },
   savingsEscalator: {
     badge: 'Savings Plan',
+    planItemSub: 'Find your Coast FI point and track monthly progress.',
     title: 'Savings Escalator & Coast FI',
     subtitle: 'Enter your starting deposit and monthly growth rate to find your Coast FI checkpoint — the moment your balance is large enough to grow on its own to reach your FI goal.',
     form: {
