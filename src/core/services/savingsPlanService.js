@@ -134,9 +134,10 @@ export async function activatePendingPlans(userId) {
   return activated;
 }
 
-export async function createSavingsPlan(userId, { name, params, result, executionStartDate, status = 'active' }) {
+export async function createSavingsPlan(userId, { name, params, result, executionStartDate, status = 'active', channelType = 'bank' }) {
   const ref = await addDoc(plansCol(userId), {
     name: name || 'Kế hoạch Coast FI',
+    channelType,
     createdAt: serverTimestamp(),
     status,
     executionStartDate: status === 'active' ? (executionStartDate || currentYearMonth()) : null,

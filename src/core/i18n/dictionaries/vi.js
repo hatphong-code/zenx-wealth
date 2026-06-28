@@ -1592,6 +1592,13 @@ export default {
     savePlan: {
       sectionTitle: 'Theo dõi kế hoạch này',
       sectionSubtitle: 'Lưu kế hoạch để ghi nhận từng tháng gửi tiền — ZenX Wealth sẽ nhắc và tổng hợp tiến độ.',
+      channelType: {
+        label: 'Loại kênh đầu tư',
+        bank: 'Tiền gửi ngân hàng',
+        fund: 'Chứng chỉ quỹ',
+        bond: 'Trái phiếu',
+        other: 'Khác',
+      },
       ctaButton: 'Lưu và bắt đầu theo dõi',
       checking: 'Đang kiểm tra điều kiện...',
       blockPendingExists: 'Bạn đang có kế hoạch "{name}" chờ kích hoạt. Duy trì đều đặn các kế hoạch hiện tại để kích hoạt kế hoạch đó trước.',

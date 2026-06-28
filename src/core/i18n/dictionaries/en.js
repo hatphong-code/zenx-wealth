@@ -1411,6 +1411,13 @@ export default {
     savePlan: {
       sectionTitle: 'Track this plan',
       sectionSubtitle: 'Save the plan to log each monthly deposit — ZenX Wealth will remind you and summarize your progress.',
+      channelType: {
+        label: 'Investment channel type',
+        bank: 'Bank savings',
+        fund: 'Mutual fund',
+        bond: 'Bonds',
+        other: 'Other',
+      },
       ctaButton: 'Save and start tracking',
       nameLabel: 'Plan name',
       namePlaceholder: 'E.g. Coast FI Plan 2026',

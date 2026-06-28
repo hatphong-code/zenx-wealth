@@ -32,6 +32,13 @@ import NumericInput from '../components/ui/NumericInput';
 
 const MATURITY_WINDOW_DAYS = 7;
 
+const CHANNEL_CONFIG = {
+  bank: { color: 'text-zx-accent border-zx-accent/40 bg-zx-accent/10' },
+  fund: { color: 'text-zx-positive border-zx-positive/40 bg-zx-positive/10' },
+  bond: { color: 'text-zx-gold border-zx-gold/40 bg-zx-gold/10' },
+  other: { color: 'text-zx-text-soft border-zx-line bg-zx-surface-2' },
+};
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDateVN(dateStr) {
@@ -432,6 +439,7 @@ export default function SavingsEscalator() {
   const [savePlanStartMonth, setSavePlanStartMonth] = useState(currentYearMonth());
   const [savingPlan, setSavingPlan] = useState(false);
   const [savePlanError, setSavePlanError] = useState('');
+  const [savePlanChannel, setSavePlanChannel] = useState('bank');
   const [planCheck, setPlanCheck] = useState(null);
   const [planCheckLoading, setPlanCheckLoading] = useState(false);
 
@@ -541,7 +549,7 @@ export default function SavingsEscalator() {
       return sum + (allSeries[pi][idx]?.monthlyDeposit || p.params.startMonthly);
     }, 0);
 
-    return { fiTarget, totalMonthlyNow, combinedCoastFromNow, individualCoastFromNow, chartData, planCount: activePlans.length };
+    return { fiTarget, totalMonthlyNow, combinedCoastFromNow, individualCoastFromNow, chartData, planCount: activePlans.length, plans: activePlans };
   }, [savedPlans]);
 
   function setField(key, val) {
@@ -598,6 +606,7 @@ export default function SavingsEscalator() {
         result: planResult,
         executionStartDate: savePlanStartMonth,
         status: planCheck?.newStatus || 'active',
+        channelType: savePlanChannel,
       });
       navigate(`/savings-escalator/plan/${id}`);
     } catch (err) {
@@ -654,11 +663,13 @@ export default function SavingsEscalator() {
                     : t('savingsEscalator.portfolio.monthsAway', { n: portfolioSummary.combinedCoastFromNow })}
                 </p>
                 <p className="text-[11px] text-zx-text-soft mt-0.5 leading-snug">
-                  {portfolioSummary.individualCoastFromNow.map((m, i) =>
-                    m == null ? null
-                    : m === 0 ? t('savingsEscalator.portfolio.channelCoasted', { n: i + 1 })
-                    : t('savingsEscalator.portfolio.channelMonths', { n: i + 1, months: m })
-                  ).filter(Boolean).join(' · ')}
+                  {portfolioSummary.individualCoastFromNow.map((m, i) => {
+                    const ch = portfolioSummary.plans[i]?.channelType || 'other';
+                    const label = t(`savingsEscalator.savePlan.channelType.${ch}`, {}, `K${i + 1}`);
+                    return m == null ? null
+                      : m === 0 ? `${label}: Đã Coast`
+                      : `${label}: ${m}T`;
+                  }).filter(Boolean).join(' · ')}
                 </p>
               </div>
             </div>
@@ -716,12 +727,19 @@ export default function SavingsEscalator() {
                 className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-zx-surface-2 transition"
               >
                 <div>
-                  <span className="text-sm font-medium text-zx-text">{sp.name}</span>
-                  {sp.status === 'pending' && (
-                    <span className="ml-2 text-[11px] font-semibold text-zx-maintain">
-                      {t('savingsEscalator.savePlan.pendingBadge')}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-medium text-zx-text">{sp.name}</span>
+                    {sp.channelType && (
+                      <span className={`rounded-zx-pill border px-1.5 py-0.5 text-[10px] font-semibold ${(CHANNEL_CONFIG[sp.channelType] || CHANNEL_CONFIG.other).color}`}>
+                        {t(`savingsEscalator.savePlan.channelType.${sp.channelType}`, {}, sp.channelType)}
+                      </span>
+                    )}
+                    {sp.status === 'pending' && (
+                      <span className="text-[11px] font-semibold text-zx-maintain">
+                        {t('savingsEscalator.savePlan.pendingBadge')}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-zx-text-soft mt-0.5">
                     {sp.executionStartDate
                       ? `Bắt đầu ${sp.executionStartDate.replace('-', '/')} · Coast tháng ${sp.result?.coastMonth}`
@@ -1128,6 +1146,7 @@ export default function SavingsEscalator() {
                   onClick={async () => {
                     setSavePlanName('');
                     setSavePlanStartMonth(currentYearMonth());
+                    setSavePlanChannel('bank');
                     setPlanCheck(null);
                     setPlanCheckLoading(true);
                     try {
@@ -1158,6 +1177,26 @@ export default function SavingsEscalator() {
                       {t('savingsEscalator.savePlan.riskWarning', { pct: form.annualRatePct })}
                     </div>
                   )}
+                  <div>
+                    <p className="text-sm text-zx-text-soft mb-2">{t('savingsEscalator.savePlan.channelType.label')}</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['bank', 'fund', 'bond', 'other'].map(type => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setSavePlanChannel(type)}
+                          className={`rounded-zx-sm border px-3 py-2 text-left text-sm transition ${
+                            savePlanChannel === type
+                              ? CHANNEL_CONFIG[type].color + ' font-semibold'
+                              : 'border-zx-line text-zx-text-soft hover:border-zx-accent/50 hover:text-zx-text'
+                          }`}
+                        >
+                          {t(`savingsEscalator.savePlan.channelType.${type}`)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label htmlFor="sp-name" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.savePlan.nameLabel')}</label>

@@ -513,9 +513,21 @@ export default function SavingsEscalatorPlan() {
 
       {/* Header */}
       <div>
-        <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft">
-          {t('savingsEscalator.plan.badge')}
-        </span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft">
+            {t('savingsEscalator.plan.badge')}
+          </span>
+          {plan.channelType && (
+            <span className={`rounded-zx-pill border px-1.5 py-0.5 text-[10px] font-semibold ${
+              plan.channelType === 'bank' ? 'text-zx-accent border-zx-accent/40 bg-zx-accent/10' :
+              plan.channelType === 'fund' ? 'text-zx-positive border-zx-positive/40 bg-zx-positive/10' :
+              plan.channelType === 'bond' ? 'text-zx-gold border-zx-gold/40 bg-zx-gold/10' :
+              'text-zx-text-soft border-zx-line bg-zx-surface-2'
+            }`}>
+              {t(`savingsEscalator.savePlan.channelType.${plan.channelType}`, {}, plan.channelType)}
+            </span>
+          )}
+        </div>
         <h1 className="mt-1 font-zx-head text-2xl font-bold text-zx-text">{plan.name}</h1>
         <p className="mt-0.5 text-sm text-zx-text-soft">
           {plan.executionStartDate
