@@ -373,9 +373,13 @@ const BASE_FORM = {
   monthlyGrowthPct: 1,
   monthlyExpense: 15000000,
   fiMultiple: 25,
-  retirementAge: 50,
+  retirementAge: 60,
   annualRatePct: 6,
 };
+
+function deriveDefaultRetirementAge(currentAge) {
+  return Math.max(currentAge + 15, 60);
+}
 
 export default function SavingsEscalator() {
   const { user } = useAuth();
@@ -390,16 +394,20 @@ export default function SavingsEscalator() {
 
   useEffect(() => {
     if (!user?.uid || ageSeeded) return;
+    const apply = (profile) => {
+      const currentAge = deriveDefaultAge(profile);
+      const monthlyExpense = profile?.settings?.monthlyEssentialExpense || BASE_FORM.monthlyExpense;
+      setForm(f => ({
+        ...f,
+        currentAge,
+        monthlyExpense,
+        retirementAge: deriveDefaultRetirementAge(currentAge),
+      }));
+      setAgeSeeded(true);
+    };
     const cached = getCachedUserProfile(user.uid);
-    if (cached) {
-      setForm(f => ({ ...f, currentAge: deriveDefaultAge(cached) }));
-      setAgeSeeded(true);
-      return;
-    }
-    getUserProfile(user.uid).then(profile => {
-      setForm(f => ({ ...f, currentAge: deriveDefaultAge(profile) }));
-      setAgeSeeded(true);
-    });
+    if (cached) { apply(cached); return; }
+    getUserProfile(user.uid).then(apply);
   }, [user?.uid, ageSeeded]);
 
   const currency = user?.settings?.currency || 'VND';
