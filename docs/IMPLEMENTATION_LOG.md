@@ -2,6 +2,16 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — SavingsEscalator smart defaults (profile seed + retirementAge algorithm)
+
+**Root cause fix — currentAge:** `user` từ `useAuth()` là Firebase Auth object, không chứa `settings`. Fix: `useEffect` gọi `getCachedUserProfile()` (sync nếu đã cache) hoặc `getUserProfile()` sau mount, seed một lần qua `ageSeeded` flag.
+**Seed monthlyExpense:** Lấy `profile.settings.monthlyEssentialExpense` thay vì hardcode 15tr. Cùng `useEffect`, cùng một fetch.
+**Smart retirementAge default:** `deriveDefaultRetirementAge(currentAge) = max(currentAge + 15, 60)`. Đảm bảo tối thiểu 15 năm runway (đủ để Coast FI có ý nghĩa) và sàn 60 (tuổi nghỉ hưu pháp lý VN, gender-neutral). Ví dụ: user 49 tuổi → đề xuất 64 thay vì 50.
+**Ghi chú:** Vấn đề tuổi nghỉ hưu 60/62 theo giới tính sẽ xử lý riêng theo spec `spec-dob-age-integration.md`.
+**Files:** `SavingsEscalator.jsx`
+
+---
+
 ## 2026-06-28 — SavingsEscalator bug fixes (conclusion text + money format)
 
 **Conclusion text broken:** `t()` xử lý `{token}` interpolation nội bộ ngay khi gọi — nếu không truyền params, các token bị thay bằng chuỗi rỗng trước khi `.replace()` chạy. Fix: chuyển tất cả giá trị vào params thứ hai của `t()` thay vì chain `.replace()` thủ công. Áp dụng cho cả `conclusionFound` (6 params) và `conclusionNotFound`.
