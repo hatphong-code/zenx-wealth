@@ -2,6 +2,17 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — SavingsEscalator Execution Plan feature
+
+**savingsPlanService.js (new):** CRUD cho `users/{uid}/savingsPlans/{planId}` và subcollection `checkins/{monthKey}`. Functions: `createSavingsPlan`, `getSavingsPlan`, `listSavingsPlans`, `updatePlanActiveScenario`, `addMonthlyCheckin`, `getMonthlyCheckins`. Helpers: `currentYearMonth()`, `addMonthsToKey()`, `getCurrentPlanMonthIdx()`.
+**SavingsEscalatorPlan.jsx (new):** Trang `/savings-escalator/plan/:planId` — load plan từ Firestore, 2 tab: Theo tháng (accordion by year, check-in inline form, scenario picker tại Coast month) + Theo năm (table tổng hợp planned vs actual). Progress bar đến Coast point.
+**SavingsEscalator.jsx — "Lưu kế hoạch":** Section sau Conclusion khi có coastResult — form gồm tên kế hoạch + tháng bắt đầu → `createSavingsPlan` → navigate đến plan page. Danh sách "Kế hoạch đã lưu" phía dưới.
+**Route:** `/savings-escalator/plan/:planId` (featureKey `savings_escalator`).
+**i18n:** Thêm keys `savePlan.*` và `plan.*` vào cả vi.js và en.js.
+**Files:** `savingsPlanService.js` (new), `SavingsEscalatorPlan.jsx` (new), `SavingsEscalator.jsx`, `App.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — SavingsEscalator 3-scenario table + zx-maintain design token
 
 **3-scenario yearly table:** Thêm kịch bản thứ ba "Duy trì đều" — sau Coast FI giữ nguyên `depositAtCoast` mỗi tháng thay vì dừng hoặc tăng. Bảng nay có 3 cột số dư: Tiếp tục tăng / Duy trì đều / Dừng tại Coast. Cột Năm + Tuổi merge thành 1 cột ("Năm / Tuổi"). Cột GỬI/NĂM với sub-line "từ {amount}/tháng" (mức gửi tháng đầu của năm đó).
