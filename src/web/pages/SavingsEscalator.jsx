@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, CalendarClock, ChevronDown, ChevronUp, Flame, Info, PlusCircle, Trash2 } from 'lucide-react';
 import { Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useAuth } from '../../core/auth/useAuth';
@@ -313,6 +313,60 @@ function deriveDefaultAge(user) {
   return 30;
 }
 
+function FiMultipleSelect({ value, onChange }) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const options = [
+    { value: 25, label: t('savingsEscalator.form.fiMultiple25') },
+    { value: 26, label: '26×' },
+    { value: 27, label: '27×' },
+    { value: 28, label: t('savingsEscalator.form.fiMultiple28') },
+    { value: 29, label: '29×' },
+    { value: 30, label: '30×' },
+    { value: 31, label: t('savingsEscalator.form.fiMultiple31') },
+  ];
+
+  const selected = options.find(o => o.value === value);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-3 text-sm text-zx-text focus:outline-none focus:ring-2 focus:ring-zx-accent"
+      >
+        <span>{selected?.label}</span>
+        <ChevronDown className={`h-4 w-4 flex-shrink-0 text-zx-text-soft transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-20 mt-1 w-full overflow-hidden rounded-zx-sm border border-zx-line bg-zx-surface shadow-zx">
+          {options.map(o => (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => { onChange(o.value); setOpen(false); }}
+              className={`w-full px-3 py-2.5 text-left text-sm transition hover:bg-zx-surface-2 ${
+                o.value === value ? 'font-semibold text-zx-accent' : 'text-zx-text'
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const BASE_FORM = {
   startMonthly: 9000000,
   monthlyGrowthPct: 1,
@@ -414,22 +468,7 @@ export default function SavingsEscalator() {
 
           <div>
             <span className="block text-sm text-zx-text-soft mb-2">{t('savingsEscalator.form.fiMultiple')}</span>
-            <div className="flex flex-wrap gap-1.5">
-              {[25, 26, 27, 28, 29, 30, 31].map(v => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => setField('fiMultiple', v)}
-                  className={`rounded-zx-sm border px-3 py-2 text-sm font-semibold transition ${
-                    form.fiMultiple === v
-                      ? 'border-zx-accent bg-zx-accent-soft text-zx-accent'
-                      : 'border-zx-line bg-zx-surface text-zx-text-soft hover:border-zx-accent'
-                  }`}
-                >
-                  {v}×
-                </button>
-              ))}
-            </div>
+            <FiMultipleSelect value={form.fiMultiple} onChange={v => setField('fiMultiple', v)} />
             <button
               type="button"
               onClick={() => setShowFiNote(v => !v)}
