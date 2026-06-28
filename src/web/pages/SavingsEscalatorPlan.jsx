@@ -315,7 +315,7 @@ function BankScheduleSection({ userId, planId, plan, series, currentPlanMonthIdx
                       <span className="text-[10px] font-medium text-zx-text-soft">{entry.bankName}</span>
                     )}
                     {entry.interestRate > 0 && (
-                      <span className="text-[10px] font-semibold text-zx-accent">{entry.interestRate}%/năm</span>
+                      <span className="text-[10px] font-semibold text-zx-accent">{t('savingsEscalator.schedule.interestRateBadge', { rate: entry.interestRate })}</span>
                     )}
                     {isUpcoming && (
                       <span className="text-[10px] font-semibold text-zx-gold">

@@ -1693,6 +1693,7 @@ export default {
       bankName: 'Tên ngân hàng',
       bankNamePlaceholder: 'VD: Vietcombank, Techcombank...',
       interestRate: 'Lãi suất (%/năm)',
+      interestRateBadge: '{rate}%/năm',
       openDate: 'Ngày mở',
       maturityDate: 'Ngày đáo hạn',
       amount: 'Số tiền gửi',

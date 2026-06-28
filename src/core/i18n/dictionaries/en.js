@@ -1512,6 +1512,7 @@ export default {
       bankName: 'Bank name',
       bankNamePlaceholder: 'E.g. Vietcombank, Techcombank...',
       interestRate: 'Interest rate (%/year)',
+      interestRateBadge: '{rate}%/year',
       openDate: 'Open date',
       maturityDate: 'Maturity date',
       amount: 'Deposit amount',
