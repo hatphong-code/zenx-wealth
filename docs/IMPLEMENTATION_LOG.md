@@ -2,6 +2,14 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — SavingsEscalator UX polish (FI multiple dropdown + money format)
+
+**FI multiple — custom dropdown:** Replaced 7-button group with `FiMultipleSelect` component (local helper in `SavingsEscalator.jsx`). Trigger styled to match NumericInput (`py-3`, `bg-zx-surface-2`, `rounded-zx-sm`); dropdown list fully token-based — works correctly in both Ấm + Tư gia themes (no OS-rendered select options). Options 25×, 28×, 31× show descriptive labels from i18n; others show plain `{v}×`.
+**Money format — result section:** Stat cards (Mục tiêu FI, Số dư khi dừng, Mức gửi khi dừng) and yearly table (balance + monthly deposit columns) now use `fmt(value, currency)` from `useNumberFormat()` instead of `fmtShort()`. Format respects user's compact/full config. Conclusion text also updated.
+**Files:** `SavingsEscalator.jsx`
+
+---
+
 ## 2026-06-28 — DOB + age integration (spec-dob-age-integration)
 
 **Part 1 — dateOfBirth in Profile:** `deriveAgeRangeFromDOB(dob)` + `calculateExactAge(dob)` + `AGE_RANGE_MIDPOINT` added to `latteOnboarding.js`. `dateOfBirth: null` added to `userService.js` defaults. `Profile.jsx`: native `type="date"` input (optional, not required); on change auto-derives `ageRange` from DOB; ageRange buttons disabled + labelled "Tự động tính từ ngày sinh" when DOB present. DOB saved to Firestore on submit.
