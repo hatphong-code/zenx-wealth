@@ -2,6 +2,18 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-29 — Smart savings book form + comparison chart
+
+**BankScheduleSection** nâng cấp: (1) Month selector dropdown 1..coastMonth với default = tháng hiện tại; (2) Smart defaults khi chọn tháng: label = `{planName} - Tháng N`, amount = số tiền dự kiến từ series, openDate = ngày 1 của tháng đó; (3) Thêm 2 field: `bankName` (tên ngân hàng) và `interestRate` (%/năm); (4) Auto-checkin khi lưu sổ: ghi nhận actualAmount cho tháng tương ứng trên bảng theo dõi.
+
+**ComparisonChart** mới: 6 đường Recharts — 3 đường kế hoạch (dashed: continue/maintain/coast dùng annualRatePct gốc) vs 3 đường thực tế (solid: cùng 3 kịch bản nhưng dùng lãi suất thực tế trung bình từ các sổ đã lưu, tính theo trọng số số tiền). Khi chưa có sổ nào, hiện thông báo thay chart.
+
+**savingsScheduleService**: thêm `planMonthIdx`, `bankName`, `interestRate` vào schema Firestore.
+**i18n**: thêm keys `schedule.monthSelector/monthOption/bankName/interestRate/chart*` vào cả vi.js và en.js.
+**Files:** `savingsScheduleService.js`, `SavingsEscalatorPlan.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-29 — Lịch sổ tiết kiệm → chuyển vào Plan Detail (bank only)
 
 Redesign: `ScheduleSection` rời trên trang chính → `BankScheduleSection` gắn vào `/savings-escalator/plan/:planId`, chỉ hiện khi `channelType === 'bank'` và plan đang active. Mỗi schedule entry giờ lưu `planId`; `getSavingsScheduleForPlan(userId, planId)` query đúng sổ của plan đó. Đúng với câu chuyện thang sổ tiết kiệm: user xem plan → thấy lịch gửi tiền từng tháng → thấy các sổ đang mở ngay bên dưới, tất cả là 1 câu chuyện liên tục.
