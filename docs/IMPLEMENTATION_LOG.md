@@ -2,6 +2,17 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — channelType field cho savings plans
+
+**Field mới `channelType`** (bank / fund / bond / other): stored in Firestore, default `bank`.
+**Form "Lưu kế hoạch"**: 2×2 button grid chọn kênh, màu theo channel (accent/positive/gold/muted). Reset về `bank` mỗi lần mở form.
+**Saved plans list**: Colored chip bên cạnh tên plan (và pending badge nếu có).
+**Portfolio summary**: Individual channels hiển thị tên kênh thực tế thay vì "K1/K2".
+**SavingsEscalatorPlan header**: Badge kênh đầu tư bên cạnh eyebrow label.
+**Files:** `savingsPlanService.js`, `SavingsEscalator.jsx`, `SavingsEscalatorPlan.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — Portfolio aggregate view + FI target pre-populate
 
 **Portfolio summary card** (hiện khi ≥ 2 active plans): FI target chung, tổng gửi/tháng hiện tại, combined coast (tháng từ bây giờ — mỗi plan tăng theo rate riêng, sum projected finals vs fiTarget), so sánh với từng kênh đơn lẻ, mini LineChart (combined balance vs FI target ref line + vertical coast marker).
