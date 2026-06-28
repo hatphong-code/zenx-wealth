@@ -65,7 +65,7 @@ function MaturityBanner({ upcoming, t }) {
   );
 }
 
-function BankScheduleSection({ userId, planId, plan, series, checkins, currentPlanMonthIdx, t, currency, onCheckin }) {
+function BankScheduleSection({ userId, planId, plan, series, currentPlanMonthIdx, t, currency, entries, onEntriesChange, onCheckin }) {
   const coastMonth = plan.result.coastMonth;
   const defaultMonthIdx = Math.max(1, Math.min(currentPlanMonthIdx, coastMonth));
 
@@ -84,19 +84,11 @@ function BankScheduleSection({ userId, planId, plan, series, checkins, currentPl
     };
   }
 
-  const [entries, setEntries] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [selectedMonthIdx, setSelectedMonthIdx] = useState(defaultMonthIdx);
   const [form, setForm] = useState(() => defaultFormFor(defaultMonthIdx));
-
-  useEffect(() => {
-    getSavingsScheduleForPlan(userId, planId)
-      .then(setEntries)
-      .finally(() => setLoading(false));
-  }, [userId, planId]);
 
   const upcoming = useMemo(() => getUpcomingMaturities(entries, MATURITY_WINDOW_DAYS), [entries]);
 
@@ -144,7 +136,7 @@ function BankScheduleSection({ userId, planId, plan, series, checkins, currentPl
         interestRate: Number(form.interestRate) || 0,
         amount: actualAmount,
       };
-      setEntries(prev => [...prev, newEntry].sort((a, b) => (a.maturityDate || '').localeCompare(b.maturityDate || '')));
+      onEntriesChange(prev => [...prev, newEntry].sort((a, b) => (a.maturityDate || '').localeCompare(b.maturityDate || '')));
       setShowForm(false);
     } finally {
       setSaving(false);
@@ -155,7 +147,7 @@ function BankScheduleSection({ userId, planId, plan, series, checkins, currentPl
     setDeletingId(entry.id);
     try {
       await deleteSavingsScheduleEntry(userId, entry.id);
-      setEntries(prev => prev.filter(e => e.id !== entry.id));
+      onEntriesChange(prev => prev.filter(e => e.id !== entry.id));
     } finally {
       setDeletingId(null);
     }
@@ -180,18 +172,6 @@ function BankScheduleSection({ userId, planId, plan, series, checkins, currentPl
           {t('savingsEscalator.schedule.add')}
         </button>
       </div>
-
-      {!loading && (
-        <ComparisonChart
-          plan={plan}
-          series={series}
-          checkins={checkins}
-          entries={entries}
-          currentPlanMonthIdx={currentPlanMonthIdx}
-          t={t}
-          currency={currency}
-        />
-      )}
 
       <MaturityBanner upcoming={upcoming} t={t} />
 
@@ -316,9 +296,7 @@ function BankScheduleSection({ userId, planId, plan, series, checkins, currentPl
         </form>
       )}
 
-      {loading ? (
-        <p className="text-sm text-zx-text-soft">{t('common.loading')}</p>
-      ) : entries.length === 0 ? (
+      {entries.length === 0 ? (
         <p className="text-sm text-zx-text-soft py-2">{t('savingsEscalator.schedule.empty')}</p>
       ) : (
         <div className="rounded-zx border border-zx-line bg-zx-surface overflow-hidden divide-y divide-zx-line">
@@ -900,6 +878,7 @@ export default function SavingsEscalatorPlan() {
 
   const [plan, setPlan] = useState(null);
   const [checkins, setCheckins] = useState({});
+  const [scheduleEntries, setScheduleEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('monthly');
   const [justActivated, setJustActivated] = useState(false);
@@ -936,6 +915,12 @@ export default function SavingsEscalatorPlan() {
       }
     })();
   }, [user?.uid, planId]);
+
+  // Load savings books for bank plans (runs after plan is known)
+  useEffect(() => {
+    if (!user?.uid || !planId || plan?.channelType !== 'bank' || plan?.status === 'pending') return;
+    getSavingsScheduleForPlan(user.uid, planId).then(setScheduleEntries);
+  }, [user?.uid, planId, plan?.channelType, plan?.status]);
 
   const series = useMemo(() => {
     if (!plan) return [];
@@ -1163,6 +1148,18 @@ export default function SavingsEscalatorPlan() {
             )}
           </div>
 
+          {plan.channelType === 'bank' && (
+            <ComparisonChart
+              plan={plan}
+              series={series}
+              checkins={checkins}
+              entries={scheduleEntries}
+              currentPlanMonthIdx={currentPlanMonthIdx}
+              t={t}
+              currency={currency}
+            />
+          )}
+
           <div className="flex gap-2 border-b border-zx-line">
             {['monthly', 'yearly'].map(id => (
               <button
@@ -1201,10 +1198,11 @@ export default function SavingsEscalatorPlan() {
           planId={planId}
           plan={plan}
           series={series}
-          checkins={checkins}
           currentPlanMonthIdx={currentPlanMonthIdx}
           t={t}
           currency={currency}
+          entries={scheduleEntries}
+          onEntriesChange={setScheduleEntries}
           onCheckin={handleCheckin}
         />
       )}
