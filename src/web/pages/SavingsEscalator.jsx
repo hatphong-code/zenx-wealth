@@ -771,19 +771,19 @@ export default function SavingsEscalator() {
               const finalRow = plan.tableRows[plan.years];
               const scenarios = [
                 {
-                  color: 'border-zx-accent/40 bg-zx-accent/5',
+                  borderColor: 'border-l-zx-accent',
                   labelColor: 'text-zx-accent',
                   label: t('savingsEscalator.results.conclusionScenario1Label', { pct: form.monthlyGrowthPct }),
                   body: t('savingsEscalator.results.conclusionScenario1Body', { retirementAge: form.retirementAge, balance: fmt(finalRow.continueBalance, currency) }),
                 },
                 {
-                  color: 'border-zx-gold/40 bg-zx-gold/5',
+                  borderColor: 'border-l-zx-gold',
                   labelColor: 'text-zx-gold',
                   label: t('savingsEscalator.results.conclusionScenario2Label', { deposit: fmt(plan.depositAtCoast, currency), coastMonth: plan.coastResult.coastMonth }),
                   body: t('savingsEscalator.results.conclusionScenario2Body', { retirementAge: form.retirementAge, balance: fmt(finalRow.maintainBalance, currency) }),
                 },
                 {
-                  color: 'border-zx-positive/40 bg-zx-positive/5',
+                  borderColor: 'border-l-zx-positive',
                   labelColor: 'text-zx-positive',
                   label: t('savingsEscalator.results.conclusionScenario3Label', { coastMonth: plan.coastResult.coastMonth, coastAge }),
                   body: t('savingsEscalator.results.conclusionScenario3Body', { retirementAge: form.retirementAge, balance: fmt(finalRow.coastBalance, currency) }),
@@ -800,8 +800,10 @@ export default function SavingsEscalator() {
                   </p>
                   <div className="space-y-2">
                     {scenarios.map((s, i) => (
-                      <div key={i} className={`rounded-zx-sm border p-3 ${s.color}`}>
-                        <p className={`text-[11px] font-semibold uppercase tracking-[0.1em] mb-1 ${s.labelColor}`}>{s.label}</p>
+                      <div key={i} className={`rounded-zx-sm border-l-[3px] bg-zx-surface-2 py-3 pl-4 pr-3 ${s.borderColor}`}>
+                        <p className={`text-[11px] font-bold mb-1.5 ${s.labelColor}`}>
+                          {`0${i + 1} — `}{s.label}
+                        </p>
                         <p className="text-sm text-zx-text leading-relaxed">{s.body}</p>
                       </div>
                     ))}
