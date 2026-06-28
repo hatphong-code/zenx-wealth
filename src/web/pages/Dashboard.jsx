@@ -271,11 +271,12 @@ function SavingsJourneySection({ plans, checkinsByPlanId, t, fmt, currency }) {
 
           const monthsElapsed = plan.executionStartDate ? getMonthsElapsed(plan.executionStartDate) : 0;
           const consistency = monthsElapsed > 0 ? Math.min(100, Math.round((checkinCount / monthsElapsed) * 100)) : 100;
-          const monthsRemaining = Math.max(0, totalMonths - currentMonthIdx);
           const coastAge = plan.result?.coastAge;
           const thisMonthDeposit = plan.params?.startMonthly
             ? plan.params.startMonthly * Math.pow(1 + (plan.params.monthlyGrowthPct || 0) / 100, currentMonthIdx - 1)
             : 0;
+          const fiTarget = plan.result?.fiTarget;
+          const balanceAtCoast = plan.result?.balanceAtCoast;
 
           return (
             <Link
@@ -283,67 +284,67 @@ function SavingsJourneySection({ plans, checkinsByPlanId, t, fmt, currency }) {
               to={`/savings-escalator/plan/${plan.id}`}
               className="block rounded-zx border border-zx-line bg-zx-surface p-4 group hover:border-zx-accent transition"
             >
-              {/* Header */}
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-zx-text group-hover:text-zx-accent transition truncate">
-                    {plan.name}
-                  </p>
-                  <p className="text-xs text-zx-text-soft mt-0.5">{t(channelKey)}</p>
+              {/* Header: name left · coast age + arrow right */}
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <p className="text-sm font-semibold text-zx-text group-hover:text-zx-accent transition truncate">
+                  {plan.name}
+                </p>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {coastAge != null && (
+                    <span className="text-xs font-semibold text-zx-gold">
+                      {t('dashboard.savingsJourney.coastAgeValue', { age: coastAge })}
+                    </span>
+                  )}
+                  <ArrowRight className="h-3.5 w-3.5 text-zx-text-soft opacity-0 group-hover:opacity-100 transition" />
                 </div>
-                <ArrowRight className="h-3.5 w-3.5 text-zx-text-soft opacity-0 group-hover:opacity-100 transition mt-0.5 flex-shrink-0" />
               </div>
+              <p className="text-xs text-zx-text-soft mb-3">{t(channelKey)}</p>
 
-              {/* Progress */}
+              {/* Progress bar + T9/20 · 45% */}
               <div className="space-y-1.5 mb-3">
-                <div className="flex items-center justify-between text-xs">
+                <div className="h-1.5 rounded-full bg-zx-surface-2 overflow-hidden">
+                  <div className="h-full rounded-full bg-zx-accent transition-all" style={{ width: `${pct}%` }} />
+                </div>
+                <div className="flex items-center justify-between text-[11px]">
                   <span className="text-zx-text-soft">
                     {t('dashboard.savingsJourney.monthProgress', { current: checkinCount, total: totalMonths })}
                   </span>
                   <span className="font-semibold text-zx-accent">{pct}%</span>
                 </div>
-                <div className="h-1.5 rounded-full bg-zx-surface-2 overflow-hidden">
-                  <div className="h-full rounded-full bg-zx-accent transition-all" style={{ width: `${pct}%` }} />
-                </div>
               </div>
 
-              {/* 2×2 rich stats */}
-              <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 pt-3 border-t border-zx-line mb-3">
-                <div>
-                  <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
-                    {t('dashboard.savingsJourney.thisMonthDeposit')}
-                  </p>
-                  <p className="text-sm font-semibold text-zx-text">{fmt(thisMonthDeposit, currency)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
-                    {t('dashboard.savingsJourney.consistency')}
-                  </p>
-                  <p className={`text-sm font-semibold ${consistency >= 80 ? 'text-zx-positive' : consistency >= 60 ? 'text-zx-gold' : 'text-zx-accent'}`}>
-                    {consistency}%
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
-                    {t('dashboard.savingsJourney.monthsRemaining')}
-                  </p>
-                  <p className="text-sm font-semibold text-zx-text">
-                    {monthsRemaining > 0
-                      ? t('dashboard.savingsJourney.monthsRemainingValue', { n: monthsRemaining })
-                      : t('dashboard.savingsJourney.coastReached')}
-                  </p>
-                </div>
-                {coastAge != null && (
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
-                      {t('dashboard.savingsJourney.coastAge')}
-                    </p>
-                    <p className="text-sm font-semibold text-zx-gold">
-                      {t('dashboard.savingsJourney.coastAgeValue', { age: coastAge })}
-                    </p>
-                  </div>
-                )}
+              {/* Deposit · Consistency — one inline row */}
+              <div className="flex items-center gap-1 text-[11px] mb-3">
+                <span className="text-zx-text-soft shrink-0">{t('dashboard.savingsJourney.thisMonthDeposit')}:</span>
+                <span className="font-semibold text-zx-text">{fmt(thisMonthDeposit, currency)}</span>
+                <span className="text-zx-line mx-1.5">·</span>
+                <span className="text-zx-text-soft shrink-0">{t('dashboard.savingsJourney.consistency')}:</span>
+                <span className={`font-semibold ${consistency >= 80 ? 'text-zx-positive' : consistency >= 60 ? 'text-zx-gold' : 'text-zx-accent'}`}>
+                  {consistency}%
+                </span>
               </div>
+
+              {/* Motivating future values */}
+              {(fiTarget || balanceAtCoast) && (
+                <div className="grid grid-cols-2 gap-3 pt-2.5 border-t border-zx-line mb-3">
+                  {fiTarget && (
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
+                        {t('dashboard.savingsJourney.fiTarget')}
+                      </p>
+                      <p className="text-sm font-bold text-zx-gold">{fmt(fiTarget, currency)}</p>
+                    </div>
+                  )}
+                  {balanceAtCoast && (
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
+                        {t('dashboard.savingsJourney.balanceAtCoast')}
+                      </p>
+                      <p className="text-sm font-bold text-zx-positive">{fmt(balanceAtCoast, currency)}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Check-in status */}
               <div className="flex items-center gap-1.5">

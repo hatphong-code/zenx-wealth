@@ -328,6 +328,8 @@ export default {
       coastReached: 'Coast reached!',
       coastAge: 'Coast age',
       coastAgeValue: 'Age {age}',
+      fiTarget: 'FI target',
+      balanceAtCoast: 'Balance at Coast',
     },
     upcoming: {
       title: 'Upcoming',

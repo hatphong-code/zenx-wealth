@@ -328,6 +328,8 @@ export default {
       coastReached: 'Đã đến Coast!',
       coastAge: 'Tuổi Coast',
       coastAgeValue: '{age} tuổi',
+      fiTarget: 'Mục tiêu FI',
+      balanceAtCoast: 'Số dư tại Coast',
     },
     upcoming: {
       title: 'Sắp xảy ra',
