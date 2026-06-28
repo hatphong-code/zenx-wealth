@@ -483,11 +483,13 @@ function formatMonthKey(key) {
   return `${m}/${y}`;
 }
 
-function formatMonthLabel(key) {
+const LOCALE_CODE = { vi: 'vi-VN', en: 'en-US' };
+
+function formatMonthLabel(key, locale = 'vi') {
   if (!key) return '';
   const [y, m] = key.split('-');
   const date = new Date(Number(y), Number(m) - 1, 1);
-  return date.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
+  return date.toLocaleDateString(LOCALE_CODE[locale] || 'vi-VN', { month: 'long', year: 'numeric' });
 }
 
 // ── Checkin inline form ───────────────────────────────────────────────────────
@@ -617,7 +619,7 @@ function ScenarioPicker({ plan, onPick }) {
 // ── Monthly view ──────────────────────────────────────────────────────────────
 
 function MonthlyView({ plan, series, checkins, currentPlanMonthIdx, onCheckin }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { fmt } = useNumberFormat();
   const currency = plan.params?.currency || 'VND';
   const [expandedYears, setExpandedYears] = useState(() => {
@@ -705,7 +707,7 @@ function MonthlyView({ plan, series, checkins, currentPlanMonthIdx, onCheckin })
                   const checkin = checkins[m.monthKey];
                   const planned = getPlannedDeposit(m.monthIdx);
                   const isOpen = openCheckinKey === m.monthKey;
-                  const monthLabel = formatMonthLabel(m.monthKey);
+                  const monthLabel = formatMonthLabel(m.monthKey, locale);
                   const afterCoastNoScenario = m.monthIdx > coastMonth && !plan.activeScenario;
 
                   return (
@@ -871,7 +873,7 @@ function YearlyView({ plan, series, checkins }) {
 
 export default function SavingsEscalatorPlan() {
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { fmt } = useNumberFormat();
   const { planId } = useParams();
   const navigate = useNavigate();
@@ -1081,7 +1083,7 @@ export default function SavingsEscalatorPlan() {
               <h1 className="mt-1 font-zx-head text-2xl font-bold text-zx-text">{plan.name}</h1>
               <p className="mt-0.5 text-sm text-zx-text-soft">
                 {plan.executionStartDate
-                  ? <>{t('savingsEscalator.plan.startedLabel')}: {formatMonthLabel(plan.executionStartDate)} · </>
+                  ? <>{t('savingsEscalator.plan.startedLabel')}: {formatMonthLabel(plan.executionStartDate, locale)} · </>
                   : null}
                 {t('savingsEscalator.plan.coastInfo', { coastMonth, coastAge })}
               </p>
