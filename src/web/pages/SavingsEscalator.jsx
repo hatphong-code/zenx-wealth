@@ -19,6 +19,8 @@ import {
   getUpcomingMaturities,
 } from '../../core/services/savingsScheduleService';
 import {
+  activatePendingPlans,
+  checkCanCreatePlan,
   createSavingsPlan,
   currentYearMonth,
   listSavingsPlans,
@@ -429,6 +431,8 @@ export default function SavingsEscalator() {
   const [savePlanStartMonth, setSavePlanStartMonth] = useState(currentYearMonth());
   const [savingPlan, setSavingPlan] = useState(false);
   const [savePlanError, setSavePlanError] = useState('');
+  const [planCheck, setPlanCheck] = useState(null);
+  const [planCheckLoading, setPlanCheckLoading] = useState(false);
 
   // Saved plans list
   const [savedPlans, setSavedPlans] = useState([]);
@@ -454,10 +458,16 @@ export default function SavingsEscalator() {
 
   useEffect(() => {
     if (!user?.uid || plansLoaded) return;
-    listSavingsPlans(user.uid).then(list => {
+    (async () => {
+      let list = await listSavingsPlans(user.uid);
+      const hasPending = list.some(p => p.status === 'pending');
+      if (hasPending) {
+        const activated = await activatePendingPlans(user.uid);
+        if (activated.length > 0) list = await listSavingsPlans(user.uid);
+      }
       setSavedPlans(list);
       setPlansLoaded(true);
-    });
+    })();
   }, [user?.uid, plansLoaded]);
 
   const currency = user?.settings?.currency || 'VND';
@@ -516,6 +526,7 @@ export default function SavingsEscalator() {
         params,
         result: planResult,
         executionStartDate: savePlanStartMonth,
+        status: planCheck?.newStatus || 'active',
       });
       navigate(`/savings-escalator/plan/${id}`);
     } catch (err) {
@@ -553,9 +564,16 @@ export default function SavingsEscalator() {
                 className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-zx-surface-2 transition"
               >
                 <div>
-                  <p className="text-sm font-medium text-zx-text">{sp.name}</p>
+                  <span className="text-sm font-medium text-zx-text">{sp.name}</span>
+                  {sp.status === 'pending' && (
+                    <span className="ml-2 text-[11px] font-semibold text-zx-maintain">
+                      {t('savingsEscalator.savePlan.pendingBadge')}
+                    </span>
+                  )}
                   <p className="text-xs text-zx-text-soft mt-0.5">
-                    Bắt đầu {sp.executionStartDate?.replace('-', '/')} · Coast tháng {sp.result?.coastMonth}
+                    {sp.executionStartDate
+                      ? `Bắt đầu ${sp.executionStartDate.replace('-', '/')} · Coast tháng ${sp.result?.coastMonth}`
+                      : `Coast tháng ${sp.result?.coastMonth}`}
                     {sp.activeScenario && (
                       <span className="ml-2 font-medium text-zx-accent">
                         {sp.activeScenario === 'continue' ? t('savingsEscalator.plan.scenarioPick1') :
@@ -941,16 +959,50 @@ export default function SavingsEscalator() {
                 <h2 className="font-semibold text-zx-text">{t('savingsEscalator.savePlan.sectionTitle')}</h2>
                 <p className="text-sm text-zx-text-soft mt-0.5">{t('savingsEscalator.savePlan.sectionSubtitle')}</p>
               </div>
+              {!showSavePlanForm && !planCheck?.allowed && planCheck && (
+                <div className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 px-4 py-3 text-sm text-zx-negative">
+                  {planCheck.blockReason === 'pending_exists' && t('savingsEscalator.savePlan.blockPendingExists', { name: planCheck.blockDetail.name })}
+                  {planCheck.blockReason === 'too_young' && t('savingsEscalator.savePlan.blockTooYoung', { name: planCheck.blockDetail.name, months: planCheck.blockDetail.months })}
+                  {planCheck.blockReason === 'low_consistency' && t('savingsEscalator.savePlan.blockLowConsistency', { pct: planCheck.blockDetail.pct })}
+                </div>
+              )}
               {!showSavePlanForm ? (
                 <button
                   type="button"
-                  onClick={() => { setSavePlanName(''); setSavePlanStartMonth(currentYearMonth()); setShowSavePlanForm(true); }}
-                  className="rounded-zx-sm bg-zx-accent px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition"
+                  disabled={planCheckLoading}
+                  onClick={async () => {
+                    setSavePlanName('');
+                    setSavePlanStartMonth(currentYearMonth());
+                    setPlanCheck(null);
+                    setPlanCheckLoading(true);
+                    try {
+                      const check = await checkCanCreatePlan(user.uid, Number(form.annualRatePct));
+                      setPlanCheck(check);
+                      if (check.allowed) setShowSavePlanForm(true);
+                    } catch {
+                      setPlanCheck({ allowed: true, newStatus: 'active' });
+                      setShowSavePlanForm(true);
+                    } finally {
+                      setPlanCheckLoading(false);
+                    }
+                  }}
+                  className="rounded-zx-sm bg-zx-accent px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 transition"
                 >
-                  {t('savingsEscalator.savePlan.ctaButton')}
+                  {planCheckLoading ? t('savingsEscalator.savePlan.checking') : t('savingsEscalator.savePlan.ctaButton')}
                 </button>
               ) : (
                 <form onSubmit={handleSavePlan} className="space-y-4">
+                  {planCheck?.warn && (
+                    <div className="rounded-zx-sm border border-zx-maintain/40 bg-zx-maintain/10 px-4 py-3 text-sm text-zx-maintain">
+                      {planCheck.warnReason === 'consistency' && t('savingsEscalator.savePlan.warnConsistency', { pct: planCheck.avgPct })}
+                      {planCheck.warnReason === 'no_mature_plan' && t('savingsEscalator.savePlan.warnNoMaturePlan')}
+                    </div>
+                  )}
+                  {planCheck?.riskWarning && (
+                    <div className="rounded-zx-sm border border-zx-maintain/40 bg-zx-maintain/10 px-4 py-3 text-sm text-zx-maintain">
+                      {t('savingsEscalator.savePlan.riskWarning', { pct: form.annualRatePct })}
+                    </div>
+                  )}
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label htmlFor="sp-name" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.savePlan.nameLabel')}</label>
@@ -983,7 +1035,7 @@ export default function SavingsEscalator() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setShowSavePlanForm(false)}
+                      onClick={() => { setShowSavePlanForm(false); setPlanCheck(null); }}
                       className="rounded-zx-sm border border-zx-line px-4 py-2.5 text-sm text-zx-text-soft hover:text-zx-text transition"
                     >
                       {t('savingsEscalator.savePlan.cancel')}

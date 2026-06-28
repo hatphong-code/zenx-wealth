@@ -6,6 +6,7 @@ import { useI18n } from '../../core/i18n/useI18n';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import { buildGrowingContributionSeries } from '../../core/services/financialCalculations';
 import {
+  activatePendingPlans,
   addMonthsToKey,
   addMonthlyCheckin,
   getCurrentPlanMonthIdx,
@@ -418,16 +419,33 @@ export default function SavingsEscalatorPlan() {
   const [checkins, setCheckins] = useState({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('monthly');
+  const [justActivated, setJustActivated] = useState(false);
 
   useEffect(() => {
     if (!user?.uid || !planId) return;
-    Promise.all([
-      getSavingsPlan(user.uid, planId),
-      getMonthlyCheckins(user.uid, planId),
-    ]).then(([p, c]) => {
-      setPlan(p);
-      setCheckins(c);
-    }).finally(() => setLoading(false));
+    (async () => {
+      try {
+        const [p, c] = await Promise.all([
+          getSavingsPlan(user.uid, planId),
+          getMonthlyCheckins(user.uid, planId),
+        ]);
+        setCheckins(c);
+        if (p?.status === 'pending') {
+          const activated = await activatePendingPlans(user.uid);
+          if (activated.includes(planId)) {
+            const updated = await getSavingsPlan(user.uid, planId);
+            setPlan(updated);
+            setJustActivated(true);
+          } else {
+            setPlan(p);
+          }
+        } else {
+          setPlan(p);
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [user?.uid, planId]);
 
   const series = useMemo(() => {
@@ -438,7 +456,7 @@ export default function SavingsEscalatorPlan() {
   }, [plan]);
 
   const currentPlanMonthIdx = useMemo(() => {
-    if (!plan) return 1;
+    if (!plan?.executionStartDate) return 1;
     return getCurrentPlanMonthIdx(plan.executionStartDate);
   }, [plan]);
 
@@ -500,65 +518,81 @@ export default function SavingsEscalatorPlan() {
         </span>
         <h1 className="mt-1 font-zx-head text-2xl font-bold text-zx-text">{plan.name}</h1>
         <p className="mt-0.5 text-sm text-zx-text-soft">
-          {t('savingsEscalator.plan.startedLabel')}: {formatMonthLabel(plan.executionStartDate)} ·{' '}
+          {plan.executionStartDate
+            ? <>{t('savingsEscalator.plan.startedLabel')}: {formatMonthLabel(plan.executionStartDate)} · </>
+            : null}
           {t('savingsEscalator.plan.coastInfo', { coastMonth, coastAge })}
         </p>
       </div>
 
-      {/* Progress */}
-      <div className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-2">
-        <div className="flex items-center justify-between text-sm">
-          <span className="font-medium text-zx-text">
-            {reachedCoast
-              ? t('savingsEscalator.plan.progressDone')
-              : t('savingsEscalator.plan.progressLabel', { current: currentPlanMonthIdx, total: totalPlanMonths })}
-          </span>
-          <span className="font-bold text-zx-accent">{progressPct}%</span>
+      {/* Pending banner */}
+      {justActivated ? (
+        <div className="rounded-zx-sm border border-zx-positive/40 bg-zx-positive/10 px-4 py-3 text-sm text-zx-positive font-medium">
+          {t('savingsEscalator.plan.justActivated')}
         </div>
-        <div className="h-2 rounded-full bg-zx-surface-2 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-zx-accent transition-all"
-            style={{ width: `${progressPct}%` }}
-          />
+      ) : plan.status === 'pending' ? (
+        <div className="rounded-zx border border-zx-maintain/40 bg-zx-maintain/10 px-4 py-3 space-y-0.5">
+          <p className="text-sm font-semibold text-zx-maintain">{t('savingsEscalator.plan.pendingTitle')}</p>
+          <p className="text-sm text-zx-maintain/80">{t('savingsEscalator.plan.pendingBody')}</p>
         </div>
-        {plan.activeScenario && (
-          <p className="text-xs text-zx-text-soft">
-            {t('savingsEscalator.plan.scenarioSet')}: <span className="font-semibold text-zx-text">{scenarioLabels[plan.activeScenario]}</span>
-          </p>
-        )}
-      </div>
+      ) : null}
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-zx-line">
-        {['monthly', 'yearly'].map(id => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={`pb-2 px-1 text-sm font-medium transition border-b-2 ${
-              tab === id ? 'border-zx-accent text-zx-accent' : 'border-transparent text-zx-text-soft hover:text-zx-text'
-            }`}
-          >
-            {id === 'monthly' ? t('savingsEscalator.plan.tabMonthly') : t('savingsEscalator.plan.tabYearly')}
-          </button>
-        ))}
-      </div>
+      {/* Progress + tabs — only for active plans */}
+      {plan.status !== 'pending' && (
+        <>
+          <div className="rounded-zx border border-zx-line bg-zx-surface p-4 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-zx-text">
+                {reachedCoast
+                  ? t('savingsEscalator.plan.progressDone')
+                  : t('savingsEscalator.plan.progressLabel', { current: currentPlanMonthIdx, total: totalPlanMonths })}
+              </span>
+              <span className="font-bold text-zx-accent">{progressPct}%</span>
+            </div>
+            <div className="h-2 rounded-full bg-zx-surface-2 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-zx-accent transition-all"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+            {plan.activeScenario && (
+              <p className="text-xs text-zx-text-soft">
+                {t('savingsEscalator.plan.scenarioSet')}: <span className="font-semibold text-zx-text">{scenarioLabels[plan.activeScenario]}</span>
+              </p>
+            )}
+          </div>
 
-      {/* Tab content */}
-      {tab === 'monthly' ? (
-        <MonthlyView
-          plan={plan}
-          series={series}
-          checkins={checkins}
-          currentPlanMonthIdx={currentPlanMonthIdx}
-          onCheckin={handleCheckin}
-        />
-      ) : (
-        <YearlyView
-          plan={plan}
-          series={series}
-          checkins={checkins}
-        />
+          <div className="flex gap-2 border-b border-zx-line">
+            {['monthly', 'yearly'].map(id => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTab(id)}
+                className={`pb-2 px-1 text-sm font-medium transition border-b-2 ${
+                  tab === id ? 'border-zx-accent text-zx-accent' : 'border-transparent text-zx-text-soft hover:text-zx-text'
+                }`}
+              >
+                {id === 'monthly' ? t('savingsEscalator.plan.tabMonthly') : t('savingsEscalator.plan.tabYearly')}
+              </button>
+            ))}
+          </div>
+
+          {tab === 'monthly' ? (
+            <MonthlyView
+              plan={plan}
+              series={series}
+              checkins={checkins}
+              currentPlanMonthIdx={currentPlanMonthIdx}
+              onCheckin={handleCheckin}
+            />
+          ) : (
+            <YearlyView
+              plan={plan}
+              series={series}
+              checkins={checkins}
+            />
+          )}
+        </>
       )}
     </main>
   );

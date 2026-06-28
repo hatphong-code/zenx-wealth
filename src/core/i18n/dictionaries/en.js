@@ -1451,6 +1451,9 @@ export default {
       yearTableActual: 'Deposited',
       yearTableDone: 'Completion',
       yearNotStarted: '—',
+      pendingTitle: 'Plan awaiting activation',
+      pendingBody: 'This plan will automatically start once the average execution rate of your current plans reaches ≥ 80%.',
+      justActivated: 'Plan activated! Tracking begins from this month.',
     },
     schedule: {
       title: 'Savings account schedule',
