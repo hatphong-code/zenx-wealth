@@ -691,7 +691,7 @@ export default function SavingsEscalator() {
                     {plan.coastResult ? (
                       <>
                         <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-positive">{t('savingsEscalator.results.tableBalanceContinue')}</th>
-                        <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-accent">{t('savingsEscalator.results.tableBalanceMaintain')}</th>
+                        <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-maintain">{t('savingsEscalator.results.tableBalanceMaintain')}</th>
                         <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-gold">{t('savingsEscalator.results.tableBalanceCoast')}</th>
                       </>
                     ) : (
@@ -718,7 +718,7 @@ export default function SavingsEscalator() {
                       {plan.coastResult ? (
                         <>
                           <td className="px-4 py-2.5 text-right font-medium text-zx-text">{fmt(row.continueBalance, currency)}</td>
-                          <td className={`px-4 py-2.5 text-right font-medium ${row.isAfterCoastYear || row.isCoastYear ? 'text-zx-accent' : 'text-zx-text-soft'}`}>
+                          <td className={`px-4 py-2.5 text-right font-medium ${row.isAfterCoastYear || row.isCoastYear ? 'text-zx-maintain' : 'text-zx-text-soft'}`}>
                             {fmt(row.maintainBalance, currency)}
                           </td>
                           <td className={`px-4 py-2.5 text-right font-medium ${row.isAfterCoastYear || row.isCoastYear ? 'text-zx-gold' : 'text-zx-text-soft'}`}>
@@ -777,8 +777,8 @@ export default function SavingsEscalator() {
                   body: t('savingsEscalator.results.conclusionScenario1Body', { retirementAge: form.retirementAge, balance: fmt(finalRow.continueBalance, currency) }),
                 },
                 {
-                  borderColor: 'border-l-zx-accent',
-                  labelColor: 'text-zx-accent',
+                  borderColor: 'border-l-zx-maintain',
+                  labelColor: 'text-zx-maintain',
                   label: t('savingsEscalator.results.conclusionScenario2Label', { deposit: fmt(plan.depositAtCoast, currency), coastMonth: plan.coastResult.coastMonth }),
                   body: t('savingsEscalator.results.conclusionScenario2Body', { retirementAge: form.retirementAge, balance: fmt(finalRow.maintainBalance, currency) }),
                 },

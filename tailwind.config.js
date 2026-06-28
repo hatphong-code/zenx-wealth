@@ -12,6 +12,7 @@ export default {
         'zx-line':        'var(--zx-line)',
         'zx-accent':      'var(--zx-accent)',
         'zx-accent-soft': 'var(--zx-accent-soft)',
+        'zx-maintain':    'var(--zx-maintain)',
         'zx-positive':    'var(--zx-positive)',
         'zx-positive-soft':'var(--zx-positive-soft)',
         'zx-gold':        'var(--zx-gold-fg)',

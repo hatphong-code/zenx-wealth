@@ -29,6 +29,7 @@
   --zx-line: #EFE4D4;
   --zx-accent: #C8643C;
   --zx-accent-soft: #F8E5D9;
+  --zx-maintain: #C8643C;
   --zx-gold-fg: #B07D3F;
   --zx-gold-fg-soft: #F4E8D2;
   --zx-positive: #5E7E5A;
@@ -49,6 +50,7 @@
   --zx-line: #EFE4D4;
   --zx-accent: #C8643C;
   --zx-accent-soft: #F8E5D9;
+  --zx-maintain: #C8643C;
   --zx-gold-fg: #B07D3F;
   --zx-gold-fg-soft: #F4E8D2;
   --zx-positive: #5E7E5A;
@@ -69,6 +71,7 @@
   --zx-line: rgba(201,162,75,.22);
   --zx-accent: #C9A24B;
   --zx-accent-soft: rgba(201,162,75,.12);
+  --zx-maintain: #C8643C;
   --zx-gold-fg: #C9A24B;
   --zx-gold-fg-soft: rgba(201,162,75,.12);
   --zx-positive: #86A98C;
