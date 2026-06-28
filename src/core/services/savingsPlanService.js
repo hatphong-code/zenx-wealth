@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc } from 'firebase/firestore/lite';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { db } from './firebaseDb';
 
 function plansCol(userId) {
@@ -161,6 +161,12 @@ export async function listSavingsPlans(userId) {
 
 export async function updateSavingsPlan(userId, planId, fields) {
   await setDoc(doc(db, 'users', userId, 'savingsPlans', planId), fields, { merge: true });
+}
+
+export async function deleteSavingsPlan(userId, planId) {
+  const checkins = await getDocs(checkinsCol(userId, planId));
+  await Promise.all(checkins.docs.map(d => deleteDoc(d.ref)));
+  await deleteDoc(doc(db, 'users', userId, 'savingsPlans', planId));
 }
 
 export async function updatePlanActiveScenario(userId, planId, scenario) {

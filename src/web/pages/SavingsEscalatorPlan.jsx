@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, ChevronDown, ChevronUp, Circle, Target } from 'lucide-react';
+import { CheckCircle2, ChevronDown, ChevronUp, Circle, Pencil, Target, Trash2 } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
@@ -9,12 +9,22 @@ import {
   activatePendingPlans,
   addMonthsToKey,
   addMonthlyCheckin,
+  deleteSavingsPlan,
   getCurrentPlanMonthIdx,
   getMonthlyCheckins,
   getSavingsPlan,
   updatePlanActiveScenario,
+  updateSavingsPlan,
 } from '../../core/services/savingsPlanService';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { formatMoney } from '../../core/utils/formatters';
+
+const CHANNEL_CONFIG = {
+  bank: 'text-zx-accent border-zx-accent/40 bg-zx-accent/10',
+  fund: 'text-zx-positive border-zx-positive/40 bg-zx-positive/10',
+  bond: 'text-zx-gold border-zx-gold/40 bg-zx-gold/10',
+  other: 'text-zx-text-soft border-zx-line bg-zx-surface-2',
+};
 
 function formatMonthKey(key) {
   if (!key) return '';
@@ -420,6 +430,12 @@ export default function SavingsEscalatorPlan() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('monthly');
   const [justActivated, setJustActivated] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editChannel, setEditChannel] = useState('bank');
+  const [editSaving, setEditSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!user?.uid || !planId) return;
@@ -459,6 +475,34 @@ export default function SavingsEscalatorPlan() {
     if (!plan?.executionStartDate) return 1;
     return getCurrentPlanMonthIdx(plan.executionStartDate);
   }, [plan]);
+
+  function startEdit() {
+    setEditName(plan.name || '');
+    setEditChannel(plan.channelType || 'bank');
+    setEditing(true);
+  }
+
+  async function handleEditSave() {
+    setEditSaving(true);
+    try {
+      const name = editName.trim() || plan.name;
+      await updateSavingsPlan(user.uid, planId, { name, channelType: editChannel });
+      setPlan(prev => ({ ...prev, name, channelType: editChannel }));
+      setEditing(false);
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      await deleteSavingsPlan(user.uid, planId);
+      navigate('/savings-escalator');
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function handleCheckin(type, monthKey, data) {
     if (type === 'scenario') {
@@ -512,29 +556,97 @@ export default function SavingsEscalatorPlan() {
       </button>
 
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft">
-            {t('savingsEscalator.plan.badge')}
-          </span>
-          {plan.channelType && (
-            <span className={`rounded-zx-pill border px-1.5 py-0.5 text-[10px] font-semibold ${
-              plan.channelType === 'bank' ? 'text-zx-accent border-zx-accent/40 bg-zx-accent/10' :
-              plan.channelType === 'fund' ? 'text-zx-positive border-zx-positive/40 bg-zx-positive/10' :
-              plan.channelType === 'bond' ? 'text-zx-gold border-zx-gold/40 bg-zx-gold/10' :
-              'text-zx-text-soft border-zx-line bg-zx-surface-2'
-            }`}>
-              {t(`savingsEscalator.savePlan.channelType.${plan.channelType}`, {}, plan.channelType)}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft">
+              {t('savingsEscalator.plan.badge')}
             </span>
+            {!editing && plan.channelType && (
+              <span className={`rounded-zx-pill border px-1.5 py-0.5 text-[10px] font-semibold ${CHANNEL_CONFIG[plan.channelType] || CHANNEL_CONFIG.other}`}>
+                {t(`savingsEscalator.savePlan.channelType.${plan.channelType}`, {}, plan.channelType)}
+              </span>
+            )}
+          </div>
+
+          {editing ? (
+            <div className="mt-2 space-y-3">
+              <div>
+                <label htmlFor="edit-plan-name" className="block text-xs text-zx-text-soft mb-1">
+                  {t('savingsEscalator.plan.editName')}
+                </label>
+                <input
+                  id="edit-plan-name"
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2 text-sm text-zx-text focus:outline-none focus:ring-2 focus:ring-zx-accent"
+                />
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {['bank', 'fund', 'bond', 'other'].map(ch => (
+                  <button
+                    key={ch}
+                    type="button"
+                    onClick={() => setEditChannel(ch)}
+                    className={`rounded-zx-sm border py-2 text-xs font-semibold transition ${
+                      editChannel === ch ? CHANNEL_CONFIG[ch] : 'border-zx-line text-zx-text-soft hover:border-zx-accent/40'
+                    }`}
+                  >
+                    {t(`savingsEscalator.savePlan.channelType.${ch}`)}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleEditSave}
+                  disabled={editSaving}
+                  className="rounded-zx-sm bg-zx-accent px-4 py-2 text-xs font-semibold text-white disabled:opacity-50 transition"
+                >
+                  {editSaving ? t('savingsEscalator.plan.editSaving') : t('savingsEscalator.plan.editSave')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="rounded-zx-sm border border-zx-line px-4 py-2 text-xs text-zx-text-soft hover:text-zx-text transition"
+                >
+                  {t('savingsEscalator.plan.editCancel')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h1 className="mt-1 font-zx-head text-2xl font-bold text-zx-text">{plan.name}</h1>
+              <p className="mt-0.5 text-sm text-zx-text-soft">
+                {plan.executionStartDate
+                  ? <>{t('savingsEscalator.plan.startedLabel')}: {formatMonthLabel(plan.executionStartDate)} · </>
+                  : null}
+                {t('savingsEscalator.plan.coastInfo', { coastMonth, coastAge })}
+              </p>
+            </>
           )}
         </div>
-        <h1 className="mt-1 font-zx-head text-2xl font-bold text-zx-text">{plan.name}</h1>
-        <p className="mt-0.5 text-sm text-zx-text-soft">
-          {plan.executionStartDate
-            ? <>{t('savingsEscalator.plan.startedLabel')}: {formatMonthLabel(plan.executionStartDate)} · </>
-            : null}
-          {t('savingsEscalator.plan.coastInfo', { coastMonth, coastAge })}
-        </p>
+
+        {!editing && (
+          <div className="flex items-center gap-1 mt-1 flex-shrink-0">
+            <button
+              type="button"
+              onClick={startEdit}
+              aria-label={t('savingsEscalator.plan.editTitle')}
+              className="rounded-zx-sm p-1.5 text-zx-text-soft hover:text-zx-text hover:bg-zx-surface-2 transition"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              aria-label={t('savingsEscalator.plan.deleteConfirmTitle')}
+              className="rounded-zx-sm p-1.5 text-zx-text-soft hover:text-zx-negative hover:bg-zx-negative/10 transition"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Pending banner */}
@@ -606,6 +718,16 @@ export default function SavingsEscalatorPlan() {
           )}
         </>
       )}
+      <ConfirmDialog
+        open={confirmDelete}
+        title={t('savingsEscalator.plan.deleteConfirmTitle')}
+        description={t('savingsEscalator.plan.deleteConfirmDesc')}
+        confirmLabel={deleting ? t('common.loading') : t('savingsEscalator.plan.deleteConfirmLabel')}
+        cancelLabel={t('savingsEscalator.plan.editCancel')}
+        tone="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </main>
   );
 }
