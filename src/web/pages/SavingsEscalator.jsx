@@ -68,7 +68,19 @@ function computePlan({ startMonthly, monthlyGrowthPct, monthlyExpense, fiMultipl
     const coastBalance = (!coastResult || m <= coastResult.coastMonth)
       ? continueBalance
       : coastResult.balanceAtCoast * Math.pow(1 + r, m - coastResult.coastMonth);
-    return { yr, age: currentAge + yr, continueBalance, coastBalance, isCoastYear };
+
+    let annualDeposit = 0;
+    let firstMonthDeposit = 0;
+    if (yr > 0) {
+      const startM = (yr - 1) * 12 + 1;
+      for (let i = startM; i <= m; i++) {
+        annualDeposit += series[Math.min(i, series.length - 1)].monthlyDeposit;
+      }
+      firstMonthDeposit = series[Math.min(startM, series.length - 1)].monthlyDeposit;
+    }
+    const isAfterCoastYear = !!(coastResult && !isCoastYear && m > coastResult.coastMonth);
+
+    return { yr, age: currentAge + yr, continueBalance, coastBalance, isCoastYear, annualDeposit, firstMonthDeposit, isAfterCoastYear };
   });
 
   return { fiTarget, coastResult, chartData, tableRows, months, years };
@@ -668,6 +680,7 @@ export default function SavingsEscalator() {
                     ) : (
                       <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableBalance')}</th>
                     )}
+                    <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft">{t('savingsEscalator.results.tableAnnualDeposit')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zx-line">
@@ -693,6 +706,23 @@ export default function SavingsEscalator() {
                       ) : (
                         <td className="px-4 py-2.5 text-right font-medium text-zx-text">{fmt(row.continueBalance, currency)}</td>
                       )}
+                      <td className="px-4 py-2.5 text-right">
+                        {row.yr === 0 ? (
+                          <span className="text-zx-text-soft">—</span>
+                        ) : (
+                          <>
+                            <span className={`block font-medium ${row.isAfterCoastYear ? 'text-zx-text-soft' : 'text-zx-text'}`}>
+                              {fmt(row.annualDeposit, currency)}
+                            </span>
+                            <span className="block text-[10px] text-zx-text-soft">
+                              {row.isAfterCoastYear
+                                ? t('savingsEscalator.results.tableDepositIfContinue')
+                                : t('savingsEscalator.results.tableDepositFrom', { amount: fmt(row.firstMonthDeposit, currency) })
+                              }
+                            </span>
+                          </>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
