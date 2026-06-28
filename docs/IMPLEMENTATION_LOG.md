@@ -2,6 +2,17 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-29 — Import MISA (.xlsx) — hoàn thành, đã test thực tế
+
+Source toggle CSV / MISA trên trang Import. Chọn MISA → upload file Excel xuất từ MISA Sổ Thu Chi → tự đọc tất cả sheet, tìm header STT, map cột Ngày/Số tiền thu/Số tiền chi/Hạng mục cha/Hạng mục con/Diễn giải → hiện preview ngay không cần bấm Phân tích. Badge ☕ Latte tự gắn và bấm được để toggle. `isLatteFactor`, `category`, `note` ghi đúng Firestore khi import. `xlsx` load qua dynamic import → chunk riêng (~429 kB), không ảnh hưởng bundle chính.
+
+Refactor đồng thời: tách `LATTE_KEYWORDS + isLikelyLatte` ra `latteDetection.js` dùng chung; tách parser CSV ra `importParsing.js`; `AddTransaction.jsx` import từ util thay vì định nghĩa cục bộ.
+
+**Đã test thực tế** với file MISA của Hà Phong (3 sheet: tiền mặt / MB Bank / MoMo) — import thành công.
+**Files:** `latteDetection.js` (mới), `importParsing.js` (mới), `misaImportAdapter.js` (mới), `ImportTransactions.jsx`, `AddTransaction.jsx`, `vi.js`, `en.js`, `package.json`
+
+---
+
 ## 2026-06-29 — Dashboard: Hành trình kế hoạch + Sắp xảy ra
 
 **Left column — "Hành trình kế hoạch"**: Mỗi active Coast FI plan hiển thị 1 card sau Debt widget. Card gồm: tên plan + tuổi Coast (header phải, vàng), channel type, thanh tiến độ (check-ins/coastMonth %), 1 dòng inline "Gửi tháng này · Nhất quán", và 2 số động lực "Mục tiêu FI" (vàng) + "Số dư tại Coast" (xanh). Check-in status tháng hiện tại ở cuối. Consistency tô màu theo ngưỡng ≥80% xanh / ≥60% vàng / <60% đỏ.

@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-29 (v3.19 — Dashboard savings journey + upcoming panel)
+Last updated: 2026-06-29 (v3.20 — MISA import + Dashboard savings journey)
 
 ## Current Phase
 
@@ -58,7 +58,7 @@ Default hosting URL: https://zenx-wealth.web.app
 - Welcome Screen (/welcome) — guided quickstart page after onboarding (3 CTA actions)
 - Dashboard Empty State (when no transactions: centered card + CTA)
 - First Win Celebration (special toast + FAB pulse indicator on first transaction)
-- Import Transactions (CSV bulk import)
+- Import Transactions — **v3.20**: source toggle CSV / MISA (.xlsx). MISA path: dynamic import `xlsx`, đọc tất cả sheet, map header MISA → auto-preview không cần parse step. ☕ Latte badge toggleable per row. `category` + `isLatteFactor` ghi Firestore. `xlsx` chunk riêng (~429 kB). Refactor: `latteDetection.js` + `importParsing.js` dùng chung với `AddTransaction.jsx`.
 - Upgrade page (MoMo payment, dynamic plans from admin)
 
 ### i18n
