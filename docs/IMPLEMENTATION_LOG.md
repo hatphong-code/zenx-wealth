@@ -2,6 +2,14 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — Inline channel picker cho plans cũ không có channelType
+
+**`updateSavingsPlan(userId, planId, fields)`** — hàm mới trong service, patch bất kỳ field nào vào plan document (setDoc merge).
+**Plan card restructure**: đổi outer `<button>` thành `<div>` + inner navigate `<button>` (valid HTML). Plans không có `channelType` hiện thêm 1 row với 4 button chọn kênh ngay dưới — click → ghi Firestore + update local state optimistically. Plans đã có channelType hiển thị bình thường.
+**Files:** `savingsPlanService.js`, `SavingsEscalator.jsx`
+
+---
+
 ## 2026-06-28 — Chuyển channelType selector lên calculator form
 
 **UX refactor**: Channel type (bank/fund/bond/other) giờ chọn ở đầu calculator form thay vì save-plan sub-form — user biết đang tính cho kênh nào trước khi chạy số. Đổi kênh → auto-set `annualRatePct` (bank→7%, fund→10%, bond→8%) + clear kết quả cũ. Rate hint xuất hiện dưới field lãi suất. Form tự truyền `form.channelType` khi lưu plan — đã xoá `savePlanChannel` state.
