@@ -2,6 +2,15 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-28 — SavingsEscalator 3-scenario table + zx-maintain design token
+
+**3-scenario yearly table:** Thêm kịch bản thứ ba "Duy trì đều" — sau Coast FI giữ nguyên `depositAtCoast` mỗi tháng thay vì dừng hoặc tăng. Bảng nay có 3 cột số dư: Tiếp tục tăng / Duy trì đều / Dừng tại Coast. Cột Năm + Tuổi merge thành 1 cột ("Năm / Tuổi"). Cột GỬI/NĂM với sub-line "từ {amount}/tháng" (mức gửi tháng đầu của năm đó).
+**Conclusion mở rộng:** 3 khối màu riêng biệt (border-l-[3px] + bg-zx-surface-2) — mỗi khối diễn giải 1 kịch bản với số dư cuối kỳ thực tế.
+**`--zx-maintain` token:** Thêm token mới `#C8643C` (terracotta) vào `colors.css` và `tailwind.config.js`. Tư gia theme: S1=green (`zx-positive`), S2=terracotta (`zx-maintain`), S3=gold (`zx-gold`) — 3 màu rõ ràng trên nền navy. Ấm theme: S1=green, S2=terracotta (cùng màu accent), S3=bronze.
+**Files:** `SavingsEscalator.jsx`, `ZenXWealthUI/tokens/colors.css`, `tailwind.config.js`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-28 — SavingsEscalator smart defaults (profile seed + retirementAge algorithm)
 
 **Root cause fix — currentAge:** `user` từ `useAuth()` là Firebase Auth object, không chứa `settings`. Fix: `useEffect` gọi `getCachedUserProfile()` (sync nếu đã cache) hoặc `getUserProfile()` sau mount, seed một lần qua `ageSeeded` flag.

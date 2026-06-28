@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-28 (v3.11 — SavingsEscalator smart defaults)
+Last updated: 2026-06-28 (v3.12 — SavingsEscalator 3-scenario table + zx-maintain token)
 
 ## Current Phase
 
