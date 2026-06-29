@@ -2,6 +2,20 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-29 — Dashboard: Savings Journey card — 5 patches
+
+Sửa card "Hành trình kế hoạch" trên Dashboard (`SavingsJourneySection` trong `Dashboard.jsx`):
+
+1. **Patch 1** — Thanh tiến độ đổi từ `checkinCount/totalMonths` sang `currentMonthIdx/totalMonths` (đo thời gian thực, nhất quán với trang chi tiết); `monthProgress` label dùng `Math.min(currentMonthIdx, totalMonths)` thay `checkinCount`
+2. **Patch 2** — Thêm trạng thái "Đã đến Coast!" (badge vàng + kịch bản đã chọn) khi `currentMonthIdx >= totalMonths`, thay thế thanh tiến độ trong nhánh đó
+3. **Patch 3** — `thisMonthDeposit` đổi từ `Math.pow` thủ công sang `buildGrowingContributionSeries()`; thêm import từ `financialCalculations.js`
+4. **Patch 4** — Thêm dòng "Đã gửi thực tế" (tổng `actualAmount` từ check-ins) trước khối FI Target/Balance at Coast; i18n `totalDeposited` thêm cả vi + en
+5. **Patch 5** — Thêm "Còn N tháng" cạnh phần trăm tiến độ (`monthsRemainingValue`) trong nhánh `!reachedCoast`
+
+**Files:** `Dashboard.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-29 — Gộp nav PLAN: "Nền tài chính" tab container
 
 Thay thế 5 nav item riêng lẻ (Emergency Fund, PYF, Debt Control, Income Builder, Assets) bằng 1 entry "Nền tài chính" (`/financial-base`) với tab bar nội trang. Giảm PLAN sidebar từ 10 → 6 items (giữ Plan Hub, Roadmap, Trading Risk, Budget Templates, Savings Escalator như cũ).
