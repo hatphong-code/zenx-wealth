@@ -43,23 +43,36 @@ function calcConsistency(checkins, executionStartDate) {
   return Math.min(1, Object.keys(checkins).length / elapsed);
 }
 
-// Returns { allowed, newStatus, blockReason, blockDetail, warn, warnReason, avgPct, riskWarning }
-export async function checkCanCreatePlan(userId, newPlanRatePct = 0) {
+// Returns { allowed, newStatus, blockReason, blockDetail, warn, warnReason, avgPct, riskWarning, budgetWarning }
+export async function checkCanCreatePlan(userId, newPlanRatePct = 0, budgetContext = null) {
+  let budgetWarning = null;
+  if (budgetContext?.bucket && budgetContext?.newPlanMonthly > 0) {
+    const committed = await getTotalCommittedForBucket(userId, budgetContext.bucket);
+    const totalAfter = committed + budgetContext.newPlanMonthly;
+    if (budgetContext.bucketTargetAmount > 0 && totalAfter > budgetContext.bucketTargetAmount) {
+      budgetWarning = {
+        bucket: budgetContext.bucket,
+        committed,
+        newPlanMonthly: budgetContext.newPlanMonthly,
+        totalAfter,
+        bucketTargetAmount: budgetContext.bucketTargetAmount,
+        overBy: totalAfter - budgetContext.bucketTargetAmount,
+      };
+    }
+  }
+
   const plans = await listSavingsPlans(userId);
   const activePlans = plans.filter(p => (p.status ?? 'active') === 'active');
   const pendingPlans = plans.filter(p => p.status === 'pending');
 
-  // < 3 active plans: always allowed
   if (activePlans.length < 3) {
-    return { allowed: true, newStatus: 'active', riskWarning: newPlanRatePct > 10 };
+    return { allowed: true, newStatus: 'active', riskWarning: newPlanRatePct > 10, budgetWarning };
   }
 
-  // Already has a pending plan
   if (pendingPlans.length >= 1) {
-    return { allowed: false, blockReason: 'pending_exists', blockDetail: { name: pendingPlans[0].name } };
+    return { allowed: false, blockReason: 'pending_exists', blockDetail: { name: pendingPlans[0].name }, budgetWarning };
   }
 
-  // Check all active plans are ≥ 6 months old
   for (const plan of activePlans) {
     const monthsOld = getMonthsElapsed(plan.executionStartDate);
     if (monthsOld < 6) {
@@ -67,11 +80,11 @@ export async function checkCanCreatePlan(userId, newPlanRatePct = 0) {
         allowed: false,
         blockReason: 'too_young',
         blockDetail: { name: plan.name, months: monthsOld },
+        budgetWarning,
       };
     }
   }
 
-  // Calculate avg consistency across all active plans
   const checkinResults = await Promise.all(
     activePlans.map(p => getMonthlyCheckins(userId, p.id))
   );
@@ -83,7 +96,7 @@ export async function checkCanCreatePlan(userId, newPlanRatePct = 0) {
   const riskWarning = newPlanRatePct > 10;
 
   if (avgConsistency < 0.6) {
-    return { allowed: false, blockReason: 'low_consistency', blockDetail: { pct: avgPct } };
+    return { allowed: false, blockReason: 'low_consistency', blockDetail: { pct: avgPct }, budgetWarning };
   }
 
   const hasMaturePlan = activePlans.some(p => getMonthsElapsed(p.executionStartDate) >= 12);
@@ -96,10 +109,11 @@ export async function checkCanCreatePlan(userId, newPlanRatePct = 0) {
       warnReason: avgConsistency < 0.8 ? 'consistency' : 'no_mature_plan',
       avgPct,
       riskWarning,
+      budgetWarning,
     };
   }
 
-  return { allowed: true, newStatus: 'active', riskWarning };
+  return { allowed: true, newStatus: 'active', riskWarning, budgetWarning };
 }
 
 // Re-evaluates all pending plans and activates any that now qualify (avg ≥ 80%)
@@ -134,10 +148,11 @@ export async function activatePendingPlans(userId) {
   return activated;
 }
 
-export async function createSavingsPlan(userId, { name, params, result, executionStartDate, status = 'active', channelType = 'bank' }) {
+export async function createSavingsPlan(userId, { name, params, result, executionStartDate, status = 'active', channelType = 'bank', bucket = 'longTermAsset' }) {
   const ref = await addDoc(plansCol(userId), {
     name: name || 'Kế hoạch Coast FI',
     channelType,
+    bucket,
     createdAt: serverTimestamp(),
     status,
     executionStartDate: status === 'active' ? (executionStartDate || currentYearMonth()) : null,
@@ -147,6 +162,13 @@ export async function createSavingsPlan(userId, { name, params, result, executio
     result,
   });
   return ref.id;
+}
+
+export async function getTotalCommittedForBucket(userId, bucket, excludePlanId = null) {
+  const plans = await listSavingsPlans(userId);
+  return plans
+    .filter(p => (p.status ?? 'active') === 'active' && (p.bucket || 'longTermAsset') === bucket && p.id !== excludePlanId)
+    .reduce((sum, p) => sum + Number(p.params?.startMonthly || 0), 0);
 }
 
 export async function getSavingsPlan(userId, planId) {

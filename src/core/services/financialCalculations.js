@@ -1,4 +1,15 @@
 import Decimal from 'decimal.js';
+import { BUCKET_KEYS } from '../utils/bucketClassification';
+
+export function calculateBucketActuals(transactions = [], currency = 'VND') {
+  const actuals = Object.fromEntries(BUCKET_KEYS.map(k => [k, 0]));
+  for (const item of transactions) {
+    if (item.currency && item.currency !== currency) continue;
+    if (item.type !== 'transfer' || !item.bucket || !BUCKET_KEYS.includes(item.bucket)) continue;
+    actuals[item.bucket] += Number(item.amount || 0);
+  }
+  return actuals;
+}
 
 export function calculateDashboardMetrics({
   transactions = [],
@@ -15,6 +26,7 @@ export function calculateDashboardMetrics({
 
   for (const item of transactions) {
     if (item.currency && item.currency !== currency) continue;
+    if (item.type === 'transfer') continue;
 
     if (item.type === 'income') {
       totalIncome += Number(item.amount || 0);
@@ -33,9 +45,9 @@ export function calculateDashboardMetrics({
   }
 
   const netCashFlow = totalIncome - totalExpense;
-  const savingsRate = totalIncome > 0 ? netCashFlow / totalIncome : 0;
+  const bucketActuals = calculateBucketActuals(transactions, currency);
+  const payYourselfSaved = Object.values(bucketActuals).reduce((sum, v) => sum + v, 0);
   const payYourselfTarget = totalIncome * payYourselfRate;
-  const payYourselfSaved = totalIncome * savingsRate;
   const emergencyMonths = monthlyEssentialExpense > 0 ? emergencyBalance / monthlyEssentialExpense : 0;
   const payYourselfProgress = payYourselfTarget > 0
     ? Math.max(0, Math.min(100, Math.round((payYourselfSaved / payYourselfTarget) * 100)))
@@ -52,6 +64,7 @@ export function calculateDashboardMetrics({
     payYourselfProgress,
     payYourselfSaved,
     payYourselfTarget,
+    bucketActuals,
     currency,
   };
 }

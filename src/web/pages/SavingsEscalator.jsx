@@ -1037,6 +1037,15 @@ export default function SavingsEscalator() {
                       {t('savingsEscalator.savePlan.riskWarning', { pct: form.annualRatePct })}
                     </div>
                   )}
+                  {planCheck?.budgetWarning && (
+                    <div className="rounded-zx-sm border border-zx-negative/40 bg-zx-negative/10 px-4 py-3 text-sm text-zx-negative">
+                      {t('savingsEscalator.savePlan.budgetWarning', {
+                        overBy: planCheck.budgetWarning.overBy?.toLocaleString('vi-VN'),
+                        totalAfter: planCheck.budgetWarning.totalAfter?.toLocaleString('vi-VN'),
+                        bucketTarget: planCheck.budgetWarning.bucketTargetAmount?.toLocaleString('vi-VN'),
+                      })}
+                    </div>
+                  )}
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label htmlFor="sp-name" className="block text-sm text-zx-text-soft mb-1">{t('savingsEscalator.savePlan.nameLabel')}</label>

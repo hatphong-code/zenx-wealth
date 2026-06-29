@@ -1,4 +1,5 @@
 import { isLikelyLatte } from './latteDetection';
+import { suggestBucket } from './bucketClassification';
 
 export function parseAmount(raw) {
   if (!raw) return NaN;
@@ -85,6 +86,13 @@ export function parseCsvRows(csvText) {
     if (!date || isNaN(date.getTime())) return { idx: i, valid: false, raw: line, errorKey: 'invalidDate' };
     if (isNaN(amount) || amount <= 0) return { idx: i, valid: false, raw: line, errorKey: 'invalidAmount' };
 
-    return { idx: i, valid: true, raw: line, date, note: note || '', category, type, amount, isLatteFactor: isLikelyLatte(category) };
+    const suggestedBucket = type === 'expense' ? suggestBucket(category) : null;
+    return {
+      idx: i, valid: true, raw: line, date, note: note || '', category,
+      type: suggestedBucket ? 'transfer' : type,
+      bucket: suggestedBucket || null,
+      amount,
+      isLatteFactor: suggestedBucket ? false : isLikelyLatte(category),
+    };
   });
 }

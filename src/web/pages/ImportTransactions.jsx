@@ -16,6 +16,7 @@ import { invalidateAICoachCache } from '../../core/services/aiCoachService';
 import { formatMoney, formatDate } from '../../core/utils/formatters';
 import { parseCsvRows } from '../../core/utils/importParsing';
 import { parseMisaWorkbook } from '../../core/utils/misaImportAdapter';
+import { BUCKET_KEYS, BUCKET_LABELS_VI } from '../../core/utils/bucketClassification';
 
 export default function ImportTransactions() {
   const { user } = useAuth();
@@ -102,6 +103,7 @@ export default function ImportTransactions() {
           category: row.category,
           note: row.note,
           type: row.type,
+          bucket: row.type === 'transfer' ? (row.bucket || null) : null,
           amount: row.amount,
           currency: 'VND',
           isLatteFactor: row.isLatteFactor || false,
@@ -266,9 +268,28 @@ export default function ImportTransactions() {
                     <td className="px-3 py-2.5">
                       {row.valid && (
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className={`rounded px-2 py-0.5 text-xs ${row.type === 'income' ? 'bg-green-950 text-zx-positive' : 'bg-orange-950 text-orange-300'}`}>
+                          <span className={`rounded px-2 py-0.5 text-xs ${row.type === 'income' ? 'bg-green-950 text-zx-positive' : row.type === 'transfer' ? 'bg-purple-950 text-purple-300' : 'bg-orange-950 text-orange-300'}`}>
                             {row.type}
                           </span>
+                          {row.type === 'transfer' && row.bucket && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const currentIdx = BUCKET_KEYS.indexOf(row.bucket);
+                                const nextBucket = currentIdx >= 0 && currentIdx < BUCKET_KEYS.length - 1
+                                  ? BUCKET_KEYS[currentIdx + 1]
+                                  : null;
+                                setRows(prev => prev.map(r => r.idx === row.idx
+                                  ? { ...r, type: nextBucket ? 'transfer' : 'expense', bucket: nextBucket }
+                                  : r));
+                              }}
+                              className="rounded-full bg-purple-950 px-2 py-0.5 text-[10px] text-purple-300"
+                              title="Bấm để đổi/bỏ bucket"
+                            >
+                              ↗ {BUCKET_LABELS_VI[row.bucket]}
+                            </button>
+                          )}
                           {row.isLatteFactor && (
                             <button
                               type="button"

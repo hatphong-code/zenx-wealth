@@ -1,5 +1,6 @@
 import { parseDate } from './importParsing';
 import { isLikelyLatte } from './latteDetection';
+import { suggestBucket } from './bucketClassification';
 
 // Dynamic import: chỉ tải thư viện xlsx khi user thực sự chọn nguồn MISA
 export async function parseMisaWorkbook(arrayBuffer) {
@@ -38,6 +39,7 @@ export async function parseMisaWorkbook(arrayBuffer) {
 
       if (!date || isNaN(date.getTime()) || amount <= 0) continue;
 
+      const suggestedBucket = type === 'expense' ? suggestBucket(category) : null;
       rows.push({
         idx: idx++,
         valid: true,
@@ -45,9 +47,10 @@ export async function parseMisaWorkbook(arrayBuffer) {
         date,
         note,
         category,
-        type,
+        type: suggestedBucket ? 'transfer' : type,
+        bucket: suggestedBucket || null,
         amount: Math.round(amount),
-        isLatteFactor: isLikelyLatte(category),
+        isLatteFactor: suggestedBucket ? false : isLikelyLatte(category),
       });
     }
   }

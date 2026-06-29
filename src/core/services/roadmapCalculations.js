@@ -1,4 +1,4 @@
-export function computeRoadmapSignals({ profile, dashboard, debtsState, incomeState, assetsState }) {
+export function computeRoadmapSignals({ profile, dashboard, debtsState, incomeState, assetsState, savingsPlans = [] }) {
   const safeAssetsState = assetsState || { accounts: [], summary: { longTermAssets: 0 } };
   const monthlyEssentialExpense = Number(profile.settings?.monthlyEssentialExpense || 0);
   const emergencyMonths = Number(dashboard.emergencyMonths || 0);
@@ -26,7 +26,7 @@ export function computeRoadmapSignals({ profile, dashboard, debtsState, incomeSt
     accounts_separated: assetAccounts >= 2,
     emergency_1m: emergencyMonths >= 1,
     emergency_3m: emergencyMonths >= 3,
-    auto_investing_started: false,
+    auto_investing_started: savingsPlans.filter(p => (p.status ?? 'active') === 'active').length > 0,
     first_side_income: incomeSources >= 1,
     emergency_6m: emergencyMonths >= 6,
     savings_rate_30: savingsRatePct >= 1,

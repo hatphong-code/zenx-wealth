@@ -17,6 +17,7 @@ import { getCurrentWeekMeta, invalidateWeeklyReviewCache } from '../../core/serv
 import { invalidateWealthRoadmapCache } from '../../core/services/wealthRoadmapService';
 import { invalidateAICoachCache } from '../../core/services/aiCoachService';
 import { isLikelyLatte } from '../../core/utils/latteDetection';
+import { BUCKET_KEYS, BUCKET_LABELS_VI, suggestBucket } from '../../core/utils/bucketClassification';
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -26,6 +27,7 @@ const emptyForm = {
   amount: '',
   type: 'expense',
   category: '',
+  bucket: '',
   date: today,
   isLatteFactor: false,
   isRecurring: false,
@@ -108,6 +110,9 @@ export default function AddTransaction() {
       if (field === 'category' && next.type === 'expense' && !isEditing) {
         next.isLatteFactor = isLikelyLatte(value);
       }
+      if (field === 'category' && next.type === 'transfer' && !isEditing) {
+        next.bucket = suggestBucket(value) || c.bucket;
+      }
       return next;
     });
   };
@@ -117,12 +122,14 @@ export default function AddTransaction() {
     if (!user) return;
     const amount = Number(form.amount);
     if (!Number.isFinite(amount) || amount <= 0) { setError(t('addTransaction.errors.amountRequired')); return; }
+    if (form.type === 'transfer' && !form.bucket) { setError(t('addTransaction.errors.bucketRequired')); return; }
     setSaving(true); setError('');
     try {
       const payload = {
         amount, currency,
         type: form.type,
         category: form.category.trim(),
+        bucket: form.type === 'transfer' ? form.bucket : null,
         date: Timestamp.fromDate(new Date(`${form.date}T00:00:00`)),
         isLatteFactor: form.type === 'expense' ? form.isLatteFactor : false,
         isRecurring: form.isRecurring,
@@ -251,11 +258,14 @@ export default function AddTransaction() {
               {[
                 { value: 'expense', label: t('addTransaction.expenseType') },
                 { value: 'income', label: t('addTransaction.incomeType') },
+                { value: 'transfer', label: t('addTransaction.transferType') },
               ].map(opt => (
                 <button key={opt.value} type="button" onClick={() => updateField('type', opt.value)}
                   className={`flex-1 py-2.5 rounded-zx-sm text-sm font-semibold transition ${
                     form.type === opt.value
-                      ? opt.value === 'expense' ? 'bg-zx-accent text-zx-on-accent' : 'bg-zx-positive text-zx-on-accent'
+                      ? opt.value === 'expense' ? 'bg-zx-accent text-zx-on-accent'
+                        : opt.value === 'income' ? 'bg-zx-positive text-zx-on-accent'
+                        : 'bg-purple-600 text-zx-on-accent'
                       : 'border border-zx-line text-zx-text-soft hover:text-zx-text'
                   }`}>
                   {opt.label}
@@ -313,6 +323,27 @@ export default function AddTransaction() {
                 ))}
               </div>
             </div>
+
+            {/* Bucket picker — only for transfer type */}
+            {form.type === 'transfer' && (
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
+                  {t('addTransaction.bucketLabel')}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {BUCKET_KEYS.map(key => (
+                    <button key={key} type="button" onClick={() => updateField('bucket', key)}
+                      className={`rounded-zx-sm border px-3 py-2.5 text-sm text-left transition ${
+                        form.bucket === key
+                          ? 'border-purple-500 bg-purple-950/40 text-purple-300'
+                          : 'border-zx-line text-zx-text-soft hover:border-purple-500'
+                      }`}>
+                      {BUCKET_LABELS_VI[key]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Date */}
             <div>
@@ -395,7 +426,7 @@ export default function AddTransaction() {
             <div className="flex gap-2">
               <button type="submit" disabled={saving}
                 className={`flex-1 py-3.5 rounded-zx-sm text-sm font-semibold text-zx-on-accent transition hover:opacity-90 disabled:opacity-50 ${
-                  form.type === 'expense' ? 'bg-zx-accent' : 'bg-zx-positive'
+                  form.type === 'expense' ? 'bg-zx-accent' : form.type === 'transfer' ? 'bg-purple-600' : 'bg-zx-positive'
                 }`}>
                 {saving ? t('common.saving') : isEditing ? t('addTransaction.saveChanges') : t('addTransaction.saveTransaction')}
               </button>

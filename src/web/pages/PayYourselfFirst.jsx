@@ -147,13 +147,22 @@ export default function PayYourselfFirst() {
         <section className="rounded-zx border border-zx-line bg-zx-surface p-5">
           <h2 className="font-zx-head text-lg font-semibold text-zx-text mb-4">{t('payYourself.allocationTitle')}</h2>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-            {data.allocations.map((item) => (
-              <div key={item.key} className="rounded-zx-sm border border-zx-line bg-zx-bg p-4">
-                <p className="text-sm text-zx-text-soft">{t('payYourself.allocationLabels.' + item.key)}</p>
-                <p className="mt-2 text-lg font-semibold">{formatNumber(item.percentage)}%</p>
-                <p className="mt-1 text-sm text-zx-text-soft">{formatMoney(item.amount, data.currency)}</p>
-              </div>
-            ))}
+            {data.allocations.map((item) => {
+              const isLiving = item.key === 'living';
+              const actualPct = item.amount > 0 ? Math.min(150, Math.round((item.actual / item.amount) * 100)) : 0;
+              return (
+                <div key={item.key} className="rounded-zx-sm border border-zx-line bg-zx-bg p-4">
+                  <p className="text-sm text-zx-text-soft">{t('payYourself.allocationLabels.' + item.key)}</p>
+                  <p className="mt-2 text-lg font-semibold">{formatNumber(item.percentage)}%</p>
+                  <p className="mt-1 text-sm text-zx-text-soft">{t('payYourself.targetLabel')}: {formatMoney(item.amount, data.currency)}</p>
+                  {!isLiving && (
+                    <p className={`mt-1 text-sm ${actualPct >= 100 ? 'text-zx-positive' : 'text-orange-300'}`}>
+                      {t('payYourself.actualLabel')}: {formatMoney(item.actual, data.currency)} ({actualPct}%)
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </section>
       </main>

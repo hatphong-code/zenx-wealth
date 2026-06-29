@@ -8,6 +8,7 @@ import { getDebts } from './debtService';
 import { getIncomeSources } from './incomeBuilderService';
 import { getAssets } from './assetService';
 import { computeRoadmapSignals, mergeRoadmapPhase } from './roadmapCalculations';
+import { listSavingsPlans } from './savingsPlanService';
 
 const ROADMAP_CACHE_TTL_MS = 60 * 1000;
 const ROADMAP_SNAPSHOT_ID = 'roadmap-current';
@@ -45,16 +46,17 @@ function normalizeRoadmap(data = {}) {
 }
 
 async function computeRoadmap(userId) {
-  const [profile, dashboard, debtsState, incomeState, assetsState, storedStates] = await Promise.all([
+  const [profile, dashboard, debtsState, incomeState, assetsState, savingsPlans, storedStates] = await Promise.all([
     getUserProfile(userId),
     getDashboardStats(userId),
     getDebts(userId),
     getIncomeSources(userId),
     getAssets(userId),
+    listSavingsPlans(userId),
     fetchPhaseStates(userId),
   ]);
 
-  const signals = computeRoadmapSignals({ profile, dashboard, debtsState, incomeState, assetsState });
+  const signals = computeRoadmapSignals({ profile, dashboard, debtsState, incomeState, assetsState, savingsPlans });
   const phases = roadmapPhases.map((phase) => mergeRoadmapPhase(phase, storedStates[phase.id] || {}, signals));
   const currentPhase = phases.find((phase) => !phase.completed) || phases[phases.length - 1];
   const completedPhases = phases.filter((phase) => phase.completed).length;

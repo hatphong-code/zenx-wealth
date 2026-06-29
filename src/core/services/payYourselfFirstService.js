@@ -28,11 +28,12 @@ function normalizeAllocationRule(rule = {}) {
   };
 }
 
-function buildAllocations(totalIncome, allocationRule) {
+function buildAllocations(totalIncome, allocationRule, bucketActuals = {}) {
   return Object.entries(allocationRule).map(([key, percentage]) => ({
     key,
     percentage,
     amount: (totalIncome * percentage) / 100,
+    actual: Number(bucketActuals[key] || 0),
   }));
 }
 
@@ -54,7 +55,7 @@ async function fetchPayYourselfFirst(userId) {
     currency: dashboard.currency || profile.settings?.currency || 'VND',
     allocationRule,
     totalIncome,
-    allocations: buildAllocations(totalIncome, allocationRule),
+    allocations: buildAllocations(totalIncome, allocationRule, dashboard.bucketActuals),
     status: {
       required,
       done,
@@ -120,7 +121,7 @@ export async function saveAllocationRule(userId, profile, allocationRule) {
     currency: dashboard.currency || profile.settings?.currency || 'VND',
     allocationRule: normalized,
     totalIncome,
-    allocations: buildAllocations(totalIncome, normalized),
+    allocations: buildAllocations(totalIncome, normalized, dashboard.bucketActuals),
     status: {
       required,
       done: Number(dashboard.payYourselfSaved || 0),
