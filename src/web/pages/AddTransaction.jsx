@@ -210,23 +210,12 @@ export default function AddTransaction() {
     finally { setSaving(false); }
   };
 
-  if (loading) return (
-    <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-8 space-y-6">
-      <Skeleton className="h-7 w-48" />
-      <Skeleton className="h-11 w-full" />
-      <Skeleton className="h-11 w-full" />
-      <Skeleton className="h-11 w-full" />
-      <Skeleton className="h-24 w-full" />
-    </div>
-  );
-
   const defaultExpenseCategories = t('addTransaction.expenseCategories');
   const defaultIncomeCategories = t('addTransaction.incomeCategories');
   const allCategories = form.type === 'expense'
     ? [...new Set([...customCategories.expense, ...defaultExpenseCategories])]
     : [...new Set([...customCategories.income, ...defaultIncomeCategories])];
   const chipCategories = form.type === 'expense' ? defaultExpenseCategories : defaultIncomeCategories;
-
 
   const filteredNoteSuggestions = useMemo(() => {
     if (!noteInputFocused || noteSuggestions.length === 0) return [];
@@ -239,6 +228,16 @@ export default function AddTransaction() {
   const panelTxs = todayTxs;
   const panelIncome = panelTxs.filter(tx => tx.type === 'income').reduce((s, tx) => s + Number(tx.amount), 0);
   const panelExpense = panelTxs.filter(tx => tx.type === 'expense').reduce((s, tx) => s + Number(tx.amount), 0);
+
+  if (loading) return (
+    <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-8 space-y-6">
+      <Skeleton className="h-7 w-48" />
+      <Skeleton className="h-11 w-full" />
+      <Skeleton className="h-11 w-full" />
+      <Skeleton className="h-11 w-full" />
+      <Skeleton className="h-24 w-full" />
+    </div>
+  );
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-8">
