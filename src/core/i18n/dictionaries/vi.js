@@ -323,6 +323,7 @@ export default {
       channelBond: 'Trái phiếu',
       channelOther: 'Kênh khác',
       thisMonthDeposit: 'Gửi tháng này',
+      totalDeposited: 'Đã gửi thực tế',
       consistency: 'Nhất quán',
       monthsRemaining: 'Còn lại',
       monthsRemainingValue: '{n} tháng',

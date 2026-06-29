@@ -323,6 +323,7 @@ export default {
       channelBond: 'Bond',
       channelOther: 'Other channel',
       thisMonthDeposit: 'This month',
+      totalDeposited: 'Total deposited',
       consistency: 'Consistency',
       monthsRemaining: 'Remaining',
       monthsRemainingValue: '{n} months',

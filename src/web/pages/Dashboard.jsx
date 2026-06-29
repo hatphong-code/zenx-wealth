@@ -13,6 +13,7 @@ import { formatNumber } from '../../core/utils/formatters';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import DailyQuoteCard from '../components/DailyQuoteCard';
 import { listSavingsPlans, getMonthlyCheckins, getCurrentPlanMonthIdx, addMonthsToKey, getMonthsElapsed } from '../../core/services/savingsPlanService';
+import { buildGrowingContributionSeries } from '../../core/services/financialCalculations';
 import { getSavingsSchedule, getUpcomingMaturities, daysUntil } from '../../core/services/savingsScheduleService';
 
 /* ── tiny components ── */
@@ -261,8 +262,10 @@ function SavingsJourneySection({ plans, checkinsByPlanId, t, fmt, currency }) {
           const checkins = checkinsByPlanId[plan.id] || {};
           const checkinCount = Object.keys(checkins).length;
           const totalMonths = plan.result?.coastMonth || 0;
-          const pct = totalMonths > 0 ? Math.min(100, Math.round((checkinCount / totalMonths) * 100)) : 0;
           const currentMonthIdx = plan.executionStartDate ? getCurrentPlanMonthIdx(plan.executionStartDate) : 1;
+          const pct = totalMonths > 0 ? Math.min(100, Math.round((currentMonthIdx / totalMonths) * 100)) : 0;
+          const reachedCoast = currentMonthIdx >= totalMonths;
+          const monthsRemainingCount = Math.max(0, totalMonths - currentMonthIdx);
           const currentMonthKey = plan.executionStartDate
             ? addMonthsToKey(plan.executionStartDate, currentMonthIdx - 1)
             : '';
@@ -273,8 +276,14 @@ function SavingsJourneySection({ plans, checkinsByPlanId, t, fmt, currency }) {
           const consistency = monthsElapsed > 0 ? Math.min(100, Math.round((checkinCount / monthsElapsed) * 100)) : 100;
           const coastAge = plan.result?.coastAge;
           const thisMonthDeposit = plan.params?.startMonthly
-            ? plan.params.startMonthly * Math.pow(1 + (plan.params.monthlyGrowthPct || 0) / 100, currentMonthIdx - 1)
+            ? (buildGrowingContributionSeries({
+                startMonthly: plan.params.startMonthly,
+                monthlyGrowthPct: plan.params.monthlyGrowthPct || 0,
+                annualRatePct: plan.params.annualRatePct || 0,
+                months: currentMonthIdx,
+              })[currentMonthIdx]?.monthlyDeposit || 0)
             : 0;
+          const totalDeposited = Object.values(checkins).reduce((sum, c) => sum + (Number(c.actualAmount) || 0), 0);
           const fiTarget = plan.result?.fiTarget;
           const balanceAtCoast = plan.result?.balanceAtCoast;
 
@@ -300,18 +309,31 @@ function SavingsJourneySection({ plans, checkinsByPlanId, t, fmt, currency }) {
               </div>
               <p className="text-xs text-zx-text-soft mb-3">{t(channelKey)}</p>
 
-              {/* Progress bar + T9/20 · 45% */}
-              <div className="space-y-1.5 mb-3">
-                <div className="h-1.5 rounded-full bg-zx-surface-2 overflow-hidden">
-                  <div className="h-full rounded-full bg-zx-accent transition-all" style={{ width: `${pct}%` }} />
+              {reachedCoast ? (
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="text-xs font-semibold text-zx-gold">{t('dashboard.savingsJourney.coastReached')}</span>
+                  {plan.activeScenario && (
+                    <span className="text-[11px] text-zx-text-soft">
+                      · {t(`savingsEscalator.plan.scenarioPick${plan.activeScenario === 'continue' ? 1 : plan.activeScenario === 'maintain' ? 2 : 3}`)}
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-zx-text-soft">
-                    {t('dashboard.savingsJourney.monthProgress', { current: checkinCount, total: totalMonths })}
-                  </span>
-                  <span className="font-semibold text-zx-accent">{pct}%</span>
+              ) : (
+                /* Progress bar + T9/20 · 45% */
+                <div className="space-y-1.5 mb-3">
+                  <div className="h-1.5 rounded-full bg-zx-surface-2 overflow-hidden">
+                    <div className="h-full rounded-full bg-zx-accent transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-zx-text-soft">
+                      {t('dashboard.savingsJourney.monthProgress', { current: Math.min(currentMonthIdx, totalMonths), total: totalMonths })}
+                    </span>
+                    <span className="font-semibold text-zx-accent">
+                      {pct}% · {t('dashboard.savingsJourney.monthsRemainingValue', { n: monthsRemainingCount })}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Deposit · Consistency — one inline row */}
               <div className="flex items-center gap-1 text-[11px] mb-3">
@@ -323,6 +345,13 @@ function SavingsJourneySection({ plans, checkinsByPlanId, t, fmt, currency }) {
                   {consistency}%
                 </span>
               </div>
+
+              {totalDeposited > 0 && (
+                <div className="flex items-center justify-between text-[11px] mb-2">
+                  <span className="text-zx-text-soft">{t('dashboard.savingsJourney.totalDeposited')}</span>
+                  <span className="font-bold text-zx-text">{fmt(totalDeposited, currency)}</span>
+                </div>
+              )}
 
               {/* Motivating future values */}
               {(fiTarget || balanceAtCoast) && (
