@@ -27,6 +27,12 @@ export function normalizeDashboardStats(data = {}) {
     payYourselfProgress: data.payYourselfProgress || 0,
     payYourselfSaved: data.payYourselfSaved || 0,
     payYourselfTarget: data.payYourselfTarget || 0,
+    bucketActuals: data.bucketActuals || {
+      emergencyFund: 0,
+      longTermAsset: 0,
+      businessLearning: 0,
+      highRiskTrading: 0,
+    },
     currency: data.currency || 'VND',
   };
 }
@@ -72,7 +78,7 @@ async function fetchDashboardStats(userId) {
   if (snapshot.exists()) {
     const data = snapshot.data();
     // Recompute if snapshot predates income/expense fields
-    if (data.income === undefined || data.expense === undefined) {
+    if (data.income === undefined || data.expense === undefined || data.bucketActuals === undefined) {
       const computedStats = await computeDashboardStats(userId);
       await persistDashboardSnapshot(userId, computedStats);
       return computedStats;
