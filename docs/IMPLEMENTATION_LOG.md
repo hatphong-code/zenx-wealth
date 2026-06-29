@@ -2,6 +2,23 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-29 — PYF Bucket Linkage (SPEC_pyf_bucket_linkage, Bước 1-6)
+
+Nối tầng Phân bổ (PYF) với tầng Thực thi qua transaction type mới `transfer`:
+
+- **Bước 1** — `bucketClassification.js` (mới): `BUCKET_KEYS`, `suggestBucket()`, `BUCKET_LABELS_VI`
+- **Bước 2a** — `AddTransaction.jsx`: thêm loại "Chuyển vào tích lũy", bucket picker 2×2, auto-suggest bucket khi gõ category, validation, payload `bucket`
+- **Bước 2b** — `importParsing.js`, `misaImportAdapter.js`, `ImportTransactions.jsx`: tự gán `type: 'transfer'` + `bucket` khi category khớp keyword; badge tím "↗ Bucket" bấm để đổi/bỏ trong preview
+- **Bước 3** — `financialCalculations.js`: thêm `calculateBucketActuals()`, bỏ `transfer` khỏi income/expense loop, `payYourselfSaved` = tổng bucket thực tế thay net cash flow, return thêm `bucketActuals`
+- **Bước 4** — `payYourselfFirstService.js`: `buildAllocations` nhận `bucketActuals`, truyền qua; `PayYourselfFirst.jsx`: mỗi allocation card thêm "Đã chuyển: X (Y%)" màu xanh/cam
+- **Bước 5** — `savingsPlanService.js`: `createSavingsPlan` thêm field `bucket`; `getTotalCommittedForBucket()`; `checkCanCreatePlan` hỗ trợ `budgetContext` → `budgetWarning` (cảnh báo, không hard-block); `SavingsEscalator.jsx`: hiển thị cảnh báo vượt ngân sách
+- **Bước 6** — `wealthRoadmapService.js` + `roadmapCalculations.js`: `auto_investing_started` = có ≥1 active savings plan thực (không còn hardcode `false`)
+- **Bước 7** — SKIP (cần quyết định sản phẩm Emergency Fund vs Assets)
+
+**Files:** `bucketClassification.js` (mới), `financialCalculations.js`, `payYourselfFirstService.js`, `savingsPlanService.js`, `wealthRoadmapService.js`, `roadmapCalculations.js`, `importParsing.js`, `misaImportAdapter.js`, `AddTransaction.jsx`, `PayYourselfFirst.jsx`, `ImportTransactions.jsx`, `SavingsEscalator.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-06-29 — Dashboard: Savings Journey card — 5 patches
 
 Sửa card "Hành trình kế hoạch" trên Dashboard (`SavingsJourneySection` trong `Dashboard.jsx`):
