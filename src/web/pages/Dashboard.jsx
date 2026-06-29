@@ -264,7 +264,7 @@ function SavingsJourneySection({ plans, checkinsByPlanId, t, fmt, currency }) {
           const totalMonths = plan.result?.coastMonth || 0;
           const currentMonthIdx = plan.executionStartDate ? getCurrentPlanMonthIdx(plan.executionStartDate) : 1;
           const pct = totalMonths > 0 ? Math.min(100, Math.round((currentMonthIdx / totalMonths) * 100)) : 0;
-          const reachedCoast = currentMonthIdx >= totalMonths;
+          const reachedCoast = totalMonths > 0 && currentMonthIdx >= totalMonths;
           const monthsRemainingCount = Math.max(0, totalMonths - currentMonthIdx);
           const currentMonthKey = plan.executionStartDate
             ? addMonthsToKey(plan.executionStartDate, currentMonthIdx - 1)
@@ -335,41 +335,46 @@ function SavingsJourneySection({ plans, checkinsByPlanId, t, fmt, currency }) {
                 </div>
               )}
 
-              {/* Deposit · Consistency — one inline row */}
-              <div className="flex items-center gap-1 text-[11px] mb-3">
-                <span className="text-zx-text-soft shrink-0">{t('dashboard.savingsJourney.thisMonthDeposit')}:</span>
-                <span className="font-semibold text-zx-text">{fmt(thisMonthDeposit, currency)}</span>
-                <span className="text-zx-line mx-1.5">·</span>
-                <span className="text-zx-text-soft shrink-0">{t('dashboard.savingsJourney.consistency')}:</span>
-                <span className={`font-semibold ${consistency >= 80 ? 'text-zx-positive' : consistency >= 60 ? 'text-zx-gold' : 'text-zx-accent'}`}>
-                  {consistency}%
-                </span>
-              </div>
-
-              {totalDeposited > 0 && (
-                <div className="flex items-center justify-between text-[11px] mb-2">
-                  <span className="text-zx-text-soft">{t('dashboard.savingsJourney.totalDeposited')}</span>
-                  <span className="font-bold text-zx-text">{fmt(totalDeposited, currency)}</span>
+              {/* Deposit · Consistency — hidden post-coast */}
+              {!reachedCoast && (
+                <div className="flex items-center gap-1 text-[11px] mb-3">
+                  <span className="text-zx-text-soft shrink-0">{t('dashboard.savingsJourney.thisMonthDeposit')}:</span>
+                  <span className="font-semibold text-zx-text">{fmt(thisMonthDeposit, currency)}</span>
+                  <span className="text-zx-line mx-1.5">·</span>
+                  <span className="text-zx-text-soft shrink-0">{t('dashboard.savingsJourney.consistency')}:</span>
+                  <span className={`font-semibold ${consistency >= 80 ? 'text-zx-positive' : consistency >= 60 ? 'text-zx-gold' : 'text-zx-accent'}`}>
+                    {consistency}%
+                  </span>
                 </div>
               )}
 
-              {/* Motivating future values */}
-              {(fiTarget || balanceAtCoast) && (
-                <div className="grid grid-cols-2 gap-3 pt-2.5 border-t border-zx-line mb-3">
-                  {fiTarget && (
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
-                        {t('dashboard.savingsJourney.fiTarget')}
-                      </p>
-                      <p className="text-sm font-bold text-zx-gold">{fmt(fiTarget, currency)}</p>
+              {/* Financial summary: actual deposited + future projections */}
+              {(totalDeposited > 0 || fiTarget || balanceAtCoast) && (
+                <div className="pt-2.5 border-t border-zx-line mb-3 space-y-2">
+                  {totalDeposited > 0 && (
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-zx-text-soft">{t('dashboard.savingsJourney.totalDeposited')}</span>
+                      <span className="font-bold text-zx-text">{fmt(totalDeposited, currency)}</span>
                     </div>
                   )}
-                  {balanceAtCoast && (
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
-                        {t('dashboard.savingsJourney.balanceAtCoast')}
-                      </p>
-                      <p className="text-sm font-bold text-zx-positive">{fmt(balanceAtCoast, currency)}</p>
+                  {(fiTarget || balanceAtCoast) && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {fiTarget && (
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
+                            {t('dashboard.savingsJourney.fiTarget')}
+                          </p>
+                          <p className="text-sm font-bold text-zx-gold">{fmt(fiTarget, currency)}</p>
+                        </div>
+                      )}
+                      {balanceAtCoast && (
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wide text-zx-text-soft/70 mb-0.5">
+                            {t('dashboard.savingsJourney.balanceAtCoast')}
+                          </p>
+                          <p className="text-sm font-bold text-zx-positive">{fmt(balanceAtCoast, currency)}</p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
