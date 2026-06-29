@@ -1,5 +1,6 @@
-﻿import { useState } from 'react';
-import { Landmark, Pencil, Plus, Trash2 } from 'lucide-react';
+﻿import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Landmark, Pencil, Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
 import { Button } from '../../core/../web/components/ui/button';
 import { Combobox } from '../../core/../web/components/ui/Combobox';
@@ -17,6 +18,7 @@ import {
   updateAccount,
 } from '../../core/services/assetService';
 import { useAssetsData } from '../../core/hooks/useAssetsData';
+import { getEmergencyFund } from '../../core/services/emergencyFundService';
 import { invalidateReportsCache } from '../../core/services/reportsService';
 import { invalidateWealthRoadmapCache } from '../../core/services/wealthRoadmapService';
 import { invalidateAICoachCache } from '../../core/services/aiCoachService';
@@ -34,6 +36,14 @@ export default function Assets() {
   const { t } = useI18n();
   const { data, setData, loading, refreshing, error, setError } = useAssetsData(user?.uid);
   const [editingId, setEditingId] = useState(null);
+  const [emergencyTotal, setEmergencyTotal] = useState(null);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    getEmergencyFund(user.uid)
+      .then(fund => setEmergencyTotal(fund.records.reduce((sum, r) => sum + Number(r.amount || 0), 0)))
+      .catch(() => setEmergencyTotal(0));
+  }, [user?.uid]);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
@@ -135,7 +145,10 @@ export default function Assets() {
     'Daily': 'daily', 'Emergency': 'emergency', 'Long-term': 'longTerm', 'Risk': 'risk', 'Business': 'business',
   };
   const accountTypeOptions = accountTypes.map(a => ({ value: a.value, label: t(`assets.typeOptions.${assetTypeKeyMap[a.value]}`, {}, a.label) }));
-  const accountPurposeOptions = accountPurposes.map(p => ({ value: p.value, label: t(`assets.purposeOptions.${purposeKeyMap[p.value]}`, {}, p.label) }));
+  const purposesForForm = (editingId && form.purpose === 'Emergency')
+    ? [{ value: 'Emergency', label: 'Dự phòng' }, ...accountPurposes]
+    : accountPurposes;
+  const accountPurposeOptions = purposesForForm.map(p => ({ value: p.value, label: t(`assets.purposeOptions.${purposeKeyMap[p.value]}`, {}, p.label) }));
 
   return (
       <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
@@ -207,10 +220,27 @@ export default function Assets() {
           <div className="border-b border-zx-line p-4">
             <h2 className="font-semibold">{t('assets.listTitle')}</h2>
           </div>
-          {accounts.length === 0 ? (
+          {accounts.length === 0 && emergencyTotal === 0 ? (
             <div className="p-6 text-center text-zx-text-soft">{loading ? t('assets.loading') : t('assets.empty')}</div>
           ) : (
             <div className="divide-y divide-zx-line">
+              {/* Emergency Fund — read-only row */}
+              {emergencyTotal !== null && emergencyTotal > 0 && (
+                <article className="flex flex-col gap-3 p-4 bg-zx-bg md:flex-row md:items-center md:justify-between">
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-zx-positive" />
+                      <h3 className="font-semibold text-zx-text">{t('assets.emergencyFundRow')}</h3>
+                      <span className="rounded-full bg-zx-surface px-2.5 py-1 text-[10px] text-zx-text-soft uppercase tracking-wide">read-only</span>
+                    </div>
+                    <p className="font-mono text-lg text-zx-positive">{formatMoney(emergencyTotal, currency)}</p>
+                  </div>
+                  <Link to="/financial-base?tab=emergency" className="text-sm text-zx-accent hover:underline shrink-0">
+                    {t('assets.emergencyFundLink')}
+                  </Link>
+                </article>
+              )}
+
               {accounts.map((account) => (
                 <article key={account.id} className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
                   <div className="space-y-2">
@@ -220,6 +250,11 @@ export default function Assets() {
                       <span className="rounded-full bg-emerald-950 px-2.5 py-1 text-xs text-zx-positive">{account.purpose}</span>
                     </div>
                     <p className="font-mono text-lg">{formatMoney(account.balance, currency)}</p>
+                    {account.purpose === 'Emergency' && (
+                      <p className="text-xs text-orange-300 bg-orange-950/30 border border-orange-500/30 rounded-zx-sm px-3 py-2">
+                        ⚠️ {t('assets.emergencyDuplicateWarning')}
+                      </p>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <Button type="button" onClick={() => handleEdit(account)} className="bg-zx-bg px-3 py-2 text-zx-accent hover:bg-zx-surface-2">

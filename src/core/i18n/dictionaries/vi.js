@@ -1224,6 +1224,9 @@ export default {
     listTitle: 'Danh sách tài khoản',
     empty: 'Chưa có tài khoản tài sản.',
     confirmDelete: 'Xóa tài khoản tài sản này?',
+    emergencyFundRow: 'Quỹ dự phòng',
+    emergencyFundLink: '→ Xem tại Quỹ dự phòng',
+    emergencyDuplicateWarning: 'Số dư này có thể đã được tính ở trang Quỹ dự phòng — kiểm tra lại tránh đếm 2 lần.',
     errors: { invalidForm: 'Tên tài khoản và số dư phải hợp lệ.' },
     typeOptions: {
       cash: 'Tiền mặt',

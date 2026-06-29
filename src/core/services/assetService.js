@@ -19,7 +19,6 @@ export const accountTypes = [
 
 export const accountPurposes = [
   { value: 'Daily',     label: 'Sinh hoạt ngày' },
-  { value: 'Emergency', label: 'Dự phòng' },
   { value: 'Long-term', label: 'Dài hạn' },
   { value: 'Risk',      label: 'Rủi ro / Trading' },
   { value: 'Business',  label: 'Kinh doanh' },
