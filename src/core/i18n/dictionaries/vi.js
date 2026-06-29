@@ -193,6 +193,7 @@ export default {
       import_transactions: 'Nhập CSV',
       health_score: 'Điểm sức khỏe',
       savings_escalator: 'Tích lũy và Tự do',
+      financial_base: 'Nền tài chính',
     },
     add: 'Thêm',
     signOut: 'Đăng xuất',

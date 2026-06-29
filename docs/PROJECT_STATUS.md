@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-29 (v3.20 — MISA import + Dashboard savings journey)
+Last updated: 2026-06-29 (v3.21 — Plan nav consolidation: "Nền tài chính" tab container)
 
 ## Current Phase
 
@@ -35,12 +35,13 @@ Default hosting URL: https://zenx-wealth.web.app
 - Dashboard (2-column desktop layout) — **v3.19**: "Hành trình kế hoạch" section (active Coast FI plan cards with progress, deposit, consistency, FI target, balance at coast, check-in status); "Sắp xảy ra" panel in right column (upcoming maturities ≤7 days + pending monthly check-ins, premium only)
 - Transactions (list, add, edit) — search + sort + category/flag filters + filtered totals
 - Latte Factor engine + Convert→Emergency Fund flow
-- Pay Yourself First (allocation rule + progress)
-- Emergency Fund (balance tracker, progress)
-- Debt Control
-- Income Builder
+- **Nền tài chính** (`/financial-base`) — **v3.21**: tab container gộp 5 modules: Quỹ dự phòng | Trả mình trước | Kiểm soát nợ | Tăng thu nhập | Tài sản. Tab filter theo feature access, URL state qua `?tab=`. PLAN sidebar giảm từ 10 → 6 items.
+- Pay Yourself First (tab trong Nền tài chính)
+- Emergency Fund (tab trong Nền tài chính)
+- Debt Control (tab trong Nền tài chính)
+- Income Builder (tab trong Nền tài chính)
 - Trading Risk
-- Assets
+- Assets (tab trong Nền tài chính)
 - Wealth Roadmap (phase-based checklist, i18n)
 - Weekly Review (3-step wizard, 2-col desktop, sticky summary panel)
 - Reports (trend layer + estimated net worth)

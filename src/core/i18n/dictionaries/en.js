@@ -193,6 +193,7 @@ export default {
       import_transactions: 'Import CSV',
       health_score: 'Health Score',
       savings_escalator: 'Savings Escalator',
+      financial_base: 'Financial Foundation',
     },
     add: 'Add',
     signOut: 'Sign out',

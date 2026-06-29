@@ -30,7 +30,7 @@ const NAV_GROUPS = [
 ];
 
 const isTrack   = p => ['/track','/transactions','/transactions/new','/latte','/import'].includes(p) || /^\/transactions\/[^/]+\/edit$/.test(p);
-const isPlan    = p => ['/plan','/roadmap','/assets','/pay-yourself-first','/emergency','/debts','/income','/trading-risk','/budget-templates','/savings-escalator'].includes(p);
+const isPlan    = p => ['/plan','/roadmap','/financial-base','/assets','/pay-yourself-first','/emergency','/debts','/income','/trading-risk','/budget-templates','/savings-escalator'].includes(p) || p.startsWith('/savings-escalator/');
 const isReview  = p => ['/review','/weekly-review','/reports','/ai-coach','/health-score'].includes(p);
 const isProfile = p => ['/settings','/profile','/monthly-letter','/goal-tracking','/upgrade'].includes(p);
 const isAdminP  = p => ['/admin/access','/admin/settings','/admin/funds'].includes(p);
@@ -45,16 +45,17 @@ const SUB_ITEMS = {
     { to: '/import',           featureKey: 'import_transactions',                     matches: p => p === '/import' },
   ],
   plan: [
-    { to: '/plan',               featureKey: 'roadmap',            navKey: 'plan_hub', matches: p => p === '/plan' },
-    { to: '/roadmap',            featureKey: 'roadmap',                                matches: p => p === '/roadmap' },
-    { to: '/emergency',          featureKey: 'emergency_fund',                         matches: p => p === '/emergency' },
-    { to: '/pay-yourself-first', featureKey: 'pay_yourself_first',                     matches: p => p === '/pay-yourself-first' },
-    { to: '/debts',              featureKey: 'debt_control',                           matches: p => p === '/debts' },
-    { to: '/income',             featureKey: 'income_builder',                         matches: p => p === '/income' },
-    { to: '/assets',             featureKey: 'assets',                                 matches: p => p === '/assets' },
-    { to: '/trading-risk',       featureKey: 'trading_risk',                           matches: p => p === '/trading-risk' },
-    { to: '/budget-templates',   featureKey: 'budget_templates',                       matches: p => p === '/budget-templates' },
-    { to: '/savings-escalator', featureKey: 'savings_escalator',                       matches: p => p === '/savings-escalator' },
+    { to: '/plan',             featureKey: 'roadmap',       navKey: 'plan_hub',      matches: p => p === '/plan' },
+    { to: '/roadmap',          featureKey: 'roadmap',                                matches: p => p === '/roadmap' },
+    {
+      to: '/financial-base',
+      featureKeyAny: ['emergency_fund', 'pay_yourself_first', 'debt_control', 'income_builder', 'assets'],
+      navKey: 'financial_base',
+      matches: p => p === '/financial-base' || ['/emergency', '/pay-yourself-first', '/debts', '/income', '/assets'].includes(p),
+    },
+    { to: '/trading-risk',     featureKey: 'trading_risk',                           matches: p => p === '/trading-risk' },
+    { to: '/budget-templates', featureKey: 'budget_templates',                       matches: p => p === '/budget-templates' },
+    { to: '/savings-escalator', featureKey: 'savings_escalator',                     matches: p => p === '/savings-escalator' || p.startsWith('/savings-escalator/') },
   ],
   review: [
     { to: '/review',        featureKey: 'weekly_review', navKey: 'review_hub', matches: p => p === '/review' },
@@ -97,6 +98,7 @@ function useNav() {
     items: (SUB_ITEMS[g.id] || []).filter(item => {
       if (item.adminOnly) return isAdmin;
       if (item.moderatorAllowed) return isAdmin || isModerator;
+      if (item.featureKeyAny) return item.featureKeyAny.some(k => canAccess(k));
       return canAccess(item.featureKey);
     }),
   })).filter(g => g.items.length > 0), [canAccess, isAdmin, isModerator]);

@@ -63,7 +63,7 @@ function getPriority(stats, debtSummary, latteMonthly, t, fmt, fmtNum) {
       label: t('planHub.priorityUrgent'),
       message: t('planHub.noEmergencyFund'),
       action: t('planHub.fundEmergency'),
-      to: '/emergency',
+      to: '/financial-base?tab=emergency',
       tip: latteMonthly > 0 ? t('planHub.latteTip', { amount: fmt(latteMonthly * 0.5) }) : null,
     };
   }
@@ -73,7 +73,7 @@ function getPriority(stats, debtSummary, latteMonthly, t, fmt, fmtNum) {
       label: t('planHub.priorityUrgent'),
       message: t('planHub.emergencyFundBelow3', { months: formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 }) }),
       action: t('planHub.fundMoreEmergency'),
-      to: '/emergency',
+      to: '/financial-base?tab=emergency',
       tip: latteMonthly > 0 ? t('trackHub.convertLatteHint', { amount: fmtNum(latteMonthly) }) : null,
     };
   }
@@ -83,7 +83,7 @@ function getPriority(stats, debtSummary, latteMonthly, t, fmt, fmtNum) {
       label: t('planHub.building'),
       message: t('planHub.continueFunding', { months: formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 }), target: stats.targetMonths }),
       action: t('planHub.action.emergencyFund'),
-      to: '/emergency',
+      to: '/financial-base?tab=emergency',
       tip: null,
     };
   }
@@ -93,7 +93,7 @@ function getPriority(stats, debtSummary, latteMonthly, t, fmt, fmtNum) {
       label: t('planHub.nextStep'),
       message: t('planHub.focusPYF', { target: stats.targetMonths }),
       action: t('planHub.action.payYourself'),
-      to: '/pay-yourself-first',
+      to: '/financial-base?tab=pyf',
       tip: null,
     };
   }
@@ -103,7 +103,7 @@ function getPriority(stats, debtSummary, latteMonthly, t, fmt, fmtNum) {
       label: t('planHub.needsAttention'),
       message: t('planHub.debtRemaining', { amount: fmtNum(debtSummary.totalDebt) }),
       action: t('planHub.action.debts'),
-      to: '/debts',
+      to: '/financial-base?tab=debts',
       tip: null,
     };
   }
@@ -338,7 +338,7 @@ export default function PlanHub() {
       key: 'emergency', label: t('planHub.items.emergencyFund'),
       value: `${formatNumber(stats.emergencyMonths, { maximumFractionDigits: 1 })}/${stats.targetMonths} ${t('common.months')}`,
       sub: stats.emergencyMonths >= stats.targetMonths ? t('planHub.goalReached') : t('planHub.pctOfGoal', { pct: Math.round(emgPct) }),
-      to: '/emergency',
+      to: '/financial-base?tab=emergency',
       status: stats.emergencyMonths >= stats.targetMonths ? 'done' : 'active',
       featureKey: 'emergency_fund',
     },
@@ -346,7 +346,7 @@ export default function PlanHub() {
       key: 'pyf', label: t('planHub.items.payYourself'),
       value: `${formatNumber(stats.payYourselfProgress)}%`,
       sub: stats.payYourselfProgress >= 100 ? t('planHub.completedThisMonth') : `${t('planHub.remaining')} ${fmt(Math.max(0, stats.payYourselfTarget - stats.payYourselfSaved))}`,
-      to: '/pay-yourself-first',
+      to: '/financial-base?tab=pyf',
       status: stats.payYourselfProgress >= 100 ? 'done' : 'active',
       featureKey: 'pay_yourself_first',
     },
@@ -354,7 +354,7 @@ export default function PlanHub() {
       key: 'debt', label: t('planHub.items.debts'),
       value: (debtData?.summary?.totalDebt || 0) > 0 ? fmt(debtData.summary.totalDebt) : null,
       sub: (debtData?.summary?.totalDebt || 0) > 0 ? t('planHub.debtCount', { count: debtData.debts?.length || 0 }) : t('planHub.noDebt'),
-      to: '/debts',
+      to: '/financial-base?tab=debts',
       status: (debtData?.summary?.totalDebt || 0) === 0 ? 'done' : (stats.emergencyMonths >= 3 ? 'active' : 'upcoming'),
       featureKey: 'debt_control',
     },
@@ -362,7 +362,7 @@ export default function PlanHub() {
       key: 'income', label: t('planHub.items.income'),
       value: null,
       sub: stats.emergencyMonths >= stats.targetMonths ? t('planHub.readyToStart') : t('planHub.completeEmergencyFirst'),
-      to: '/income',
+      to: '/financial-base?tab=income',
       status: stats.emergencyMonths >= stats.targetMonths ? 'upcoming' : 'locked',
       featureKey: 'income_builder',
     },
@@ -370,7 +370,7 @@ export default function PlanHub() {
       key: 'assets', label: t('planHub.items.assets'),
       value: null,
       sub: stats.payYourselfProgress >= 80 ? t('planHub.readyToTrack') : t('planHub.stabilizePYFFirst'),
-      to: '/assets',
+      to: '/financial-base?tab=assets',
       status: stats.payYourselfProgress >= 80 ? 'upcoming' : 'locked',
       featureKey: 'assets',
     },

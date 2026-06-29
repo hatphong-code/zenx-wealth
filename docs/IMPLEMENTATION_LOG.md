@@ -2,6 +2,19 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-29 — Gộp nav PLAN: "Nền tài chính" tab container
+
+Thay thế 5 nav item riêng lẻ (Emergency Fund, PYF, Debt Control, Income Builder, Assets) bằng 1 entry "Nền tài chính" (`/financial-base`) với tab bar nội trang. Giảm PLAN sidebar từ 10 → 6 items (giữ Plan Hub, Roadmap, Trading Risk, Budget Templates, Savings Escalator như cũ).
+
+- Tạo `FinancialBase.jsx` — container với horizontal tab bar (underline style), filter tab theo `canAccess`, URL state qua `?tab=` query param (replace history)
+- `AppShell.jsx`: thay 5 items trong `SUB_ITEMS.plan` bằng 1 item dùng `featureKeyAny` (show nếu user có access BẤT KỲ feature nào trong 5); cập nhật `isPlan` matcher; thêm `featureKeyAny` support trong filter logic
+- `App.jsx`: thêm route `/financial-base` (không featureKey — kiểm soát trong FinancialBase)
+- `PlanHub.jsx`: đổi 10 link `to:` trong `getPriority()` và `planItems[]` sang `/financial-base?tab=...`
+- `vi.js`, `en.js`: thêm `nav.items.financial_base`
+- Old routes (`/emergency`, `/pay-yourself-first`, `/debts`, `/income`, `/assets`) giữ nguyên trong App.jsx để backward compat — Dashboard links không cần cập nhật
+
+**Files:** `FinancialBase.jsx` (mới), `AppShell.jsx`, `App.jsx`, `PlanHub.jsx`, `vi.js`, `en.js`
+
 ## 2026-06-29 — Import MISA (.xlsx) — hoàn thành, đã test thực tế
 
 Source toggle CSV / MISA trên trang Import. Chọn MISA → upload file Excel xuất từ MISA Sổ Thu Chi → tự đọc tất cả sheet, tìm header STT, map cột Ngày/Số tiền thu/Số tiền chi/Hạng mục cha/Hạng mục con/Diễn giải → hiện preview ngay không cần bấm Phân tích. Badge ☕ Latte tự gắn và bấm được để toggle. `isLatteFactor`, `category`, `note` ghi đúng Firestore khi import. `xlsx` load qua dynamic import → chunk riêng (~429 kB), không ảnh hưởng bundle chính.
