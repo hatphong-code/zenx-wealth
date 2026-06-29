@@ -2,6 +2,16 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-30 — Bugfixes: hooks violation, layout width, bucketActuals snapshot
+
+- **AddTransaction.jsx** — fix React Error #310: `if (loading) return` nằm trước `useMemo` → vi phạm Rules of Hooks khi `loading` chuyển trạng thái. Di chuyển early return xuống sau tất cả hook/derived values.
+- **EmergencyFund.jsx** — đổi `max-w-5xl` → `max-w-6xl` cho khớp với PYF và DebtControl trong FinancialBase.
+- **dashboardService.js** — `normalizeDashboardStats` thiếu field `bucketActuals` → PYF luôn hiển thị "Đã chuyển: 0đ" dù đã có giao dịch transfer. Fix: thêm `bucketActuals` với 4 key default; thêm `|| data.bucketActuals === undefined` vào điều kiện recompute snapshot để user có snapshot cũ tự trigger recompute 1 lần.
+
+**Files:** `AddTransaction.jsx`, `EmergencyFund.jsx`, `dashboardService.js`
+
+---
+
 ## 2026-06-30 — PYF Bucket Linkage Follow-up (PATCH_pyf_bucket_linkage_followup)
 
 3 việc còn lại sau review commit PYF Bucket Linkage:
