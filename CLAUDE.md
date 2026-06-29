@@ -89,7 +89,7 @@ Xử lý ngay hay để backlog?
 **4. Implement — checklist khi viết code**
 - [ ] Màu qua `zx-*` token — không hex, không `red-*` Tailwind thuần
 - [ ] Radius qua `rounded-zx` / `rounded-zx-sm` — không `rounded-lg`
-- [ ] Mọi chuỗi UI qua `t('key')` — thêm vào **cả** `vi.js` và `en.js`
+- [ ] Mọi chuỗi UI qua `t('key')` — thêm vào **cả** `vi.js` và `en.js`, phải thực hiện VI, EN đủ, không hardcode.
 - [ ] Số tiền qua `fmtShort()` (hub) hoặc `formatMoney(value, currency)` (detail)
 - [ ] Icon-only buttons có `aria-label`
 - [ ] Form inputs có `<label htmlFor>` tường minh
@@ -101,6 +101,7 @@ Xử lý ngay hay để backlog?
 npm run build   # bắt buộc — không commit nếu build lỗi
 npm test        # chạy nếu có thay đổi logic tài chính hoặc services
 ```
+- Thành công thì deploy hosting luôn.
 
 **6. Commit & push**
 - Conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `style:`
