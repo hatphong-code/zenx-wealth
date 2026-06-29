@@ -115,7 +115,7 @@ export default function EmergencyFund() {
 
 
   return (
-      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
+      <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zx-icon-bg">
             <Shield className="h-7 w-7 text-zx-positive" />
