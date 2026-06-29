@@ -18,6 +18,12 @@ describe('service contracts', () => {
       payYourselfProgress: 0,
       payYourselfSaved: 0,
       payYourselfTarget: 0,
+      bucketActuals: {
+        emergencyFund: 0,
+        longTermAsset: 0,
+        businessLearning: 0,
+        highRiskTrading: 0,
+      },
       currency: 'VND',
     });
   });
