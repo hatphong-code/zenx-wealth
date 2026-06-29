@@ -2,6 +2,18 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-06-30 — PYF Bucket Linkage Follow-up (PATCH_pyf_bucket_linkage_followup)
+
+3 việc còn lại sau review commit PYF Bucket Linkage:
+
+- **Việc 1** — `SavingsEscalator.jsx`: import `getPayYourselfFirst` + `BUCKET_KEYS`/`BUCKET_LABELS_VI`; fetch PYF allocation trước khi gọi `checkCanCreatePlan` với `bucketTargetAmount` thực → `budgetWarning` hoạt động đúng; thêm `savePlanBucket` state + bucket selector 2×2 trong form lưu kế hoạch; truyền `bucket` vào `createSavingsPlan`
+- **Việc 2** — `AddTransaction.jsx`: load `bucket: data.bucket || ''` khi edit giao dịch transfer → không còn bị reset bucket về rỗng, không bị lỗi validate
+- **Việc 3** — `calculations.test.js`: sửa `payYourselfSaved/Progress` assertions (cũ dùng netCashFlow, mới dùng bucketActuals = 0 khi không có transfer); thêm test case `bucketActuals` đầy đủ; sửa tên field `income`/`expense` (không phải `totalIncome`/`totalExpense`)
+
+**Files:** `SavingsEscalator.jsx`, `AddTransaction.jsx`, `vi.js`, `en.js`, `calculations.test.js`
+
+---
+
 ## 2026-06-29 — PYF Bucket Linkage (SPEC_pyf_bucket_linkage, Bước 1-6)
 
 Nối tầng Phân bổ (PYF) với tầng Thực thi qua transaction type mới `transfer`:
