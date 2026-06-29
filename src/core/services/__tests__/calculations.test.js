@@ -43,8 +43,45 @@ describe('financialCalculations', () => {
     expect(result.latteFactor).toBe(500000);
     expect(result.emergencyMonths).toBe(6);
     expect(result.payYourselfTarget).toBe(3000000);
-    expect(result.payYourselfSaved).toBe(6500000);
-    expect(result.payYourselfProgress).toBe(100);
+    expect(result.payYourselfSaved).toBe(0);
+    expect(result.payYourselfProgress).toBe(0);
+    expect(result.bucketActuals).toEqual({
+      emergencyFund: 0,
+      longTermAsset: 0,
+      businessLearning: 0,
+      highRiskTrading: 0,
+    });
+  });
+
+  it('bucketActuals counts only transfer transactions by bucket', () => {
+    const result = calculateDashboardMetrics({
+      transactions: [
+        { type: 'income', amount: 20000000, currency: 'VND' },
+        { type: 'expense', amount: 5000000, currency: 'VND', isLatteFactor: false },
+        { type: 'transfer', amount: 3000000, currency: 'VND', bucket: 'longTermAsset' },
+        { type: 'transfer', amount: 1000000, currency: 'VND', bucket: 'emergencyFund' },
+        { type: 'transfer', amount: 500000, currency: 'VND', bucket: 'highRiskTrading' },
+        { type: 'transfer', amount: 200, currency: 'USD', bucket: 'longTermAsset' },
+      ],
+      emergencyRecords: [],
+      currency: 'VND',
+      payYourselfRate: 0.3,
+      monthlyEssentialExpense: 0,
+      emergencyFundTargetMonths: 6,
+    });
+
+    expect(result.income).toBe(20000000);
+    expect(result.expense).toBe(5000000);
+    expect(result.netCashFlow).toBe(15000000);
+
+    expect(result.bucketActuals.longTermAsset).toBe(3000000);
+    expect(result.bucketActuals.emergencyFund).toBe(1000000);
+    expect(result.bucketActuals.highRiskTrading).toBe(500000);
+    expect(result.bucketActuals.businessLearning).toBe(0);
+
+    expect(result.payYourselfSaved).toBe(4500000);
+    expect(result.payYourselfTarget).toBe(6000000);
+    expect(result.payYourselfProgress).toBe(75);
   });
 
   it('calculates latte metrics and sorts top categories', () => {

@@ -22,6 +22,8 @@ import {
 } from '../../core/services/savingsPlanService';
 import { fmtShort, formatMoney } from '../../core/utils/formatters';
 import { getCachedUserProfile, getUserProfile } from '../../core/services/userService';
+import { getPayYourselfFirst } from '../../core/services/payYourselfFirstService';
+import { BUCKET_KEYS, BUCKET_LABELS_VI } from '../../core/utils/bucketClassification';
 import NumericInput from '../components/ui/NumericInput';
 
 const CHANNEL_CONFIG = {
@@ -229,6 +231,7 @@ export default function SavingsEscalator() {
   const [showSavePlanForm, setShowSavePlanForm] = useState(false);
   const [savePlanName, setSavePlanName] = useState('');
   const [savePlanStartMonth, setSavePlanStartMonth] = useState(currentYearMonth());
+  const [savePlanBucket, setSavePlanBucket] = useState('longTermAsset');
   const [savingPlan, setSavingPlan] = useState(false);
   const [savePlanError, setSavePlanError] = useState('');
   const [updatingChannelId, setUpdatingChannelId] = useState(null);
@@ -408,6 +411,7 @@ export default function SavingsEscalator() {
         executionStartDate: savePlanStartMonth,
         status: planCheck?.newStatus || 'active',
         channelType: form.channelType,
+        bucket: savePlanBucket,
       });
       navigate(`/savings-escalator/plan/${id}`);
     } catch (err) {
@@ -1007,10 +1011,17 @@ export default function SavingsEscalator() {
                   onClick={async () => {
                     setSavePlanName('');
                     setSavePlanStartMonth(currentYearMonth());
+                    setSavePlanBucket('longTermAsset');
                     setPlanCheck(null);
                     setPlanCheckLoading(true);
                     try {
-                      const check = await checkCanCreatePlan(user.uid, Number(form.annualRatePct));
+                      const pyfData = await getPayYourselfFirst(user.uid);
+                      const bucketTarget = (pyfData?.allocations || []).find(a => a.key === 'longTermAsset')?.amount || 0;
+                      const check = await checkCanCreatePlan(user.uid, Number(form.annualRatePct), {
+                        bucket: 'longTermAsset',
+                        newPlanMonthly: Number(form.startMonthly || 0),
+                        bucketTargetAmount: bucketTarget,
+                      });
                       setPlanCheck(check);
                       if (check.allowed) setShowSavePlanForm(true);
                     } catch {
@@ -1066,6 +1077,23 @@ export default function SavingsEscalator() {
                         onChange={e => setSavePlanStartMonth(e.target.value)}
                         className="w-full rounded-zx-sm border border-zx-line bg-zx-surface-2 px-3 py-2.5 text-sm text-zx-text focus:outline-none focus:ring-2 focus:ring-zx-accent"
                       />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-zx-text-soft mb-1">
+                      {t('savingsEscalator.savePlan.bucketLabel', {}, 'Nhóm tích lũy')}
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {BUCKET_KEYS.map(key => (
+                        <button key={key} type="button" onClick={() => setSavePlanBucket(key)}
+                          className={`rounded-zx-sm border px-3 py-2 text-sm text-left transition ${
+                            savePlanBucket === key
+                              ? 'border-purple-500 bg-purple-950/40 text-purple-300'
+                              : 'border-zx-line text-zx-text-soft hover:border-purple-500'
+                          }`}>
+                          {BUCKET_LABELS_VI[key]}
+                        </button>
+                      ))}
                     </div>
                   </div>
                   <div className="flex gap-3">

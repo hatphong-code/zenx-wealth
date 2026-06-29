@@ -93,6 +93,7 @@ export default function AddTransaction() {
           amount: String(data.amount || ''),
           type: data.type || 'expense',
           category: data.category || '',
+          bucket: data.bucket || '',
           date: data.date?.toDate ? data.date.toDate().toISOString().slice(0, 10) : today,
           isLatteFactor: Boolean(data.isLatteFactor),
           isRecurring: Boolean(data.isRecurring),

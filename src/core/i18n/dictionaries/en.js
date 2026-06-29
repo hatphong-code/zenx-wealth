@@ -1489,6 +1489,7 @@ export default {
       warnNoMaturePlan: 'No plan has completed 12 months yet. This plan will be saved as pending — auto-activated when you qualify.',
       riskWarning: 'High expected return ({pct}%/year). Actual results may differ significantly from the simulation — especially with higher-risk channels.',
       budgetWarning: 'Total committed deposits will be {totalAfter}/month, exceeding your allocated budget by {overBy}/month. Review or proceed if you have additional income.',
+      bucketLabel: 'Which savings bucket does this plan belong to?',
       pendingBadge: 'Pending',
       nameLabel: 'Plan name',
       namePlaceholder: 'E.g. Coast FI Plan 2026',

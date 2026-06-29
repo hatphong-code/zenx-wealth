@@ -1657,6 +1657,7 @@ export default {
       warnNoMaturePlan: 'Chưa có kế hoạch nào đủ 12 tháng thực hiện. Kế hoạch sẽ được lưu ở trạng thái chờ — tự động có hiệu lực khi đủ điều kiện.',
       riskWarning: 'Lãi suất kỳ vọng cao ({pct}%/năm). Biến động thực tế có thể khác simulation đáng kể — đặc biệt với kênh đầu tư rủi ro cao.',
       budgetWarning: 'Tổng cam kết gửi sẽ là {totalAfter}/tháng, vượt ngân sách phân bổ {overBy}/tháng. Kiểm tra lại hoặc tiếp tục nếu đã tính đến nguồn thu nhập mới.',
+      bucketLabel: 'Nhóm tích lũy này thuộc bucket nào?',
       pendingBadge: 'Chờ kích hoạt',
       nameLabel: 'Tên kế hoạch',
       namePlaceholder: 'VD: Kế hoạch Coast FI 2026',
