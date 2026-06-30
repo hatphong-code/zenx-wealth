@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore/lite';
-import { ArrowRight, BarChart3, Bot, ClipboardCheck } from 'lucide-react';
+import { ArrowRight, BarChart3, Bot, ClipboardCheck, History } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { useWeeklyReviewData } from '../../core/hooks/useWeeklyReviewData';
@@ -9,6 +9,8 @@ import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
 import { db } from '../../core/services/firebaseDb';
 import { formatDate, formatNumber, formatPercent } from '../../core/utils/formatters';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
+import StreakBadge from '../components/StreakBadge';
+import { useReviewStreak } from '../../core/hooks/useReviewStreak';
 
 function HL() { return <div className="h-px bg-zx-line" />; }
 
@@ -47,6 +49,7 @@ export default function ReviewHub() {
   const { weekMeta, review, form } = data;
   const { fmt } = useNumberFormat();
 
+  const { data: streakData } = useReviewStreak(user?.uid);
   const [history, setHistory] = useState([]);
 
   // Fetch last 5 weekly review scores
@@ -77,9 +80,12 @@ export default function ReviewHub() {
         {/* ── LEFT: Score + Stats + Lesson/Commitment ── */}
         <div>
           <section className="pb-6">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-3">
-              {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : t('reviewHub.thisWeek')}
-            </p>
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft">
+                {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : t('reviewHub.thisWeek')}
+              </p>
+              <StreakBadge streak={streakData.streak} size="sm" />
+            </div>
 
             {loading ? (
               <p className="text-sm text-zx-text-soft">{t('common.loading')}</p>
@@ -171,6 +177,11 @@ export default function ReviewHub() {
                 icon: ClipboardCheck, label: t('reviewHub.weeklyReviewLabel'),
                 sub: hasReviewed ? t('reviewHub.completed') : t('reviewHub.notDone'),
                 to: '/weekly-review', featureKey: 'weekly_review', active: !hasReviewed,
+              },
+              {
+                icon: History, label: t('reviewHub.historyLabel'),
+                sub: t('reviewHub.historySub'),
+                to: '/review/history', featureKey: 'weekly_review', active: false,
               },
               {
                 icon: BarChart3, label: t('reviewHub.reportsLabel'),

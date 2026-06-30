@@ -875,6 +875,9 @@ export default {
     reportsLabel: 'Báo cáo',
     aiCoachLabel: 'Trợ lý AI',
     last5Weeks: '5 tuần gần nhất',
+    streakWeeks: '{count} tuần liên tiếp',
+    historyLabel: 'Lịch sử review',
+    historySub: 'Xem lại các tuần trước',
   },
   weeklyReview: {
     autoSaved: 'Đã lưu tự động',
@@ -916,6 +919,12 @@ export default {
       yourLesson: 'Bài học bạn ghi: "{lesson}"',
       insufficientData: 'Tuần này thiếu dữ liệu giao dịch để phân tích sâu. Ghi đủ thu chi sẽ cho insight tốt hơn.',
     },
+  },
+  reviewHistory: {
+    back: '← Quay lại Review',
+    title: 'Lịch sử Review',
+    empty: 'Chưa có tuần nào được review.',
+    loadMore: 'Xem thêm',
   },
   reports: {
     noChartData: 'Chưa có dữ liệu',

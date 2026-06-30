@@ -8,6 +8,7 @@ import { invalidateReportsCache } from './reportsService';
 import { invalidateAICoachCache } from './aiCoachService';
 import { invalidateWealthRoadmapCache } from './wealthRoadmapService';
 import { invalidateWeeklyReviewCache } from './weeklyReviewService';
+import { invalidateReviewStreakCache } from './reviewStreakService';
 import { invalidateUserProfileCache } from './userService';
 import { invalidateEmergencyFundCache } from './emergencyFundService';
 
@@ -41,4 +42,5 @@ export function invalidateAfterEmergencyFundWrite(userId) {
 export function invalidateAfterWeeklyReviewWrite(userId) {
   invalidateReportsCache(userId);
   invalidateAICoachCache(userId);
+  invalidateReviewStreakCache(userId);
 }

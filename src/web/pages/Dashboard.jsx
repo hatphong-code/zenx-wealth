@@ -16,6 +16,8 @@ import { getMonthlyCheckins, getCurrentPlanMonthIdx, addMonthsToKey, getMonthsEl
 import { useSavingsPlansData } from '../../core/hooks/useSavingsPlansData';
 import { buildGrowingContributionSeries } from '../../core/services/financialCalculations';
 import { getSavingsSchedule, getUpcomingMaturities, daysUntil } from '../../core/services/savingsScheduleService';
+import StreakBadge from '../components/StreakBadge';
+import { useReviewStreak } from '../../core/hooks/useReviewStreak';
 
 /* ── tiny components ── */
 
@@ -483,6 +485,7 @@ export default function Dashboard() {
     ? Math.round((stats.payYourselfSaved / stats.payYourselfTarget) * 100)
     : 0;
 
+  const { data: streakData } = useReviewStreak(user?.uid);
   const userName = user?.displayName?.split(' ').pop() || t('appShell.defaultName');
   const greeting = getGreeting(t, userName);
   const monthStr = new Date().toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US', { month: 'long', year: 'numeric' });
@@ -570,7 +573,10 @@ export default function Dashboard() {
           <section className="pb-6">
             <div className="flex items-baseline justify-between gap-4 flex-wrap mb-1">
               <h1 className="font-zx-head text-xl font-semibold text-zx-text">{greeting}</h1>
-              <span className="text-[11px] text-zx-text-soft/60 capitalize shrink-0">{monthStr}</span>
+              <div className="flex items-center gap-2 shrink-0">
+                <StreakBadge streak={streakData.streak} size="sm" />
+                <span className="text-[11px] text-zx-text-soft/60 capitalize">{monthStr}</span>
+              </div>
             </div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft">
               {t('dashboard.badge')}

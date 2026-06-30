@@ -3,8 +3,11 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
+  orderBy,
   query,
   setDoc,
+  startAfter,
   Timestamp,
   where,
 } from 'firebase/firestore/lite';
@@ -102,6 +105,21 @@ export function setWeeklyReviewCache(userId, weekKey, value) {
 
 export function invalidateWeeklyReviewCache(userId, weekKey) {
   removeCachedValue(getWeeklyReviewCacheKey(userId, weekKey));
+}
+
+const REVIEW_HISTORY_PAGE_SIZE = 12;
+
+export async function listWeeklyReviews(userId, { cursor = null, pageSize = REVIEW_HISTORY_PAGE_SIZE } = {}) {
+  const constraints = [
+    collection(db, 'users', userId, 'weeklyReviews'),
+    orderBy('weekStart', 'desc'),
+    ...(cursor ? [startAfter(cursor)] : []),
+    limit(pageSize),
+  ];
+  const snapshot = await getDocs(query(...constraints));
+  const items = snapshot.docs.map((entry) => ({ weekKey: entry.id, ...entry.data() }));
+  const nextCursor = snapshot.docs.length === pageSize ? snapshot.docs[snapshot.docs.length - 1] : null;
+  return { items, nextCursor };
 }
 
 // Write operations

@@ -22,6 +22,7 @@ const Transactions = lazy(() => import('./pages/Transactions'));
 const Profile = lazy(() => import('./pages/Profile'));
 const EmergencyFund = lazy(() => import('./pages/EmergencyFund'));
 const WeeklyReview = lazy(() => import('./pages/WeeklyReview'));
+const ReviewHistory = lazy(() => import('./pages/ReviewHistory'));
 const DebtControl = lazy(() => import('./pages/DebtControl'));
 const IncomeBuilder = lazy(() => import('./pages/IncomeBuilder'));
 const WealthRoadmap = lazy(() => import('./pages/WealthRoadmap'));
@@ -172,6 +173,7 @@ export default function App() {
         <Route path="/track" element={routeElement(<PrivateRoute featureKey="transactions"><TrackHub /></PrivateRoute>)} />
         <Route path="/plan" element={routeElement(<PrivateRoute featureKey="roadmap"><PlanHub /></PrivateRoute>)} />
         <Route path="/review" element={routeElement(<PrivateRoute featureKey="weekly_review"><ReviewHub /></PrivateRoute>)} />
+        <Route path="/review/history" element={routeElement(<PrivateRoute featureKey="weekly_review"><ReviewHistory /></PrivateRoute>)} />
         <Route path="/transactions" element={routeElement(<PrivateRoute featureKey="transactions"><Transactions /></PrivateRoute>)} />
         <Route path="/transactions/new" element={routeElement(<PrivateRoute featureKey="add_transaction"><AddTransaction /></PrivateRoute>)} />
         <Route path="/transactions/:transactionId/edit" element={routeElement(<PrivateRoute featureKey="transactions"><AddTransaction /></PrivateRoute>)} />

@@ -863,6 +863,9 @@ export default {
     reportsLabel: 'Reports',
     aiCoachLabel: 'AI Coach',
     last5Weeks: 'Last 5 weeks',
+    streakWeeks: '{count}-week streak',
+    historyLabel: 'Review history',
+    historySub: 'See past weeks',
   },
   weeklyReview: {
     autoSaved: 'Auto-saved',
@@ -900,6 +903,12 @@ export default {
       yourLesson: 'Your recorded lesson: "{lesson}"',
       insufficientData: 'Insufficient transaction data this week for deep analysis. Record all income and expenses for better insights.',
     },
+  },
+  reviewHistory: {
+    back: '← Back to Review',
+    title: 'Review History',
+    empty: 'No reviews yet.',
+    loadMore: 'Load more',
   },
   reports: {
     noChartData: 'No data yet',
