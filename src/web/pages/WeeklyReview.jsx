@@ -75,8 +75,8 @@ export default function WeeklyReview() {
       setSaving(true);
       try {
         await saveWeeklyReview(user.uid, weekMeta.weekKey, {
-          weekStart: Timestamp.fromDate(weekMeta.weekStart),
-          weekEnd: Timestamp.fromDate(weekMeta.weekEnd),
+          weekStart: Timestamp.fromDate(toDate(weekMeta.weekStart)),
+          weekEnd: Timestamp.fromDate(toDate(weekMeta.weekEnd)),
           oneLesson: form.oneLesson.trim(),
           oneActionNextWeek: form.oneActionNextWeek.trim(),
         });
@@ -98,8 +98,8 @@ export default function WeeklyReview() {
     setSaving(true); setError('');
     try {
       await saveWeeklyReview(user.uid, weekMeta.weekKey, {
-        weekStart: Timestamp.fromDate(weekMeta.weekStart),
-        weekEnd: Timestamp.fromDate(weekMeta.weekEnd),
+        weekStart: Timestamp.fromDate(toDate(weekMeta.weekStart)),
+        weekEnd: Timestamp.fromDate(toDate(weekMeta.weekEnd)),
         currency: review.currency,
         income: review.income,
         expense: review.expense,
@@ -125,6 +125,15 @@ export default function WeeklyReview() {
     finally { setSaving(false); }
   };
 
+  // weekMeta.weekStart/End may be Date, ISO string (JSON cache), or Firestore Timestamp
+  const toDate = (v) => {
+    if (!v) return new Date();
+    if (v instanceof Date) return v;
+    if (typeof v.toDate === 'function') return v.toDate();
+    return new Date(v);
+  };
+  const fmtWeekDate = (v) => v ? toDate(v).toLocaleDateString('vi-VN') : '-';
+
   const score = review.wealthDisciplineScore || 0;
   const scoreColor = score >= 80 ? 'text-zx-positive' : score >= 50 ? 'text-zx-gold' : score > 0 ? 'text-zx-accent' : 'text-zx-text-soft';
   const insight = buildInsight(review, form, t);
@@ -136,7 +145,7 @@ export default function WeeklyReview() {
         <div className="text-4xl mb-4">✦</div>
         <h1 className="font-zx-head text-2xl font-bold text-zx-positive mb-2">{t('weeklyReview.complete')}</h1>
         <p className="text-sm text-zx-text-soft mb-6">
-          {t('weeklyReview.weekRecorded', { week: weekMeta ? formatDate(weekMeta.weekStart) : '' })}
+          {t('weeklyReview.weekRecorded', { week: weekMeta ? fmtWeekDate(weekMeta.weekStart) : '' })}
         </p>
         {form.oneActionNextWeek && (
           <div className="rounded-zx-sm bg-zx-accent-soft border border-zx-accent/20 p-4 text-left mb-6">
@@ -167,7 +176,7 @@ export default function WeeklyReview() {
       {/* Header */}
       <div className="mb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-1">
-          {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : t('reviewHub.thisWeek')}
+          {weekMeta ? `${fmtWeekDate(weekMeta.weekStart)} — ${fmtWeekDate(weekMeta.weekEnd)}` : t('reviewHub.thisWeek')}
         </p>
         <div className="flex items-center justify-between gap-4">
           <h1 className="font-zx-head text-xl font-bold text-zx-text">{t('weeklyReview.title')}</h1>

@@ -34,8 +34,9 @@ export function formatPercent(value, options = {}) {
 }
 
 export function formatDate(value) {
-  if (!value?.toDate) return '-';
-  return value.toDate().toLocaleDateString('vi-VN');
+  const date = value?.toDate ? value.toDate() : value instanceof Date ? value : null;
+  if (!date || Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleDateString('vi-VN');
 }
 
 export function fmtShort(n) {
