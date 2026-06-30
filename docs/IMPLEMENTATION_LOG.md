@@ -2,6 +2,18 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-07-01 — Fix: Weekly Review snapshot đóng băng vĩnh viễn
+
+**Root cause:** `getWeeklyReview()` đọc từ doc Firestore có ID cố định `snapshots/weekly-current`. Doc này không gắn với `weekKey` và chỉ được tạo lần đầu, không bao giờ refresh → từ tuần thứ 2 trở đi, `/review` và `/weekly-review` luôn hiển thị số liệu tuần đầu tiên bất kể đã reload.
+
+**Fix:** Xóa hoàn toàn tầng snapshot Firestore trung gian. `getWeeklyReview` giờ gọi thẳng `computeWeeklyReview()` (1 query transactions + 2 getDocs nhỏ). `sessionCache` với TTL 60s vẫn giảm tải trong phiên làm việc. `normalizeWeeklyReview` được giữ lại (serviceContracts test vẫn dùng). `refreshWeeklyReviewSnapshot` bị xóa (dead code — không nơi nào gọi).
+
+**ReviewHub.jsx:** Xóa `{canAccess('weekly_review') && ...}` thừa quanh CTA — `PrivateRoute` đã gate page trước rồi, check này luôn `true` và có thể gây flash CTA biến mất khi hook load chậm.
+
+**Files:** `weeklyReviewService.js`, `ReviewHub.jsx`
+
+---
+
 ## 2026-07-01 — SPEC Data Integrity v1: PYF tracking + service refactor + cleanup
 
 9 phần theo thứ tự:
