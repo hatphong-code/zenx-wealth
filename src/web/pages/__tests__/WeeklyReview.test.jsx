@@ -2,8 +2,9 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import WeeklyReview from '../WeeklyReview';
+import { I18nProvider } from '../../../core/i18n/I18nProvider';
 
-const mockSetDoc = vi.fn(() => Promise.resolve());
+const mockSaveWeeklyReview = vi.fn((userId, weekKey, data) => Promise.resolve(data));
 const mockDoc = vi.fn(() => ({ path: 'users/user-1/weeklyReviews/2026-06-08' }));
 const mockServerTimestamp = vi.fn(() => 'SERVER_TIMESTAMP');
 const mockTimestampFromDate = vi.fn((value) => ({ value }));
@@ -38,7 +39,7 @@ const weeklyData = {
 vi.mock('firebase/firestore/lite', () => ({
   getFirestore: vi.fn(() => ({})),
   doc: (...args) => mockDoc(...args),
-  setDoc: (...args) => mockSetDoc(...args),
+  setDoc: vi.fn(() => Promise.resolve()),
   serverTimestamp: () => mockServerTimestamp(),
   Timestamp: {
     fromDate: (value) => mockTimestampFromDate(value),
@@ -69,6 +70,7 @@ vi.mock('../../../core/services/firebaseDb', () => ({
 }));
 
 vi.mock('../../../core/services/weeklyReviewService', () => ({
+  saveWeeklyReview: (...args) => mockSaveWeeklyReview(...args),
   setWeeklyReviewCache: (...args) => mockSetWeeklyReviewCache(...args),
 }));
 
@@ -80,6 +82,21 @@ vi.mock('../../../core/services/aiCoachService', () => ({
   invalidateAICoachCache: (...args) => mockInvalidateAICoachCache(...args),
 }));
 
+vi.mock('../../../core/services/cacheCoordinator', () => ({
+  invalidateAfterWeeklyReviewWrite: (userId) => {
+    mockInvalidateReportsCache(userId);
+    mockInvalidateAICoachCache(userId);
+  },
+}));
+
+function renderWeeklyReview() {
+  return render(
+    <I18nProvider locale="vi">
+      <WeeklyReview />
+    </I18nProvider>
+  );
+}
+
 describe('WeeklyReview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -87,22 +104,34 @@ describe('WeeklyReview', () => {
 
   it('saves trimmed notes and updates local caches', async () => {
     const user = userEvent.setup();
-    render(<WeeklyReview />);
+    renderWeeklyReview();
 
-    await user.type(screen.getByLabelText('One lesson'), '  Cut delivery by half  ');
-    await user.type(screen.getByLabelText('One action next week'), '  Transfer surplus on Monday  ');
-    await user.click(screen.getByRole('button', { name: 'Save Weekly Review' }));
+    // Step 0 → Step 1
+    await user.click(screen.getByRole('button', { name: /Tiếp theo — Nhìn lại/i }));
+
+    // Step 1: type lesson
+    await user.type(screen.getByLabelText('Bài học tuần này'), '  Cut delivery by half  ');
+
+    // Step 1 → Step 2
+    await user.click(screen.getByRole('button', { name: /Tiếp — Cam kết/i }));
+
+    // Step 2: type action
+    await user.type(screen.getByLabelText('Cam kết tuần tới'), '  Transfer surplus on Monday  ');
+
+    // Save
+    await user.click(screen.getByRole('button', { name: /Hoàn thành review/i }));
 
     await waitFor(() => {
-      expect(mockSetDoc).toHaveBeenCalledTimes(1);
+      expect(mockSaveWeeklyReview).toHaveBeenCalledTimes(1);
     });
 
-    const savedPayload = mockSetDoc.mock.calls[0][1];
+    const [savedUserId, savedWeekKey, savedPayload] = mockSaveWeeklyReview.mock.calls[0];
+    expect(savedUserId).toBe('user-1');
+    expect(savedWeekKey).toBe('2026-06-08');
     expect(savedPayload.oneLesson).toBe('Cut delivery by half');
     expect(savedPayload.oneActionNextWeek).toBe('Transfer surplus on Monday');
     expect(savedPayload.weekStart).toEqual({ value: weeklyData.weekMeta.weekStart });
     expect(savedPayload.weekEnd).toEqual({ value: weeklyData.weekMeta.weekEnd });
-    expect(savedPayload.updatedAt).toBe('SERVER_TIMESTAMP');
 
     expect(mockSetData).toHaveBeenCalledWith(expect.objectContaining({
       form: {
@@ -123,6 +152,6 @@ describe('WeeklyReview', () => {
     );
     expect(mockInvalidateReportsCache).toHaveBeenCalledWith('user-1');
     expect(mockInvalidateAICoachCache).toHaveBeenCalledWith('user-1');
-    expect(screen.getByText('Weekly review saved.')).toBeInTheDocument();
+    expect(screen.getByText('Review tuần xong!')).toBeInTheDocument();
   });
 });

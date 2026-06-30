@@ -278,10 +278,11 @@ export default function WeeklyReview() {
               )}
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
+                <label htmlFor="wr-lesson" className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
                   {t('weeklyReview.lessonLabel')}
                 </label>
                 <textarea
+                  id="wr-lesson"
                   value={form.oneLesson}
                   onChange={e => updateField('oneLesson', e.target.value)}
                   rows={4}
@@ -309,10 +310,11 @@ export default function WeeklyReview() {
               </p>
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
+                <label htmlFor="wr-action" className="text-xs font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-2 block">
                   {t('weeklyReview.commitmentLabel')}
                 </label>
                 <textarea
+                  id="wr-action"
                   value={form.oneActionNextWeek}
                   onChange={e => updateField('oneActionNextWeek', e.target.value)}
                   rows={3}
