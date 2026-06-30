@@ -4,7 +4,6 @@ import {
   getDoc,
   getDocs,
   query,
-  serverTimestamp,
   setDoc,
   Timestamp,
   where,
@@ -23,14 +22,9 @@ export function getCurrentWeekMeta(now = new Date()) {
 }
 
 const WEEKLY_CACHE_TTL_MS = 60 * 1000;
-const WEEKLY_SNAPSHOT_ID = 'weekly-current';
 
 function getWeeklyReviewCacheKey(userId, weekKey) {
   return `weekly-review:${userId}:${weekKey}`;
-}
-
-function getWeeklySnapshotRef(userId) {
-  return doc(db, 'users', userId, 'snapshots', WEEKLY_SNAPSHOT_ID);
 }
 
 export function normalizeWeeklyReview(data = {}, fallbackWeekMeta) {
@@ -89,13 +83,6 @@ async function computeWeeklyReview(userId, weekMeta) {
   };
 }
 
-async function persistWeeklySnapshot(userId, value) {
-  await setDoc(getWeeklySnapshotRef(userId), {
-    ...value,
-    updatedAt: serverTimestamp(),
-  }, { merge: true });
-}
-
 export function getCachedWeeklyReview(userId, weekKey) {
   return getCachedValue(getWeeklyReviewCacheKey(userId, weekKey), WEEKLY_CACHE_TTL_MS);
 }
@@ -105,16 +92,7 @@ export function getWeeklyReview(userId, weekMeta, { forceFresh = false } = {}) {
     key: getWeeklyReviewCacheKey(userId, weekMeta.weekKey),
     maxAgeMs: WEEKLY_CACHE_TTL_MS,
     forceFresh,
-    loader: async () => {
-      const snapshot = await getDoc(getWeeklySnapshotRef(userId));
-      if (snapshot.exists()) {
-        return normalizeWeeklyReview(snapshot.data(), weekMeta);
-      }
-
-      const computed = await computeWeeklyReview(userId, weekMeta);
-      await persistWeeklySnapshot(userId, computed);
-      return computed;
-    },
+    loader: () => computeWeeklyReview(userId, weekMeta),
   });
 }
 
@@ -124,13 +102,6 @@ export function setWeeklyReviewCache(userId, weekKey, value) {
 
 export function invalidateWeeklyReviewCache(userId, weekKey) {
   removeCachedValue(getWeeklyReviewCacheKey(userId, weekKey));
-}
-
-export async function refreshWeeklyReviewSnapshot(userId, weekMeta = getCurrentWeekMeta()) {
-  const value = await computeWeeklyReview(userId, weekMeta);
-  await persistWeeklySnapshot(userId, value);
-  setWeeklyReviewCache(userId, weekMeta.weekKey, value);
-  return value;
 }
 
 // Write operations

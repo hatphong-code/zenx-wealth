@@ -154,13 +154,11 @@ export default function ReviewHub() {
               <p className="text-sm text-zx-text-soft leading-relaxed mb-4">
                 {t('reviewHub.hint')}
               </p>
-              {canAccess('weekly_review') && (
-                <Link to="/weekly-review"
-                  className="flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent px-4 py-3 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
-                  <ClipboardCheck className="h-4 w-4" />
-                  {t('reviewHub.startReview')}
-                </Link>
-              )}
+              <Link to="/weekly-review"
+                className="flex items-center justify-center gap-2 rounded-zx-sm bg-zx-accent px-4 py-3 text-sm font-semibold text-zx-on-accent hover:opacity-90 transition">
+                <ClipboardCheck className="h-4 w-4" />
+                {t('reviewHub.startReview')}
+              </Link>
             </section>
           )}
         </div>
