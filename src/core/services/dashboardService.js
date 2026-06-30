@@ -27,12 +27,15 @@ export function normalizeDashboardStats(data = {}) {
     payYourselfProgress: data.payYourselfProgress || 0,
     payYourselfSaved: data.payYourselfSaved || 0,
     payYourselfTarget: data.payYourselfTarget || 0,
-    bucketActuals: data.bucketActuals || {
-      emergencyFund: 0,
-      longTermAsset: 0,
-      businessLearning: 0,
-      highRiskTrading: 0,
-    },
+    bucketActuals: data.bucketActuals
+      ? { debtRepayment: 0, ...data.bucketActuals }
+      : {
+          emergencyFund: 0,
+          longTermAsset: 0,
+          businessLearning: 0,
+          highRiskTrading: 0,
+          debtRepayment: 0,
+        },
     currency: data.currency || 'VND',
   };
 }

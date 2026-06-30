@@ -17,6 +17,8 @@ import {
   updatePlanActiveScenario,
   updateSavingsPlan,
 } from '../../core/services/savingsPlanService';
+import { upsertSavingsTransferTx } from '../../core/services/transactionService';
+import { invalidateAfterTransactionWrite } from '../../core/services/cacheCoordinator';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { formatMoney, fmtShort } from '../../core/utils/formatters';
 import {
@@ -1196,6 +1198,15 @@ export default function SavingsEscalatorPlan() {
       setPlan(prev => ({ ...prev, activeScenario: data }));
     } else {
       await addMonthlyCheckin(user.uid, planId, monthKey, data);
+      if (data.actualAmount > 0) {
+        await upsertSavingsTransferTx(user.uid, planId, monthKey, {
+          amount: data.actualAmount,
+          bucket: plan.bucket || 'longTermAsset',
+          planName: plan.name,
+          currency: plan.params?.currency || 'VND',
+        });
+        invalidateAfterTransactionWrite(user.uid);
+      }
       setCheckins(prev => ({ ...prev, [monthKey]: { ...data, checkedAt: new Date() } }));
     }
   }

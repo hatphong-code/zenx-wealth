@@ -200,6 +200,17 @@ export default function App() {
         <Route path="/savings-escalator/plan/:planId" element={routeElement(<PrivateRoute featureKey="savings_escalator"><SavingsEscalatorPlan /></PrivateRoute>)} />
         <Route path="/financial-base" element={routeElement(<PrivateRoute><FinancialBase /></PrivateRoute>)} />
         <Route path="/upgrade" element={routeElement(<PrivateRoute featureKey="dashboard"><Upgrade /></PrivateRoute>)} />
+        <Route path="*" element={
+          routeElement(
+            <div className="min-h-screen bg-zx-bg p-4 text-zx-text md:p-6 flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-xs font-medium uppercase tracking-[0.24em] text-zx-text-soft mb-3">404</p>
+                <h1 className="text-2xl font-semibold mb-3">Trang không tồn tại</h1>
+                <a href="/" className="text-sm text-zx-accent hover:underline">← Về trang chủ</a>
+              </div>
+            </div>
+          )
+        } />
       </Routes>
     </BrowserRouter>
   );

@@ -1,23 +1,19 @@
 ﻿import { useMemo, useState } from 'react';
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  serverTimestamp,
-  Timestamp,
-  updateDoc,
-} from 'firebase/firestore/lite';
+import { Timestamp } from 'firebase/firestore/lite';
 import { useAuth } from '../../core/auth/useAuth';
 import { Pencil, Plus, Shield, Trash2 } from 'lucide-react';
 import { Button } from '../../core/../web/components/ui/button';
 import { Input } from '../../core/../web/components/ui/Input';
 import ConfirmDialog from '../components/ConfirmDialog';
 import NumericInput from '../components/ui/NumericInput';
-import { db } from '../../core/services/firebaseDb';
 import { formatDate, formatMoney, formatNumber } from '../../core/utils/formatters';
-import { invalidateDashboardStatsCache } from '../../core/services/dashboardService';
-import { setEmergencyFundCache } from '../../core/services/emergencyFundService';
+import {
+  createEmergencyFundRecord,
+  updateEmergencyFundRecord,
+  deleteEmergencyFundRecord,
+  setEmergencyFundCache,
+} from '../../core/services/emergencyFundService';
+import { invalidateAfterEmergencyFundWrite } from '../../core/services/cacheCoordinator';
 import { invalidateReportsCache } from '../../core/services/reportsService';
 import { useEmergencyFundData } from '../../core/hooks/useEmergencyFundData';
 import { getCurrentWeekMeta, invalidateWeeklyReviewCache } from '../../core/services/weeklyReviewService';
@@ -72,18 +68,18 @@ export default function EmergencyFund() {
         currency: settings.currency,
         date: Timestamp.fromDate(new Date(`${form.date}T00:00:00`)),
         note: form.note.trim(),
-        updatedAt: serverTimestamp(),
       };
       let nextData;
       if (editingId) {
-        await updateDoc(doc(db, 'users', user.uid, 'emergencyFund', editingId), nextRecord);
+        await updateEmergencyFundRecord(user.uid, editingId, nextRecord);
         nextData = { ...data, records: records.map((r) => (r.id === editingId ? { ...r, ...nextRecord } : r)) };
       } else {
-        const ref = await addDoc(collection(db, 'users', user.uid, 'emergencyFund'), { ...nextRecord, createdAt: serverTimestamp() });
-        nextData = { ...data, records: [{ id: ref.id, amount, currency: settings.currency, date: Timestamp.fromDate(new Date(`${form.date}T00:00:00`)), note: form.note.trim() }, ...records] };
+        const created = await createEmergencyFundRecord(user.uid, nextRecord);
+        nextData = { ...data, records: [created, ...records] };
       }
       setData(nextData); setEmergencyFundCache(user.uid, nextData);
-      invalidateDashboardStatsCache(user.uid); invalidateReportsCache(user.uid);
+      invalidateAfterEmergencyFundWrite(user.uid);
+      invalidateReportsCache(user.uid);
       invalidateAICoachCache(user.uid);
       const weekMeta = getCurrentWeekMeta();
       invalidateWeeklyReviewCache(user.uid, weekMeta.weekKey);
@@ -96,10 +92,11 @@ export default function EmergencyFund() {
   const handleDelete = async (recordId) => {
     if (!user) return;
     try {
-      await deleteDoc(doc(db, 'users', user.uid, 'emergencyFund', recordId));
+      await deleteEmergencyFundRecord(user.uid, recordId);
       const nextData = { ...data, records: records.filter((r) => r.id !== recordId) };
       setData(nextData); setEmergencyFundCache(user.uid, nextData);
-      invalidateDashboardStatsCache(user.uid); invalidateReportsCache(user.uid);
+      invalidateAfterEmergencyFundWrite(user.uid);
+      invalidateReportsCache(user.uid);
       invalidateAICoachCache(user.uid);
       const weekMeta = getCurrentWeekMeta();
       invalidateWeeklyReviewCache(user.uid, weekMeta.weekKey);

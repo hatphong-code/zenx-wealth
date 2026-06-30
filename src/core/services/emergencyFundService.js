@@ -1,4 +1,4 @@
-import { addDoc, collection, getDocs, orderBy, query, serverTimestamp } from 'firebase/firestore/lite';
+import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore/lite';
 import { db } from './firebaseDb';
 import { getCachedValue, loadWithCache, removeCachedValue, setCachedValue } from './sessionCache';
 import { getUserProfile } from './userService';
@@ -57,4 +57,17 @@ export async function createEmergencyFundRecord(userId, data) {
   );
   invalidateEmergencyFundCache(userId);
   return { id: docRef.id, ...data };
+}
+
+export async function updateEmergencyFundRecord(userId, recordId, data) {
+  await updateDoc(
+    doc(db, 'users', userId, 'emergencyFund', recordId),
+    { ...data, updatedAt: serverTimestamp() }
+  );
+  invalidateEmergencyFundCache(userId);
+}
+
+export async function deleteEmergencyFundRecord(userId, recordId) {
+  await deleteDoc(doc(db, 'users', userId, 'emergencyFund', recordId));
+  invalidateEmergencyFundCache(userId);
 }

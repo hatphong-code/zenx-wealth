@@ -23,6 +23,7 @@ describe('service contracts', () => {
         longTermAsset: 0,
         businessLearning: 0,
         highRiskTrading: 0,
+        debtRepayment: 0,
       },
       currency: 'VND',
     });

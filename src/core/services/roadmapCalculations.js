@@ -26,7 +26,14 @@ export function computeRoadmapSignals({ profile, dashboard, debtsState, incomeSt
     accounts_separated: assetAccounts >= 2,
     emergency_1m: emergencyMonths >= 1,
     emergency_3m: emergencyMonths >= 3,
-    auto_investing_started: savingsPlans.filter(p => (p.status ?? 'active') === 'active').length > 0,
+    auto_investing_started: savingsPlans.some(p => {
+      if ((p.status ?? 'active') !== 'active') return false;
+      if (!p.executionStartDate) return false;
+      const [y, m] = p.executionStartDate.split('-').map(Number);
+      const start = new Date(y, m - 1, 1);
+      const now = new Date();
+      return now >= start && (now.getFullYear() > y || now.getMonth() + 1 > m);
+    }),
     first_side_income: incomeSources >= 1,
     emergency_6m: emergencyMonths >= 6,
     savings_rate_30: savingsRatePct >= 1,

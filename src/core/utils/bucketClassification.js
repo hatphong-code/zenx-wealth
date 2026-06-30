@@ -1,4 +1,4 @@
-export const BUCKET_KEYS = ['emergencyFund', 'longTermAsset', 'businessLearning', 'highRiskTrading'];
+export const BUCKET_KEYS = ['emergencyFund', 'longTermAsset', 'businessLearning', 'highRiskTrading', 'debtRepayment'];
 
 const BUCKET_KEYWORDS = {
   emergencyFund: ['quỹ dự phòng', 'dự phòng', 'emergency fund', 'emergency'],
@@ -8,6 +8,7 @@ const BUCKET_KEYWORDS = {
   ],
   businessLearning: ['học tập kinh doanh', 'khoá học', 'khóa học', 'phát triển bản thân', 'kinh doanh', 'học phí kinh doanh'],
   highRiskTrading: ['trading', 'coin', 'crypto', 'forex', 'đầu tư rủi ro', 'lướt sóng'],
+  debtRepayment: ['trả nợ', 'nợ', 'debt', 'loan repayment', 'trả góp'],
 };
 
 export function suggestBucket(category = '') {
@@ -23,4 +24,5 @@ export const BUCKET_LABELS_VI = {
   longTermAsset: 'Tích lũy / Đầu tư dài hạn',
   businessLearning: 'Học tập / Kinh doanh',
   highRiskTrading: 'Đầu tư rủi ro cao',
+  debtRepayment: 'Trả nợ',
 };

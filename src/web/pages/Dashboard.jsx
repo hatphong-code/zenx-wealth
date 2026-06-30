@@ -12,7 +12,8 @@ import { useTransactionsData } from '../../core/hooks/useTransactionsData';
 import { formatNumber } from '../../core/utils/formatters';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import DailyQuoteCard from '../components/DailyQuoteCard';
-import { listSavingsPlans, getMonthlyCheckins, getCurrentPlanMonthIdx, addMonthsToKey, getMonthsElapsed } from '../../core/services/savingsPlanService';
+import { getMonthlyCheckins, getCurrentPlanMonthIdx, addMonthsToKey, getMonthsElapsed } from '../../core/services/savingsPlanService';
+import { useSavingsPlansData } from '../../core/hooks/useSavingsPlansData';
 import { buildGrowingContributionSeries } from '../../core/services/financialCalculations';
 import { getSavingsSchedule, getUpcomingMaturities, daysUntil } from '../../core/services/savingsScheduleService';
 
@@ -539,23 +540,26 @@ export default function Dashboard() {
     ...(!isPremium ? [{ to: '/upgrade', labelKey: 'dashboard.actions.upgrade', featureKey: 'dashboard' }] : []),
   ].filter(a => canAccess(a.featureKey));
 
-  const [savingsData, setSavingsData] = useState(null);
+  const { data: plansHookData } = useSavingsPlansData(isPremium ? user?.uid : null);
+  const [savingsExtras, setSavingsExtras] = useState(null);
   useEffect(() => {
-    if (!isPremium || !user?.uid) return;
+    const activePlans = plansHookData?.activePlans || [];
+    if (!isPremium || !user?.uid || !activePlans.length) return;
     let cancelled = false;
     (async () => {
-      const allPlans = await listSavingsPlans(user.uid);
-      const activePlans = allPlans.filter(p => (p.status ?? 'active') === 'active');
       const [checkinResults, books] = await Promise.all([
         Promise.all(activePlans.map(p => getMonthlyCheckins(user.uid, p.id))),
         getSavingsSchedule(user.uid),
       ]);
       const checkinsByPlanId = {};
       activePlans.forEach((p, i) => { checkinsByPlanId[p.id] = checkinResults[i]; });
-      if (!cancelled) setSavingsData({ plans: activePlans, checkinsByPlanId, books });
+      if (!cancelled) setSavingsExtras({ checkinsByPlanId, books });
     })();
     return () => { cancelled = true; };
-  }, [user?.uid, isPremium]);
+  }, [plansHookData, user?.uid, isPremium]);
+  const savingsData = plansHookData && savingsExtras
+    ? { plans: plansHookData.activePlans, checkinsByPlanId: savingsExtras.checkinsByPlanId, books: savingsExtras.books }
+    : null;
 
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">

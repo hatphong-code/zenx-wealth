@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, serverTimestamp, Timestamp, updateDoc, where, writeBatch } from 'firebase/firestore/lite';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, orderBy, query, serverTimestamp, setDoc, Timestamp, updateDoc, where, writeBatch } from 'firebase/firestore/lite';
 import { db } from './firebaseDb';
 import { getCachedValue, loadWithCache, removeCachedValue, setCachedValue } from './sessionCache';
 import { getUserProfile } from './userService';
@@ -168,4 +168,27 @@ export async function deleteTransaction(userId, id) {
       timestamp: Date.now(),
     });
   }
+}
+
+export async function upsertSavingsTransferTx(userId, planId, monthKey, { amount, bucket, planName, currency = 'VND' }) {
+  if (!amount || amount <= 0) return;
+  const txId = `savings_${planId}_${monthKey}`;
+  await setDoc(
+    doc(db, 'users', userId, 'transactions', txId),
+    {
+      type: 'transfer',
+      bucket: bucket || 'longTermAsset',
+      amount: Number(amount),
+      currency,
+      date: Timestamp.fromDate(new Date(`${monthKey}-01T00:00:00`)),
+      note: `${planName || 'Savings Plan'} — ${monthKey}`,
+      category: 'Tích lũy / Đầu tư dài hạn',
+      isLatteFactor: false,
+      savingsPlanId: planId,
+      savingsPlanMonthKey: monthKey,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: false }
+  );
+  invalidateTransactionsCache(userId);
 }

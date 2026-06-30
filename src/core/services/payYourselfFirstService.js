@@ -1,6 +1,7 @@
 import { getCachedValue, loadWithCache, removeCachedValue, setCachedValue } from './sessionCache';
 import { getCachedDashboardStats, getDashboardStats, invalidateDashboardStatsCache } from './dashboardService';
 import { getUserProfile, setUserProfileCache } from './userService';
+import { getEmergencyFund } from './emergencyFundService';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore/lite';
 import { db } from './firebaseDb';
 
@@ -38,9 +39,10 @@ function buildAllocations(totalIncome, allocationRule, bucketActuals = {}) {
 }
 
 async function fetchPayYourselfFirst(userId) {
-  const [profile, dashboard] = await Promise.all([
+  const [profile, dashboard, efData] = await Promise.all([
     getUserProfile(userId),
     getDashboardStats(userId),
+    getEmergencyFund(userId),
   ]);
 
   const allocationRule = normalizeAllocationRule(profile.settings?.allocationRule);
@@ -48,6 +50,22 @@ async function fetchPayYourselfFirst(userId) {
   const totalIncome = payYourselfFirstRate > 0
     ? Number(dashboard.payYourselfTarget || 0) / payYourselfFirstRate
     : 0;
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const efActualThisMonth = (efData.records || [])
+    .filter(r => {
+      const d = r.date?.toDate ? r.date.toDate() : new Date(r.date);
+      return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+    })
+    .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+
+  const bucketActuals = {
+    ...dashboard.bucketActuals,
+    emergencyFund: efActualThisMonth,
+  };
+
   const done = Number(dashboard.payYourselfSaved || 0);
   const required = Number(dashboard.payYourselfTarget || 0);
 
@@ -55,13 +73,14 @@ async function fetchPayYourselfFirst(userId) {
     currency: dashboard.currency || profile.settings?.currency || 'VND',
     allocationRule,
     totalIncome,
-    allocations: buildAllocations(totalIncome, allocationRule, dashboard.bucketActuals),
+    allocations: buildAllocations(totalIncome, allocationRule, bucketActuals),
     status: {
       required,
       done,
       remaining: Math.max(0, required - done),
       progress: required > 0 ? Math.max(0, Math.min(100, Math.round((done / required) * 100))) : 0,
     },
+    efActualThisMonth,
   };
 }
 

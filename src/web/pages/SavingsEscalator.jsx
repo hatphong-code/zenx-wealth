@@ -1016,9 +1016,9 @@ export default function SavingsEscalator() {
                     setPlanCheckLoading(true);
                     try {
                       const pyfData = await getPayYourselfFirst(user.uid);
-                      const bucketTarget = (pyfData?.allocations || []).find(a => a.key === 'longTermAsset')?.amount || 0;
+                      const bucketTarget = (pyfData?.allocations || []).find(a => a.key === savePlanBucket)?.amount || 0;
                       const check = await checkCanCreatePlan(user.uid, Number(form.annualRatePct), {
-                        bucket: 'longTermAsset',
+                        bucket: savePlanBucket,
                         newPlanMonthly: Number(form.startMonthly || 0),
                         bucketTargetAmount: bucketTarget,
                       });

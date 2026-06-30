@@ -50,6 +50,7 @@ describe('financialCalculations', () => {
       longTermAsset: 0,
       businessLearning: 0,
       highRiskTrading: 0,
+      debtRepayment: 0,
     });
   });
 
