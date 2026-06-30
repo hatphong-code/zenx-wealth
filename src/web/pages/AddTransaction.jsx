@@ -159,9 +159,7 @@ export default function AddTransaction() {
         }
       }
 
-      console.log('[AddTransaction] Online status:', navigator.onLine);
       const result = await createTransaction(user.uid, payload);
-      console.log('[AddTransaction] Transaction result:', result);
       invalidateAfterTransactionWrite(user.uid, getCurrentWeekMeta().weekKey);
 
       // Append to panel immediately (no extra fetch needed)
@@ -214,8 +212,14 @@ export default function AddTransaction() {
   const defaultIncomeCategories = t('addTransaction.incomeCategories');
   const allCategories = form.type === 'expense'
     ? [...new Set([...customCategories.expense, ...defaultExpenseCategories])]
-    : [...new Set([...customCategories.income, ...defaultIncomeCategories])];
-  const chipCategories = form.type === 'expense' ? defaultExpenseCategories : defaultIncomeCategories;
+    : form.type === 'income'
+      ? [...new Set([...customCategories.income, ...defaultIncomeCategories])]
+      : [];
+  const chipCategories = form.type === 'expense'
+    ? defaultExpenseCategories
+    : form.type === 'income'
+      ? defaultIncomeCategories
+      : [];
 
   const filteredNoteSuggestions = useMemo(() => {
     if (!noteInputFocused || noteSuggestions.length === 0) return [];
