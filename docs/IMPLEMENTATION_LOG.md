@@ -2,6 +2,18 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-07-01 — Feat: Review Streak + Review Journal (/review/history)
+
+**Phần A — Review Streak:** `reviewStreakService.js` (pure `computeReviewStreak()` với quy tắc 1 freeze/tháng, TTL 5 phút), `useReviewStreak.js` hook, `StreakBadge.jsx` component (renders null khi streak=0). Tích hợp vào `ReviewHub.jsx` (cạnh khoảng ngày tuần) và `Dashboard.jsx` (cạnh greeting). `cacheCoordinator.js`: `invalidateAfterWeeklyReviewWrite` giờ clear thêm streak cache.
+
+**Phần B — Review Journal:** `listWeeklyReviews()` cursor-based pagination (page=12) trong `weeklyReviewService.js`. Trang mới `ReviewHistory.jsx` (read-only, mới nhất → cũ nhất, load-more). Route `/review/history` gate bởi `weekly_review`. Tile "Lịch sử review" thêm vào right panel của `ReviewHub.jsx`.
+
+**Phần C — i18n:** `streakWeeks`, `historyLabel`, `historySub`, block `reviewHistory` (vi + en).
+
+**Files:** `reviewStreakService.js` (mới), `useReviewStreak.js` (mới), `StreakBadge.jsx` (mới), `ReviewHistory.jsx` (mới), `weeklyReviewService.js`, `cacheCoordinator.js`, `ReviewHub.jsx`, `Dashboard.jsx`, `App.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-07-01 — Fix: WeeklyReview Step 3 lỗi "e.getTime is not a function"
 
 **Root cause:** `sessionCache` serialize object qua `JSON.stringify` → `Date` objects trong `weekMeta.weekStart/End` trở thành ISO string. Khi đọc từ cache, `Timestamp.fromDate(isoString)` gọi `isoString.getTime()` → TypeError. Hiển thị ngày cũng bị ảnh hưởng: `formatDate(weekMeta.weekStart)` trả `'-'` với string.
