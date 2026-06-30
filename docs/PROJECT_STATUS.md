@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-06-29 (v3.21 — Plan nav consolidation: "Nền tài chính" tab container)
+Last updated: 2026-07-01 (v3.22 — Data integrity: PYF tracking, EF service refactor, debtRepayment bucket, 404 route)
 
 ## Current Phase
 

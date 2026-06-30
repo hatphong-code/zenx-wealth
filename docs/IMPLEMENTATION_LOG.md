@@ -2,6 +2,25 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-07-01 — SPEC Data Integrity v1: PYF tracking + service refactor + cleanup
+
+9 phần theo thứ tự:
+- **Phần 1** — `bucketClassification.js`: thêm `debtRepayment` vào BUCKET_KEYS, BUCKET_LABELS_VI, BUCKET_KEYWORDS
+- **Phần 2** — `transactionService.js`: thêm `upsertSavingsTransferTx()` (setDoc với deterministic ID `savings_{planId}_{monthKey}`); `SavingsEscalatorPlan.jsx`: gọi hàm này trong `handleCheckin` để PYF bucket actuals hoạt động
+- **Phần 3** — `emergencyFundService.js`: thêm `updateEmergencyFundRecord` + `deleteEmergencyFundRecord`; `EmergencyFund.jsx`: xóa direct Firebase imports, dùng service layer; `payYourselfFirstService.js`: fetch EF records để tính `emergencyFund` actual từ tháng hiện tại
+- **Phần 4** — `SavingsEscalator.jsx`: fix hardcoded `'longTermAsset'` → dùng `savePlanBucket` khi gọi `checkCanCreatePlan`
+- **Phần 5** — Đã xong từ trước (dynamic import xlsx)
+- **Phần 6** — Tạo `src/core/hooks/useSavingsPlansData.js` (createDataHook factory); Dashboard.jsx dùng hook thay direct service call
+- **Phần 7** — `roadmapCalculations.js`: `auto_investing_started` dùng `executionStartDate` check (plan active ≥1 tháng) thay vì chỉ kiểm tra plan có tồn tại
+- **Phần 8** — `App.jsx`: thêm `<Route path="*">` 404 page
+- **Phần 9** — `npm uninstall zustand react-use-gesture` (không dùng)
+- **dashboardService.js**: `bucketActuals` default thêm `debtRepayment: 0`; merge pattern để không mất key cũ
+- **Tests**: cập nhật `calculations.test.js` + `serviceContracts.test.js` cho 5-key bucketActuals
+
+**Files:** `bucketClassification.js`, `transactionService.js`, `SavingsEscalatorPlan.jsx`, `emergencyFundService.js`, `EmergencyFund.jsx`, `payYourselfFirstService.js`, `SavingsEscalator.jsx`, `useSavingsPlansData.js`, `Dashboard.jsx`, `roadmapCalculations.js`, `App.jsx`, `dashboardService.js`, test files
+
+---
+
 ## 2026-06-30 — Bugfixes: hooks violation, layout width, bucketActuals snapshot
 
 - **AddTransaction.jsx** — fix React Error #310: `if (loading) return` nằm trước `useMemo` → vi phạm Rules of Hooks khi `loading` chuyển trạng thái. Di chuyển early return xuống sau tất cả hook/derived values.
