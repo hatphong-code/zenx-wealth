@@ -2,6 +2,16 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-07-01 — Fix: WeeklyReview Step 3 lỗi "e.getTime is not a function"
+
+**Root cause:** `sessionCache` serialize object qua `JSON.stringify` → `Date` objects trong `weekMeta.weekStart/End` trở thành ISO string. Khi đọc từ cache, `Timestamp.fromDate(isoString)` gọi `isoString.getTime()` → TypeError. Hiển thị ngày cũng bị ảnh hưởng: `formatDate(weekMeta.weekStart)` trả `'-'` với string.
+
+**Fix:** Thêm `toDate(v)` helper trong `WeeklyReview.jsx` (normalize Date/string/Timestamp) và wrap tất cả `Timestamp.fromDate(weekMeta.weekStart/End)` bằng `toDate()`. Thêm `fmtWeekDate()` cho display. Extend `formatDate()` trong `formatters.js` để nhận ISO string qua `new Date(value)` — cũng fix `ReviewHub.jsx` và `AddTransaction.jsx` hiện "-" cho plain Date.
+
+**Files:** `WeeklyReview.jsx`, `formatters.js`
+
+---
+
 ## 2026-07-01 — Fix: Weekly Review snapshot đóng băng vĩnh viễn
 
 **Root cause:** `getWeeklyReview()` đọc từ doc Firestore có ID cố định `snapshots/weekly-current`. Doc này không gắn với `weekKey` và chỉ được tạo lần đầu, không bao giờ refresh → từ tuần thứ 2 trở đi, `/review` và `/weekly-review` luôn hiển thị số liệu tuần đầu tiên bất kể đã reload.
