@@ -863,6 +863,7 @@ export default {
     reportsLabel: 'Reports',
     aiCoachLabel: 'AI Coach',
     last5Weeks: 'Last 5 weeks',
+    pageTitle: 'Weekly Review',
     streakWeeks: '{count}-week streak',
     historyLabel: 'Review history',
     historySub: 'See past weeks',

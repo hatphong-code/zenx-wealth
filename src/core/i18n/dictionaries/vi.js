@@ -875,6 +875,7 @@ export default {
     reportsLabel: 'Báo cáo',
     aiCoachLabel: 'Trợ lý AI',
     last5Weeks: '5 tuần gần nhất',
+    pageTitle: 'Review tuần',
     streakWeeks: '{count} tuần liên tiếp',
     historyLabel: 'Lịch sử review',
     historySub: 'Xem lại các tuần trước',

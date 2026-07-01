@@ -80,10 +80,11 @@ export default function ReviewHub() {
         {/* ── LEFT: Score + Stats + Lesson/Commitment ── */}
         <div>
           <section className="pb-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft mb-1">
+              {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : t('reviewHub.thisWeek')}
+            </p>
             <div className="flex items-center justify-between gap-2 mb-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zx-text-soft">
-                {weekMeta ? `${formatDate(weekMeta.weekStart)} — ${formatDate(weekMeta.weekEnd)}` : t('reviewHub.thisWeek')}
-              </p>
+              <h1 className="font-zx-head text-xl font-bold text-zx-text">{t('reviewHub.pageTitle')}</h1>
               <StreakBadge streak={streakData.streak} size="sm" />
             </div>
 
