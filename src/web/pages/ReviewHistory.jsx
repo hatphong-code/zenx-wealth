@@ -47,7 +47,7 @@ export default function ReviewHistory() {
   const reviewed = items.filter((item) => item.oneLesson || item.oneActionNextWeek);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 pb-24 md:pb-8">
+    <div className="max-w-6xl mx-auto px-4 py-6 pb-24 md:pb-8">
       <Link to="/review" className="inline-flex items-center gap-1.5 text-sm text-zx-text-soft hover:text-zx-accent transition mb-6">
         <ArrowLeft className="h-4 w-4" /> {t('reviewHistory.back')}
       </Link>

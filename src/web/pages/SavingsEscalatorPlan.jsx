@@ -1213,7 +1213,7 @@ export default function SavingsEscalatorPlan() {
 
   if (loading) {
     return (
-      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+      <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
         <p className="text-sm text-zx-text-soft">{t('common.loading')}</p>
       </main>
     );
@@ -1221,7 +1221,7 @@ export default function SavingsEscalatorPlan() {
 
   if (!plan) {
     return (
-      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+      <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
         <p className="text-sm text-zx-text-soft">{t('savingsEscalator.plan.notFound')}</p>
       </main>
     );
@@ -1245,7 +1245,7 @@ export default function SavingsEscalatorPlan() {
   };
 
   return (
-    <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
+    <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
 
       {/* Back */}
       <button

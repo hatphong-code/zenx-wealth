@@ -90,7 +90,7 @@ export default function HealthScore() {
   const gradeDesc = t(`healthScore.gradeDescriptions.${scoreData.grade}`, {}, '');
 
   return (
-    <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
+    <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
       <div className="space-y-1">
         <div className="inline-flex items-center gap-2 rounded-full border border-zx-line px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-text-soft">
           <Activity className="h-3.5 w-3.5" />

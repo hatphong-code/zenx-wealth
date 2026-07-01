@@ -565,7 +565,7 @@ export default function Dashboard() {
     : null;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+    <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
       <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-10 lg:items-start">
         <div className="space-y-0">
 

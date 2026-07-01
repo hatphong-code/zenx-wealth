@@ -410,7 +410,7 @@ export function MyPage() {
 
 ### Styling
 - Mobile-first: viết style mặc định cho mobile, thêm `md:` / `lg:` / `xl:` cho desktop
-- Container chuẩn: `max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8`
+- Container chuẩn: `max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8`
 - `pb-24 md:pb-8`: pb-24 cho mobile (tránh bottom tabs), pb-8 cho desktop
 
 ---
@@ -466,9 +466,7 @@ Theo `docs/PROJECT_STATUS.md` (v2.1):
 
 | Trang | Max-width |
 |-------|-----------|
-| Hub pages, forms chuẩn | `max-w-5xl` |
-| Data-heavy (Assets, TradingRisk, BudgetTemplates) | `max-w-6xl` |
-| Reports, AI Coach | `max-w-7xl` |
+| Tất cả pages (trừ Login) | `max-w-6xl` |
 
 **2-column desktop pattern** (`lg:grid`):
 - TrackHub: cashflow + latte trái / recurring + recent + actions phải

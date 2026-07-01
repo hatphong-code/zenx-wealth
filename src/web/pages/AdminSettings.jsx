@@ -609,7 +609,7 @@ export default function AdminSettings() {
 
   if (!isAdmin) {
     return (
-      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6">
+      <main className="max-w-6xl mx-auto px-4 md:px-8 py-6">
         <p className="text-zx-text-soft">{t('adminAccess.noAccessBody')}</p>
       </main>
     );
@@ -621,7 +621,7 @@ export default function AdminSettings() {
   };
 
   return (
-    <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+    <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-9 h-9 rounded-zx-sm bg-zx-icon-bg flex items-center justify-center" style={{ color: 'var(--zx-accent)' }}>

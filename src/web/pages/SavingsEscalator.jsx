@@ -425,7 +425,7 @@ export default function SavingsEscalator() {
   const visibleRows = showFullTable ? tableRows : tableRows.slice(0, 11);
 
   return (
-    <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-8">
+    <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-8">
 
       {/* Header */}
       <div>

@@ -60,7 +60,7 @@ export default function AICoach() {
   };
 
   return (
-      <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
+      <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
         <section className="rounded-zx border border-zx-line bg-zx-hero px-5 py-4 md:px-6 md:py-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3 min-w-0">

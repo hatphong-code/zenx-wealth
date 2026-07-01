@@ -112,7 +112,7 @@ export default function Reports() {
   ];
 
   return (
-      <main className="mx-auto max-w-7xl space-y-6 p-4 pb-24 md:p-6">
+      <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
         <section className="pb-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-lg border border-zx-line bg-zx-surface px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-text-soft">

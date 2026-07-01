@@ -82,7 +82,7 @@ export default function Upgrade() {
   const ungroupedKeys = templates.premium.features.filter(k => !groupedKeys.has(k));
 
   return (
-    <main className="mx-auto max-w-5xl px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-8">
+    <main className="mx-auto max-w-6xl px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-8">
       {/* Header */}
       <div className="space-y-2">
         <div className="inline-flex items-center gap-2 rounded-full border border-zx-gold/40 bg-amber-950/30 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-gold">

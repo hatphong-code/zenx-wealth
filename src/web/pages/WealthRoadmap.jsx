@@ -65,7 +65,7 @@ export default function WealthRoadmap() {
   };
 
   return (
-      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
+      <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8">
         <section className="pb-6">
           <div className="space-y-3">
             <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('roadmap.title')}</h1>

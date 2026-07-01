@@ -234,7 +234,7 @@ export default function AddTransaction() {
   const panelExpense = panelTxs.filter(tx => tx.type === 'expense').reduce((s, tx) => s + Number(tx.amount), 0);
 
   if (loading) return (
-    <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-8 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 py-6 pb-24 md:pb-8 space-y-6">
       <Skeleton className="h-7 w-48" />
       <Skeleton className="h-11 w-full" />
       <Skeleton className="h-11 w-full" />
@@ -244,7 +244,7 @@ export default function AddTransaction() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-8">
+    <div className="max-w-6xl mx-auto px-4 py-6 pb-24 md:pb-8">
       <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-x-12 lg:items-start">
 
         {/* ── LEFT: Form ── */}

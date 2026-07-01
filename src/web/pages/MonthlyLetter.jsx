@@ -75,7 +75,7 @@ export default function MonthlyLetter() {
   };
 
   return (
-    <main className="mx-auto max-w-5xl px-4 md:px-8 py-6 pb-24 md:pb-8">
+    <main className="mx-auto max-w-6xl px-4 md:px-8 py-6 pb-24 md:pb-8">
       <div className="space-y-2 mb-6">
         <h1 className="font-zx-head text-2xl font-bold text-zx-text">
           {letter?.month ? t('monthlyLetter.monthTitle', { month: letter.month }) : t('monthlyLetter.title')}

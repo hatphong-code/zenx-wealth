@@ -74,7 +74,7 @@ export default function ReviewHub() {
   const savingsRatePct = Math.round((review.savingsRate || 0) * 100);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-8">
+    <div className="max-w-6xl mx-auto px-4 py-6 pb-24 md:pb-8">
       <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-x-12 lg:items-start">
 
         {/* ── LEFT: Score + Stats + Lesson/Commitment ── */}

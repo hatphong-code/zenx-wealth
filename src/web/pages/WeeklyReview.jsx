@@ -144,7 +144,7 @@ export default function WeeklyReview() {
   // Done/success screen
   if (done) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-12 pb-24 text-center">
+      <div className="max-w-6xl mx-auto px-4 py-12 pb-24 text-center">
         <div className="text-4xl mb-4">✦</div>
         <h1 className="font-zx-head text-2xl font-bold text-zx-positive mb-2">{t('weeklyReview.complete')}</h1>
         <p className="text-sm text-zx-text-soft mb-6">
@@ -174,7 +174,7 @@ export default function WeeklyReview() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 pb-24 md:pb-8">
+    <div className="max-w-6xl mx-auto px-4 py-6 pb-24 md:pb-8">
 
       {/* Header */}
       <div className="mb-6">
