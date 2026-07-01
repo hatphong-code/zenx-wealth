@@ -17,7 +17,7 @@ export default function LatteFactor() {
   };
 
   return (
-      <main className="mx-auto max-w-6xl space-y-6 p-4 pb-24 md:p-6">
+      <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
         <div className="space-y-2">
           <h1 className="font-zx-head text-2xl font-bold">{t('latte.title')}</h1>
           {loading && <p className="text-sm text-zx-text-soft">{t('latte.loading')}</p>}
