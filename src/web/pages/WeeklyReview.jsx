@@ -63,9 +63,12 @@ export default function WeeklyReview() {
     if (!dirty) setForm(data.form);
   }, [data.form, dirty]);
 
-  // If already reviewed this week, start at step 2 (commit/edit)
+  // If already reviewed this week, show done screen (user can click Edit to modify)
   useEffect(() => {
-    if (data.form.oneLesson || data.form.oneActionNextWeek) setStep(2);
+    if (data.form.oneLesson || data.form.oneActionNextWeek) {
+      setStep(2);
+      setDone(true);
+    }
   }, [data.form]);
 
   // Auto-save: debounced 30s when dirty and not already saving
