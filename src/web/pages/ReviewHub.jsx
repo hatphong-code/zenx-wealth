@@ -194,7 +194,7 @@ export default function ReviewHub() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-3">{t('reviewHub.pyfLabel')}</p>
                 <div className="flex items-center justify-between gap-4 mb-2">
                   <p className="text-sm text-zx-text">
-                    {formatNumber(pyfData.status?.progress || 0, { style: 'percent', maximumFractionDigits: 0 })} {t('reviewHub.pyfProgress')}
+                    {formatNumber(pyfData.status?.progress || 0)}% {t('reviewHub.pyfProgress')}
                   </p>
                   <Link to="/plan" className="text-xs font-semibold text-zx-accent hover:underline">
                     {t('reviewHub.pyfViewAll')}
@@ -203,7 +203,7 @@ export default function ReviewHub() {
                 <div className="h-2 rounded-zx-pill bg-zx-surface-2 overflow-hidden mb-2">
                   <div
                     className="h-full rounded-zx-pill bg-zx-positive transition-all"
-                    style={{ width: `${Math.min(100, Math.round((pyfData.status?.progress || 0) * 100))}%` }}
+                    style={{ width: `${Math.min(100, Math.round(pyfData.status?.progress || 0))}%` }}
                   />
                 </div>
                 {behindBucket && behindBucket.pct < 80 && (

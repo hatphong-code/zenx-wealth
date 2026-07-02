@@ -61,6 +61,24 @@ vi.mock('../../../core/hooks/useWeeklyReviewData', () => ({
   }),
 }));
 
+vi.mock('../../../core/hooks/useFeatureAccess', () => ({
+  useFeatureAccess: () => ({ canAccess: () => false }),
+}));
+
+vi.mock('../../../core/hooks/usePayYourselfFirstData', () => ({
+  usePayYourselfFirstData: () => ({
+    data: { status: { required: 0, done: 0, remaining: 0, progress: 0 }, allocations: [] },
+    loading: false,
+  }),
+}));
+
+vi.mock('../../../core/hooks/useGoalTracking', () => ({
+  useGoalTracking: () => ({
+    data: { profile: null, progress: null, latestCheck: null, lastUpdated: null },
+    loading: false,
+  }),
+}));
+
 vi.mock('../../components/AppNav', () => ({
   default: () => <div>Mock Nav</div>,
 }));
@@ -137,6 +155,7 @@ describe('WeeklyReview', () => {
       form: {
         oneLesson: 'Cut delivery by half',
         oneActionNextWeek: 'Transfer surplus on Monday',
+        previousCommitmentStatus: null,
       },
     }));
 
@@ -147,6 +166,7 @@ describe('WeeklyReview', () => {
         form: {
           oneLesson: 'Cut delivery by half',
           oneActionNextWeek: 'Transfer surplus on Monday',
+          previousCommitmentStatus: null,
         },
       })
     );
