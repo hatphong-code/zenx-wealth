@@ -11,6 +11,8 @@ import { invalidateAfterWeeklyReviewWrite } from '../../core/services/cacheCoord
 import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
 import { usePayYourselfFirstData } from '../../core/hooks/usePayYourselfFirstData';
 import { useGoalTracking } from '../../core/hooks/useGoalTracking';
+import { useSavingsPlansData } from '../../core/hooks/useSavingsPlansData';
+import { getMonthlyCheckins, getCurrentPlanMonthIdx, addMonthsToKey } from '../../core/services/savingsPlanService';
 
 function HL() { return <div className="h-px bg-zx-line" />; }
 
@@ -60,6 +62,10 @@ function buildInsight(review, form, t, extra = {}) {
     }
   }
 
+  if (extra.pendingEscalatorCheckins > 0) {
+    lines.push(t('weeklyReview.insights.escalatorCheckinDue', { count: extra.pendingEscalatorCheckins }));
+  }
+
   if (form.oneLesson) {
     const lesson = `${form.oneLesson.slice(0, 80)}${form.oneLesson.length > 80 ? '…' : ''}`;
     lines.push(t('weeklyReview.insights.yourLesson', { lesson }));
@@ -77,6 +83,8 @@ export default function WeeklyReview() {
   const { fmt } = useNumberFormat();
   const { data: pyfData } = usePayYourselfFirstData(isPremium ? user?.uid : null);
   const { data: goalData } = useGoalTracking(user?.uid);
+  const { data: savingsPlansData } = useSavingsPlansData(isPremium ? user?.uid : null);
+  const [pendingEscalatorCheckins, setPendingEscalatorCheckins] = useState(0);
   const [form, setForm] = useState(data.form);
   const [previousCommitmentStatus, setPreviousCommitmentStatus] = useState(data.form.previousCommitmentStatus || null);
   const [saving, setSaving] = useState(false);
@@ -105,6 +113,29 @@ export default function WeeklyReview() {
       setDone(true);
     }
   }, [data.form]);
+
+  // Nhắc checkin tháng còn thiếu của Savings Escalator plan đang active
+  useEffect(() => {
+    const activePlans = savingsPlansData?.activePlans || [];
+    if (!user?.uid || !isPremium || activePlans.length === 0) {
+      setPendingEscalatorCheckins(0);
+      return;
+    }
+    let cancelled = false;
+    Promise.all(activePlans.map((plan) => getMonthlyCheckins(user.uid, plan.id)))
+      .then((results) => {
+        if (cancelled) return;
+        const pending = activePlans.filter((plan, i) => {
+          if (!plan.executionStartDate) return false;
+          const idx = getCurrentPlanMonthIdx(plan.executionStartDate);
+          const monthKey = addMonthsToKey(plan.executionStartDate, idx - 1);
+          return !results[i]?.[monthKey];
+        }).length;
+        setPendingEscalatorCheckins(pending);
+      })
+      .catch(() => { if (!cancelled) setPendingEscalatorCheckins(0); });
+    return () => { cancelled = true; };
+  }, [user?.uid, isPremium, savingsPlansData]);
 
   // Auto-save: debounced 30s when dirty and not already saving
   useEffect(() => {
@@ -181,7 +212,7 @@ export default function WeeklyReview() {
 
   const score = review.wealthDisciplineScore || 0;
   const scoreColor = score >= 80 ? 'text-zx-positive' : score >= 50 ? 'text-zx-gold' : score > 0 ? 'text-zx-accent' : 'text-zx-text-soft';
-  const insight = buildInsight(review, form, t, { pyf: pyfData, goal: goalData });
+  const insight = buildInsight(review, form, t, { pyf: pyfData, goal: goalData, pendingEscalatorCheckins });
 
   // Done/success screen
   if (done) {

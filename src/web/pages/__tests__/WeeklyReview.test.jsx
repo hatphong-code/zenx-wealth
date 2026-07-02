@@ -79,6 +79,19 @@ vi.mock('../../../core/hooks/useGoalTracking', () => ({
   }),
 }));
 
+vi.mock('../../../core/hooks/useSavingsPlansData', () => ({
+  useSavingsPlansData: () => ({
+    data: { plans: [], activePlans: [], pendingPlans: [] },
+    loading: false,
+  }),
+}));
+
+vi.mock('../../../core/services/savingsPlanService', () => ({
+  getMonthlyCheckins: vi.fn(() => Promise.resolve({})),
+  getCurrentPlanMonthIdx: vi.fn(() => 1),
+  addMonthsToKey: vi.fn(() => '2026-06'),
+}));
+
 vi.mock('../../components/AppNav', () => ({
   default: () => <div>Mock Nav</div>,
 }));

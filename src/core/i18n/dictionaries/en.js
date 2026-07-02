@@ -753,6 +753,8 @@ export default {
     latteTip: 'Cut 50% Latte Factor = +{amount}/month',
     debtCount: '{count} debt(s)',
     noDebt: 'No debt ✓',
+    escalatorActiveCount: '{count} plan(s)',
+    escalatorActiveSub: 'Currently running',
     action: {
       emergencyFund: 'View emergency fund',
       payYourself: 'Pay Yourself First',
@@ -875,6 +877,9 @@ export default {
     goalOnTrack: 'On track this week ✓',
     goalBehind: 'Need to accelerate this week',
     goalViewAll: 'View roadmap',
+    healthScoreLabel: 'Financial Health Score',
+    healthScoreSub: 'Monthly overall assessment',
+    scoreVsHealthScore: "This is your discipline score for this week — want to see the monthly overall picture?",
   },
   weeklyReview: {
     autoSaved: 'Auto-saved',
@@ -920,6 +925,7 @@ export default {
       goalBehind: "This week's savings are {pct}% short of your goal target — review your spending.",
       yourLesson: 'Your recorded lesson: "{lesson}"',
       insufficientData: 'Insufficient transaction data this week for deep analysis. Record all income and expenses for better insights.',
+      escalatorCheckinDue: "You have {count} Savings Escalator plan(s) waiting for this month's check-in.",
     },
   },
   reviewHistory: {
@@ -1099,6 +1105,8 @@ export default {
     totalScoreLabel: 'Total score: {score} / 100',
     gradeLabel: 'Grade',
     totalLabel: 'Total score',
+    backToReview: '← Back to Review',
+    relationToReview: "This is your overall monthly score (5 pillars) — different from the weekly discipline score in Weekly Review. They complement, not replace, each other.",
     pillars: { cashFlow: 'Monthly cash flow', savings: 'Savings rate', emergency: 'Emergency fund', debt: 'Debt pressure', consistency: 'Consistency' },
     pillarHints: {
       cashFlow: 'Positive = good; higher surplus = higher score.',
