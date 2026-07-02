@@ -1,4 +1,5 @@
-﻿import { Activity } from 'lucide-react';
+﻿import { Activity, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { Card, CardContent, CardHeader, CardTitle } from '../../core/../web/components/ui/card';
@@ -91,6 +92,9 @@ export default function HealthScore() {
 
   return (
     <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 pb-24 md:pb-8 space-y-6">
+      <Link to="/review" className="inline-flex items-center gap-1.5 text-sm text-zx-text-soft hover:text-zx-accent transition">
+        <ArrowLeft className="h-4 w-4" /> {t('healthScore.backToReview')}
+      </Link>
       <div className="space-y-1">
         <div className="inline-flex items-center gap-2 rounded-full border border-zx-line px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zx-text-soft">
           <Activity className="h-3.5 w-3.5" />
@@ -98,6 +102,7 @@ export default function HealthScore() {
         </div>
         <h1 className="font-zx-head text-2xl font-bold text-zx-text">{t('healthScore.title')}</h1>
         <p className="text-sm text-zx-text-soft">{t('healthScore.subtitle')}</p>
+        <p className="text-xs text-zx-text-soft/70 italic">{t('healthScore.relationToReview')}</p>
         {loading && <p className="text-xs text-zx-text-soft">{t('healthScore.loading')}</p>}
         {refreshing && <p className="text-xs text-zx-accent">{t('common.loading')}</p>}
       </div>

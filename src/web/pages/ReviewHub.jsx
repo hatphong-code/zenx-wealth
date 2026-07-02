@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore/lite';
-import { ArrowRight, BarChart3, Bot, ClipboardCheck, History } from 'lucide-react';
+import { Activity, ArrowRight, BarChart3, Bot, ClipboardCheck, History } from 'lucide-react';
 import { useAuth } from '../../core/auth/useAuth';
 import { useI18n } from '../../core/i18n/useI18n';
 import { useWeeklyReviewData } from '../../core/hooks/useWeeklyReviewData';
@@ -118,6 +118,12 @@ export default function ReviewHub() {
                   </div>
                   <p className="text-sm text-zx-text-soft">
                     {score >= 80 ? t('reviewHub.scoreExcellent') : score >= 60 ? t('reviewHub.scoreGood') : score >= 40 ? t('reviewHub.scoreOk') : t('reviewHub.scoreHard')}
+                  </p>
+                  <p className="text-[11px] text-zx-text-soft/70 mt-1">
+                    {t('reviewHub.scoreVsHealthScore')}{' '}
+                    <Link to="/health-score" className="underline hover:text-zx-accent transition">
+                      {t('reviewHub.healthScoreLabel')}
+                    </Link>
                   </p>
                 </div>
                 {history.length > 1 && (
@@ -265,6 +271,11 @@ export default function ReviewHub() {
                 icon: Bot, label: t('reviewHub.aiCoachLabel'),
                 sub: t('reviewHub.askAssistant'),
                 to: '/ai-coach', featureKey: 'ai_coach', active: false,
+              },
+              {
+                icon: Activity, label: t('reviewHub.healthScoreLabel'),
+                sub: t('reviewHub.healthScoreSub'),
+                to: '/health-score', featureKey: 'health_score', active: false,
               },
             ].filter(item => canAccess(item.featureKey)).map((item, i) => (
               <div key={item.to}>

@@ -8,6 +8,7 @@ import { useWealthRoadmapData } from '../../core/hooks/useWealthRoadmapData';
 import { useDebtData } from '../../core/hooks/useDebtData';
 import { useEmergencyFundData } from '../../core/hooks/useEmergencyFundData';
 import { usePayYourselfFirstData } from '../../core/hooks/usePayYourselfFirstData';
+import { useSavingsPlansData } from '../../core/hooks/useSavingsPlansData';
 import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
 import { fmtShort, formatNumber } from '../../core/utils/formatters';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
@@ -310,6 +311,7 @@ export default function PlanHub() {
   const { data: debtData } = useDebtData(user?.uid);
   const { data: emergencyData } = useEmergencyFundData(user?.uid);
   const { data: pyfData } = usePayYourselfFirstData(user?.uid);
+  const { data: savingsPlansData } = useSavingsPlansData(user?.uid);
 
   const loading = statsLoading || roadmapLoading;
   const currentPhase = roadmap.phases.find(p => p.id === roadmap.currentPhaseId) || roadmap.phases[0] || null;
@@ -324,6 +326,7 @@ export default function PlanHub() {
     ? applyDebtOverlay(pyfData.allocationRule, debtData.summary, pyfData.totalIncome)
     : null;
   const highestDebtRate = debtData?.summary?.highestPriorityDebt?.interestRate;
+  const escalatorActivePlans = savingsPlansData?.activePlans || [];
 
   const planItems = [
     {
@@ -384,10 +387,14 @@ export default function PlanHub() {
     },
     {
       key: 'savingsEscalator', label: t('planHub.items.savingsEscalator'),
-      value: null,
-      sub: t('savingsEscalator.planItemSub'),
+      value: escalatorActivePlans.length > 0
+        ? t('planHub.escalatorActiveCount', { count: escalatorActivePlans.length })
+        : null,
+      sub: escalatorActivePlans.length > 0
+        ? t('planHub.escalatorActiveSub')
+        : t('savingsEscalator.planItemSub'),
       to: '/savings-escalator',
-      status: 'upcoming',
+      status: escalatorActivePlans.length > 0 ? 'active' : 'upcoming',
       featureKey: 'savings_escalator',
     },
   ];

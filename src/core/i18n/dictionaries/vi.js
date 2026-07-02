@@ -765,6 +765,8 @@ export default {
     latteTip: 'Cắt 50% Latte Factor = +{amount}/tháng',
     debtCount: '{count} khoản nợ',
     noDebt: 'Không có nợ ✓',
+    escalatorActiveCount: '{count} kế hoạch',
+    escalatorActiveSub: 'Đang chạy',
     action: {
       emergencyFund: 'Xem quỹ dự phòng',
       payYourself: 'Trả mình trước',
@@ -887,6 +889,9 @@ export default {
     goalOnTrack: 'Đang đúng lộ trình ✓',
     goalBehind: 'Cần tăng tốc tuần này',
     goalViewAll: 'Xem lộ trình',
+    healthScoreLabel: 'Điểm sức khỏe tài chính',
+    healthScoreSub: 'Đánh giá tổng thể theo tháng',
+    scoreVsHealthScore: 'Đây là điểm kỷ luật tuần này — muốn xem đánh giá tổng thể theo tháng?',
   },
   weeklyReview: {
     autoSaved: 'Đã lưu tự động',
@@ -936,6 +941,7 @@ export default {
       goalBehind: 'Tiết kiệm tuần này thiếu {pct}% so với mục tiêu — cân đối lại chi tiêu.',
       yourLesson: 'Bài học bạn ghi: "{lesson}"',
       insufficientData: 'Tuần này thiếu dữ liệu giao dịch để phân tích sâu. Ghi đủ thu chi sẽ cho insight tốt hơn.',
+      escalatorCheckinDue: 'Bạn có {count} kế hoạch Savings Escalator đang chờ checkin tháng này.',
     },
   },
   reviewHistory: {
@@ -1144,6 +1150,8 @@ export default {
     totalScoreLabel: 'Tổng điểm: {score} / 100',
     gradeLabel: 'Xếp hạng',
     totalLabel: 'Tổng điểm',
+    backToReview: '← Về Review',
+    relationToReview: 'Điểm này đánh giá tổng thể theo tháng (5 trụ cột) — khác với điểm kỷ luật tuần trong Weekly Review, cả hai bổ trợ nhau chứ không thay thế nhau.',
     pillars: {
       cashFlow: 'Dòng tiền tháng',
       savings: 'Tỷ lệ tiết kiệm',
