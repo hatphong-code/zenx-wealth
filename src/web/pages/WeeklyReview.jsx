@@ -8,11 +8,14 @@ import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import { saveWeeklyReview, setWeeklyReviewCache } from '../../core/services/weeklyReviewService';
 import { useWeeklyReviewData } from '../../core/hooks/useWeeklyReviewData';
 import { invalidateAfterWeeklyReviewWrite } from '../../core/services/cacheCoordinator';
+import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
+import { usePayYourselfFirstData } from '../../core/hooks/usePayYourselfFirstData';
+import { useGoalTracking } from '../../core/hooks/useGoalTracking';
 
 function HL() { return <div className="h-px bg-zx-line" />; }
 
 /* Generate contextual AI insight from review data */
-function buildInsight(review, form, t) {
+function buildInsight(review, form, t, extra = {}) {
   const lines = [];
   const savingsPct = Math.round((review.savingsRate || 0) * 100);
 
@@ -33,6 +36,30 @@ function buildInsight(review, form, t) {
   } else if (review.wealthDisciplineScore > 0 && review.wealthDisciplineScore < 50) {
     lines.push(t('weeklyReview.insights.lowDisciplineScore'));
   }
+
+  const { pyf, goal } = extra;
+  if (pyf?.status?.required > 0) {
+    const behind = [...pyf.allocations]
+      .filter((a) => a.key !== 'living' && a.amount > 0)
+      .map((a) => ({ ...a, pct: Math.round((a.actual / a.amount) * 100) }))
+      .sort((a, b) => a.pct - b.pct)[0];
+    if (behind && behind.pct < 50) {
+      lines.push(t('weeklyReview.insights.pyfBehind', {
+        bucket: t('payYourself.allocationLabels.' + behind.key),
+        pct: behind.pct,
+      }));
+    }
+  }
+  if (goal?.progress?.weeklyTargetSavings > 0) {
+    const actualThisWeek = Math.max(0, review.income - review.expense);
+    if (actualThisWeek >= goal.progress.weeklyTargetSavings) {
+      lines.push(t('weeklyReview.insights.goalOnTrack'));
+    } else {
+      const gapPct = Math.round((1 - actualThisWeek / goal.progress.weeklyTargetSavings) * 100);
+      lines.push(t('weeklyReview.insights.goalBehind', { pct: gapPct }));
+    }
+  }
+
   if (form.oneLesson) {
     const lesson = `${form.oneLesson.slice(0, 80)}${form.oneLesson.length > 80 ? '…' : ''}`;
     lines.push(t('weeklyReview.insights.yourLesson', { lesson }));
@@ -43,10 +70,15 @@ function buildInsight(review, form, t) {
 export default function WeeklyReview() {
   const { user } = useAuth();
   const { t } = useI18n();
+  const { canAccess } = useFeatureAccess(user);
+  const isPremium = canAccess('pay_yourself_first');
   const { data, setData, loading, refreshing, error, setError } = useWeeklyReviewData(user?.uid);
   const { weekMeta, review } = data;
   const { fmt } = useNumberFormat();
+  const { data: pyfData } = usePayYourselfFirstData(isPremium ? user?.uid : null);
+  const { data: goalData } = useGoalTracking(user?.uid);
   const [form, setForm] = useState(data.form);
+  const [previousCommitmentStatus, setPreviousCommitmentStatus] = useState(data.form.previousCommitmentStatus || null);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [step, setStep] = useState(0); // 0=numbers, 1=reflect, 2=commit
@@ -60,7 +92,10 @@ export default function WeeklyReview() {
   ];
 
   useEffect(() => {
-    if (!dirty) setForm(data.form);
+    if (!dirty) {
+      setForm(data.form);
+      setPreviousCommitmentStatus(data.form.previousCommitmentStatus || null);
+    }
   }, [data.form, dirty]);
 
   // If already reviewed this week, show done screen (user can click Edit to modify)
@@ -82,6 +117,7 @@ export default function WeeklyReview() {
           weekEnd: Timestamp.fromDate(toDate(weekMeta.weekEnd)),
           oneLesson: form.oneLesson.trim(),
           oneActionNextWeek: form.oneActionNextWeek.trim(),
+          previousCommitmentStatus,
         });
         setAutoSavedAt(new Date());
         setDirty(false);
@@ -89,11 +125,16 @@ export default function WeeklyReview() {
       finally { setSaving(false); }
     }, 30_000);
     return () => clearTimeout(timer);
-  }, [dirty, form, saving, user, weekMeta]);
+  }, [dirty, form, previousCommitmentStatus, saving, user, weekMeta]);
 
   const updateField = (field, value) => {
     setDirty(true);
     setForm(c => ({ ...c, [field]: value }));
+  };
+
+  const chooseCommitmentStatus = (status) => {
+    setDirty(true);
+    setPreviousCommitmentStatus(status);
   };
 
   const handleSave = async () => {
@@ -113,11 +154,12 @@ export default function WeeklyReview() {
         topLatteCategory: review.topLatteCategory,
         oneLesson: form.oneLesson.trim(),
         oneActionNextWeek: form.oneActionNextWeek.trim(),
+        previousCommitmentStatus,
       });
 
       const nextData = {
         ...data,
-        form: { oneLesson: form.oneLesson.trim(), oneActionNextWeek: form.oneActionNextWeek.trim() },
+        form: { oneLesson: form.oneLesson.trim(), oneActionNextWeek: form.oneActionNextWeek.trim(), previousCommitmentStatus },
       };
       setData(nextData);
       setWeeklyReviewCache(user.uid, weekMeta.weekKey, nextData);
@@ -139,7 +181,7 @@ export default function WeeklyReview() {
 
   const score = review.wealthDisciplineScore || 0;
   const scoreColor = score >= 80 ? 'text-zx-positive' : score >= 50 ? 'text-zx-gold' : score > 0 ? 'text-zx-accent' : 'text-zx-text-soft';
-  const insight = buildInsight(review, form, t);
+  const insight = buildInsight(review, form, t, { pyf: pyfData, goal: goalData });
 
   // Done/success screen
   if (done) {
@@ -279,6 +321,33 @@ export default function WeeklyReview() {
               <p className="text-sm text-zx-text-soft">
                 {t('weeklyReview.reflectQuestion')}
               </p>
+
+              {review.previousCommitment && (
+                <div className="rounded-zx-sm border border-zx-line bg-zx-surface-2 p-4 space-y-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zx-text-soft">{t('weeklyReview.previousCommitmentLabel')}</p>
+                  <p className="text-sm font-medium text-zx-text">"{review.previousCommitment}"</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {['done', 'partial', 'skip'].map((s) => (
+                      <button
+                        key={s}
+                        aria-label={t(`weeklyReview.commitmentStatus.${s}`)}
+                        onClick={() => chooseCommitmentStatus(s)}
+                        className={`px-3 py-1.5 rounded-zx-pill text-xs font-semibold transition border ${
+                          previousCommitmentStatus === s
+                            ? s === 'done'
+                              ? 'bg-zx-positive text-zx-on-accent border-transparent'
+                              : s === 'partial'
+                              ? 'bg-zx-gold text-zx-bg border-transparent'
+                              : 'bg-zx-surface-2 text-zx-text-soft border-zx-line'
+                            : 'border-zx-line text-zx-text-soft hover:text-zx-text'
+                        }`}
+                      >
+                        {t(`weeklyReview.commitmentStatus.${s}`)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {insight.length > 0 && (
                 <div className="rounded-zx-sm bg-zx-surface-2 border border-zx-line p-4 space-y-2">

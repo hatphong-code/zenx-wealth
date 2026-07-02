@@ -11,7 +11,7 @@ import {
   Timestamp,
   where,
 } from 'firebase/firestore/lite';
-import { endOfWeek, format, startOfWeek } from 'date-fns';
+import { endOfWeek, format, startOfWeek, subWeeks } from 'date-fns';
 import { db } from './firebaseDb';
 import { getCachedValue, loadWithCache, removeCachedValue, setCachedValue } from './sessionCache';
 import { getUserProfile } from './userService';
@@ -61,27 +61,35 @@ async function computeWeeklyReview(userId, weekMeta) {
     where('date', '<=', Timestamp.fromDate(weekMeta.weekEnd))
   );
 
-  const [transactionSnapshot, emergencySnapshot, existingReview] = await Promise.all([
+  const prevWeekKey = format(subWeeks(weekMeta.weekStart, 1), 'yyyy-MM-dd');
+
+  const [transactionSnapshot, emergencySnapshot, existingReview, prevReview] = await Promise.all([
     getDocs(transactionsQuery),
     getDocs(collection(db, 'users', userId, 'emergencyFund')),
     getDoc(doc(db, 'users', userId, 'weeklyReviews', weekMeta.weekKey)),
+    getDoc(doc(db, 'users', userId, 'weeklyReviews', prevWeekKey)),
   ]);
 
   const transactions = transactionSnapshot.docs.map((entry) => entry.data());
   const emergencyRecords = emergencySnapshot.docs.map((entry) => entry.data());
   const existingData = existingReview.data() || {};
+  const prevData = prevReview.data() || {};
 
   return {
     weekMeta,
-    review: calculateWeeklyMetrics({
-      transactions,
-      emergencyRecords,
-      currency,
-      monthlyEssentialExpense,
-    }),
+    review: {
+      ...calculateWeeklyMetrics({
+        transactions,
+        emergencyRecords,
+        currency,
+        monthlyEssentialExpense,
+      }),
+      previousCommitment: prevData.oneActionNextWeek || '',
+    },
     form: {
       oneLesson: existingData.oneLesson || '',
       oneActionNextWeek: existingData.oneActionNextWeek || '',
+      previousCommitmentStatus: existingData.previousCommitmentStatus || null,
     },
   };
 }

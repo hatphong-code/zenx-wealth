@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-07-01 (v3.22 — Data integrity: PYF tracking, EF service refactor, debtRepayment bucket, 404 route)
+Last updated: 2026-07-02 (v3.23 — Review Enrichment: commitment loop closure, PYF link, Goal link, smarter insights)
 
 ## Current Phase
 
@@ -43,7 +43,7 @@ Default hosting URL: https://zenx-wealth.web.app
 - Trading Risk
 - Assets (tab trong Nền tài chính)
 - Wealth Roadmap (phase-based checklist, i18n)
-- Weekly Review (3-step wizard, 2-col desktop, sticky summary panel)
+- Weekly Review (3-step wizard, 2-col desktop, sticky summary panel) — **v3.23**: Step 1 hiển thị cam kết tuần trước + 3-button check-in (done/partial/skip), lưu vào `previousCommitmentStatus`. ReviewHub: PYF card (progress bar + cảnh báo bucket lag, premium only) + Goal card (on-track signal vs weeklyTargetSavings). `buildInsight()` extended với PYF/goal awareness. Hook mới `useGoalTracking.js`.
 - Reports (trend layer + estimated net worth)
 - AI Coach (LLM-backed via Claude API Cloud Function)
 - Monthly Financial Letter (download + email delivery via Resend)

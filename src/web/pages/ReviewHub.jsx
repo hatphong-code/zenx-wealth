@@ -7,10 +7,12 @@ import { useI18n } from '../../core/i18n/useI18n';
 import { useWeeklyReviewData } from '../../core/hooks/useWeeklyReviewData';
 import { useFeatureAccess } from '../../core/hooks/useFeatureAccess';
 import { db } from '../../core/services/firebaseDb';
-import { formatDate, formatNumber, formatPercent } from '../../core/utils/formatters';
+import { formatDate, formatMoney, formatNumber, formatPercent } from '../../core/utils/formatters';
 import { useNumberFormat } from '../../core/hooks/useNumberFormat';
 import StreakBadge from '../components/StreakBadge';
 import { useReviewStreak } from '../../core/hooks/useReviewStreak';
+import { usePayYourselfFirstData } from '../../core/hooks/usePayYourselfFirstData';
+import { useGoalTracking } from '../../core/hooks/useGoalTracking';
 
 function HL() { return <div className="h-px bg-zx-line" />; }
 
@@ -50,6 +52,9 @@ export default function ReviewHub() {
   const { fmt } = useNumberFormat();
 
   const { data: streakData } = useReviewStreak(user?.uid);
+  const isPremium = canAccess('pay_yourself_first');
+  const { data: pyfData } = usePayYourselfFirstData(isPremium ? user?.uid : null);
+  const { data: goalData } = useGoalTracking(user?.uid);
   const [history, setHistory] = useState([]);
 
   // Fetch last 5 weekly review scores
@@ -72,6 +77,18 @@ export default function ReviewHub() {
   const score = review.wealthDisciplineScore || 0;
   const scoreColor = score >= 80 ? 'text-zx-positive' : score >= 50 ? 'text-zx-gold' : score > 0 ? 'text-zx-accent' : 'text-zx-text-soft';
   const savingsRatePct = Math.round((review.savingsRate || 0) * 100);
+
+  const behindBucket = isPremium && pyfData?.allocations?.length > 0
+    ? [...pyfData.allocations]
+        .filter((a) => a.key !== 'living' && a.amount > 0)
+        .map((a) => ({ ...a, pct: Math.round((a.actual / a.amount) * 100) }))
+        .sort((a, b) => a.pct - b.pct)[0]
+    : null;
+
+  const weeklyGoalTarget = goalData?.progress?.weeklyTargetSavings || 0;
+  const actualSavingsThisWeek = Math.max(0, (review.income || 0) - (review.expense || 0));
+  const goalOnTrack = weeklyGoalTarget > 0 && actualSavingsThisWeek >= weeklyGoalTarget;
+  const currency = review.currency || 'VND';
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 pb-24 md:pb-8">
@@ -167,6 +184,61 @@ export default function ReviewHub() {
                 {t('reviewHub.startReview')}
               </Link>
             </section>
+          )}
+
+          {/* PYF link card */}
+          {isPremium && pyfData && (
+            <>
+              <HL />
+              <section className="py-6">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-3">{t('reviewHub.pyfLabel')}</p>
+                <div className="flex items-center justify-between gap-4 mb-2">
+                  <p className="text-sm text-zx-text">
+                    {formatNumber(pyfData.status?.progress || 0, { style: 'percent', maximumFractionDigits: 0 })} {t('reviewHub.pyfProgress')}
+                  </p>
+                  <Link to="/plan" className="text-xs font-semibold text-zx-accent hover:underline">
+                    {t('reviewHub.pyfViewAll')}
+                  </Link>
+                </div>
+                <div className="h-2 rounded-zx-pill bg-zx-surface-2 overflow-hidden mb-2">
+                  <div
+                    className="h-full rounded-zx-pill bg-zx-positive transition-all"
+                    style={{ width: `${Math.min(100, Math.round((pyfData.status?.progress || 0) * 100))}%` }}
+                  />
+                </div>
+                {behindBucket && behindBucket.pct < 80 && (
+                  <p className="text-xs text-zx-negative">
+                    {t('reviewHub.pyfBehindHint', {
+                      bucket: t('payYourself.allocationLabels.' + behindBucket.key),
+                      pct: behindBucket.pct,
+                    })}
+                  </p>
+                )}
+              </section>
+            </>
+          )}
+
+          {/* Goal link card */}
+          {goalData?.progress && (
+            <>
+              <HL />
+              <section className="py-6">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zx-text-soft mb-3">{t('reviewHub.goalLabel')}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className={`text-sm font-semibold ${goalOnTrack ? 'text-zx-positive' : 'text-zx-accent'}`}>
+                    {goalOnTrack ? t('reviewHub.goalOnTrack') : t('reviewHub.goalBehind')}
+                  </p>
+                  <Link to="/plan" className="text-xs font-semibold text-zx-accent hover:underline">
+                    {t('reviewHub.goalViewAll')}
+                  </Link>
+                </div>
+                {weeklyGoalTarget > 0 && (
+                  <p className="text-xs text-zx-text-soft mt-1">
+                    {formatMoney(actualSavingsThisWeek, currency)} / {formatMoney(weeklyGoalTarget, currency)}
+                  </p>
+                )}
+              </section>
+            </>
           )}
         </div>
 

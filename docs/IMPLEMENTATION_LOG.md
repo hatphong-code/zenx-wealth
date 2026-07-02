@@ -2,6 +2,22 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-07-02 — Feat: Review Enrichment (commitment loop, PYF link, Goal link, smarter insights)
+
+**Phần A — Commitment loop closure:** `weeklyReviewService.js` fetch thêm doc tuần trước (`prevWeekKey`) để lấy `previousCommitment`. `WeeklyReview.jsx` step 1: hiển thị cam kết tuần trước + 3 nút chọn trạng thái (done/partial/skip) lưu vào `previousCommitmentStatus`. Sync vào auto-save và handleSave payload.
+
+**Phần B — PYF link trong ReviewHub:** Sau stats grid, card hiển thị % phân bổ tháng + progress bar + cảnh báo bucket lag nhất. Chỉ hiển thị với tài khoản premium.
+
+**Phần C — Goal link trong ReviewHub:** Card so sánh tiết kiệm thực tuần này vs `weeklyTargetSavings` → on-track/behind. Hook mới `useGoalTracking.js` bọc `goalTrackingService`.
+
+**Phần D — Smarter insights:** `buildInsight()` nhận thêm param `extra = { pyf, goal }` — sinh insight PYF bucket lag + tiến độ goal tuần này khi có dữ liệu.
+
+**Phần E — i18n:** Thêm keys `previousCommitmentLabel`, `commitmentStatus.{done/partial/skip}`, `insights.{pyfBehind/goalOnTrack/goalBehind}` (weeklyReview); keys `pyfLabel/pyfProgress/pyfViewAll/pyfBehindHint/goalLabel/goalOnTrack/goalBehind/goalViewAll` (reviewHub) vào vi.js + en.js.
+
+**Files:** `weeklyReviewService.js`, `useWeeklyReviewData.js`, `useGoalTracking.js` (mới), `WeeklyReview.jsx`, `ReviewHub.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-07-01 — Feat: Review Streak + Review Journal (/review/history)
 
 **Phần A — Review Streak:** `reviewStreakService.js` (pure `computeReviewStreak()` với quy tắc 1 freeze/tháng, TTL 5 phút), `useReviewStreak.js` hook, `StreakBadge.jsx` component (renders null khi streak=0). Tích hợp vào `ReviewHub.jsx` (cạnh khoảng ngày tuần) và `Dashboard.jsx` (cạnh greeting). `cacheCoordinator.js`: `invalidateAfterWeeklyReviewWrite` giờ clear thêm streak cache.
