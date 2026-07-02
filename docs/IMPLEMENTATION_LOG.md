@@ -2,6 +2,26 @@
 
 This file records meaningful implementation changes so the project can be followed without reading every commit.
 
+## 2026-07-02 — Feat: Plan/Review/Health Score cross-linking (SPEC v1)
+
+Theo `docs/260702/SPEC_plan_review_healthscore_link_v1.md`, 4 phần độc lập:
+
+**Phần A:** `PlanHub.jsx` hardcode `status: 'upcoming'` cho mục Savings Escalator dù đã có plan active — thêm `useSavingsPlansData`, hiện đúng trạng thái `active`/`upcoming` + số kế hoạch đang chạy.
+
+**Phần B:** `/health-score` cô lập dù cùng nhóm nav với `/review`. `ReviewHub.jsx` thêm tile "Điểm sức khỏe tài chính" trỏ `/health-score`; `HealthScore.jsx` thêm link "← Về Review" quay lại `/review`.
+
+**Phần C:** Thêm caption/blurb làm rõ 2 hệ thống điểm (điểm kỷ luật tuần vs Health Score tháng) không thay thế nhau, không gộp logic — chỉ điều hướng chéo qua Link.
+
+**Phần D:** `WeeklyReview.jsx` — `buildInsight()` nhận thêm `pendingEscalatorCheckins`, nhắc user còn plan Savings Escalator active chưa checkin tháng hiện tại (tái dùng `getMonthlyCheckins`/`getCurrentPlanMonthIdx`/`addMonthsToKey` từ `savingsPlanService.js`, cùng pattern với `Dashboard.jsx`).
+
+**Fix phát sinh khi implement:** `useSavingsPlansData` không có `defaultValue` trong `createDataHook` (khác với `usePayYourselfFirstData`/`useGoalTracking`) → `data` là `null` cho tới khi fetch xong. Code trong PlanHub/WeeklyReview dùng optional chaining (`savingsPlansData?.activePlans || []`) thay vì truy cập trực tiếp như spec minh hoạ, tránh crash render đầu tiên — theo đúng pattern đã có ở `Dashboard.jsx`.
+
+**Test:** `WeeklyReview.test.jsx` thêm mock cho `useSavingsPlansData` + `savingsPlanService` (chưa có trước đó).
+
+**Files:** `PlanHub.jsx`, `ReviewHub.jsx`, `HealthScore.jsx`, `WeeklyReview.jsx`, `WeeklyReview.test.jsx`, `vi.js`, `en.js`
+
+---
+
 ## 2026-07-02 — Feat: Review Enrichment (commitment loop, PYF link, Goal link, smarter insights)
 
 **Phần A — Commitment loop closure:** `weeklyReviewService.js` fetch thêm doc tuần trước (`prevWeekKey`) để lấy `previousCommitment`. `WeeklyReview.jsx` step 1: hiển thị cam kết tuần trước + 3 nút chọn trạng thái (done/partial/skip) lưu vào `previousCommitmentStatus`. Sync vào auto-save và handleSave payload.

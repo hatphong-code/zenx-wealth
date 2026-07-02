@@ -1,6 +1,6 @@
 # ZenX Wealth Project Status
 
-Last updated: 2026-07-02 (v3.23 — Review Enrichment: commitment loop closure, PYF link, Goal link, smarter insights)
+Last updated: 2026-07-02 (v3.24 — Plan/Review/Health Score cross-linking: Savings Escalator status fix, Health Score ↔ Review tile + backlink, score relationship captions, escalator check-in insight)
 
 ## Current Phase
 
@@ -43,13 +43,13 @@ Default hosting URL: https://zenx-wealth.web.app
 - Trading Risk
 - Assets (tab trong Nền tài chính)
 - Wealth Roadmap (phase-based checklist, i18n)
-- Weekly Review (3-step wizard, 2-col desktop, sticky summary panel) — **v3.23**: Step 1 hiển thị cam kết tuần trước + 3-button check-in (done/partial/skip), lưu vào `previousCommitmentStatus`. ReviewHub: PYF card (progress bar + cảnh báo bucket lag, premium only) + Goal card (on-track signal vs weeklyTargetSavings). `buildInsight()` extended với PYF/goal awareness. Hook mới `useGoalTracking.js`.
+- Weekly Review (3-step wizard, 2-col desktop, sticky summary panel) — **v3.23**: Step 1 hiển thị cam kết tuần trước + 3-button check-in (done/partial/skip), lưu vào `previousCommitmentStatus`. ReviewHub: PYF card (progress bar + cảnh báo bucket lag, premium only) + Goal card (on-track signal vs weeklyTargetSavings). `buildInsight()` extended với PYF/goal awareness. Hook mới `useGoalTracking.js`. **v3.24**: ReviewHub thêm tile "Health Score" (link chéo); caption dưới điểm kỷ luật tuần liên kết sang `/health-score`; `buildInsight()` nhận thêm `pendingEscalatorCheckins` — nhắc checkin Savings Escalator plan đang active còn thiếu tháng hiện tại.
 - Reports (trend layer + estimated net worth)
 - AI Coach (LLM-backed via Claude API Cloud Function)
 - Monthly Financial Letter (download + email delivery via Resend)
 - Goal Tracking (12-month goal, multi-format parsing, on-track signal) + periodic check history (read-triggered, 3-month interval, user action recording)
 - Reverse Goal Calculator (PMT inverse, compound interest, `calculateRequiredMonthlySaving`) — integrated in PlanHub
-- Financial Health Score (5-pillar composite metric)
+- Financial Health Score (5-pillar composite metric) — **v3.24**: link "← Về Review" quay lại `/review`, blurb giải thích quan hệ với điểm kỷ luật tuần (2 hệ thống bổ trợ, không thay thế nhau)
 - Budget Templates (pre-built category structures by life phase) — all 5 templates now have consistent 6-key shape with `debtRepayment: 0`
 - Debt-Aware Allocation Overlay (`applyDebtOverlay`) — adjusts PYF allocation when bad debt exists, shown in PlanHub
 - Fund Reference List (Phase 2 complete) — 10 curated VN funds (`src/core/data/referenceFunds.js`) displayed in PlanHub collapsible section. Features: type/risk/manager filter chips, all columns sortable (name, manager, age, AUM, expense, risk, 1Y/3Y/5Y), fullName sub-line, mobile card layout. Return data populated for 7/10 funds from factsheets. Data corrections: SSI-IMF → SSIBF, MABF → MAGEF. `useFundsData` hook reads Firestore `funds` collection first, falls back to static file.
